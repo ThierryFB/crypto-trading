@@ -13,6 +13,6 @@
     "standard": "17.1.0"
   },
   "scripts": {
-    "start": "node ./script/backtesting.js"
+    "start": "node ./src/backtesting.js"
   }
 }

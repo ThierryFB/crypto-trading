@@ -1,7 +1,7 @@
 version: '3'
 services:
-  script:
-    container_name: script
+  crypto-trading:
+    container_name: crypto-trading
     build:
       context: .
       dockerfile: dev.Dockerfile
@@ -13,6 +13,6 @@ services:
       - "3002:3002"
     volumes:
       - ./src:/app/src
-      - ./script:/app/script
+      - ./data:/app/data
 networks:
   net:
