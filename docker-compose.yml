@@ -1,0 +1,18 @@
+version: '3'
+services:
+  script:
+    container_name: script
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    environment:
+      - NODE_ENV=development
+    networks:
+      net:
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./src:/app/src
+      - ./script:/app/script
+networks:
+  net:
