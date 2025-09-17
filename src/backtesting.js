@@ -1,5 +1,7 @@
 const { getTimeSeriesFromFile } = require('./utils')
+const { getBitcoinPrices } = require('./utils/big-query')
 const FILE_NAME = 'dogecoin-history.csv'
+const DATE_SOURCE = 'big-query' // 'file' or 'big-query'
 const transactions = []
 const enrichedTimeSeries = []
 const sellSize = 2500
@@ -10,7 +12,7 @@ const buyRSI = 30 // RSI threshold for buying
 const rsiRebuyThreshold = 5 // RSI threshold for re-buying after selling
 const rsiResellThreshold = 5 // RSI threshold for re-selling after buying
 
-const getPortfolio = ({ transactions, marketPrice }) => {
+const getPortfolio = ({ transactions, marketPrice, windowSize }) => {
   // Calculate the portfolio based on transactions
   const portfolio = {
     cash: startingCash,
@@ -40,7 +42,7 @@ const getPortfolio = ({ transactions, marketPrice }) => {
   portfolio.marketPrice = marketPrice
   portfolio.mtm = ((portfolio.marketPrice - portfolio.meanPrice) * portfolio.position).toFixed(2)
   portfolio.pnl = portfolio.realizedPnL + +portfolio.mtm
-  portfolio.returnOnCapital = ((portfolio.realizedPnL / (startingCash - portfolio.minCash)) * 100 * 12 / 13).toFixed(2)
+  portfolio.returnOnCapital = ((portfolio.realizedPnL / (startingCash - portfolio.minCash)) * 100 * 365 / windowSize).toFixed(2)
   return portfolio
 }
 
@@ -117,8 +119,12 @@ const getTransaction = ({ timeSeries }) => {
 
 const runBacktesting = async () => {
   try {
-    let rsi, buyTarget, sellTarget, lowRsi, highRsi
-    const records = await getTimeSeriesFromFile({ fileName: FILE_NAME })
+    let rsi, buyTarget, sellTarget, lowRsi, highRsi, records
+    if (DATE_SOURCE === 'big-query') {
+      records = await getBitcoinPrices({ date: '2023-01-01' })
+    } else {
+      records = await getTimeSeriesFromFile({ fileName: FILE_NAME })
+    }
     // Process the records
     for (let i = records.length - 15; i >= 0; i--) {
       const timeSeries = records.slice(i, i + 15)
@@ -147,8 +153,10 @@ const runBacktesting = async () => {
     }
     const portfolio = getPortfolio({
       transactions,
-      marketPrice: enrichedTimeSeries[0].price
+      marketPrice: enrichedTimeSeries[0].price,
+      windowSize: enrichedTimeSeries.length
     })
+    console.info('window size: ', enrichedTimeSeries.length)
     console.info('Time Series: ', enrichedTimeSeries.splice(0, 5))
     console.info('Buy Target: ', buyTarget)
     console.info('Sell Target: ', sellTarget)
