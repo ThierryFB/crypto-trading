@@ -1,0 +1,291 @@
+{
+  "name": "biitcoin-trading-bot",
+  "nodes": [
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        864,
+        -16
+      ],
+      "id": "a51fd732-e0ba-4138-9516-80ec5ebb3eb3",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        416,
+        128
+      ],
+      "id": "cdb9f63c-e32c-4c15-b39d-384d1f507c62",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 2
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -256,
+        128
+      ],
+      "id": "ee5d9217-1c75-43e5-8c0e-e17c287339ec",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://data-api.coindesk.com/index/cc/v1/historical/days?market=cadli&instrument=BTC-USD&limit=7&aggregate=1&fill=true&apply_mapping=true&response_format=JSON",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -32,
+        128
+      ],
+      "id": "5b9f8b2a-b0c1-485b-873a-d0a09e7bd2c9",
+      "name": "Get Bitcoin Prices",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "mmME2A9qLXPQbPUS",
+          "name": "Coindesk"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nconst lastPrices = []\ndata = $input.first().json.Data\nfor (const item of data) {\n  lastPrices.push({\n    close: item.CLOSE,\n    high: item.HIGH,\n    low: item.LOW,\n    open: item.OPEN,\n    timeClose: new Date(item.LAST_MESSAGE_TIMESTAMP * 1000).toISOString(),\n    timeHigh: new Date(item.HIGH_MESSAGE_TIMESTAMP * 1000).toISOString(),\n    timeLow: new Date(item.LOW_MESSAGE_TIMESTAMP * 1000).toISOString(),\n    timeOpen: new Date(item.FIRST_MESSAGE_TIMESTAMP * 1000).toISOString()\n  })\n}\n\nreturn lastPrices;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        128
+      ],
+      "id": "3153cfcb-62e2-45fe-9b0b-117349487ec7",
+      "name": "Format Prices"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "projectId": {
+          "__rl": true,
+          "value": "fine-proxy-470709-n9",
+          "mode": "list",
+          "cachedResultName": "automation",
+          "cachedResultUrl": "https://console.cloud.google.com/bigquery?project=fine-proxy-470709-n9"
+        },
+        "sqlQuery": "CREATE TEMP TABLE temp_data AS\nSELECT TIMESTAMP('{{ $json.timeOpen }}') as timeOpen, TIMESTAMP('{{ $json.timeClose }}') as timeClose, TIMESTAMP('{{ $json.timeHigh }}') as timeHigh,TIMESTAMP('{{ $json.timeLow }}') as timeLow,{{ $json.open }} as open,{{ $json.high }} as high,{{ $json.low }} as low,{{ $json.close }} as close;\n\n\n-- Then merge\nMERGE `fine-proxy-470709-n9.trading.bitcoin_history` AS target\nUSING temp_data AS source\nON target.timeOpen = source.timeOpen\nWHEN MATCHED THEN\n  UPDATE SET\n    target.timeHigh = source.timeHigh,\n    target.timeLow = source.timeLow,\n    target.open = source.open,\n    target.high = source.high,\n    target.low = source.low,\n    target.close = source.close\nWHEN NOT MATCHED THEN\n  INSERT (timeOpen, timeClose, timeHigh, timeLow, open, high, low, close)\n  VALUES (TIMESTAMP('{{ $json.timeOpen }}'), TIMESTAMP('{{ $json.timeClose }}'), TIMESTAMP('{{ $json.timeHigh }}'),TIMESTAMP('{{ $json.timeLow }}'),{{ $json.open }},{{ $json.high }},{{ $json.low }},{{ $json.close }})",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleBigQuery",
+      "typeVersion": 2.1,
+      "position": [
+        640,
+        176
+      ],
+      "id": "3b5f791d-c709-4b36-95e2-797be9c6582b",
+      "name": "Save Prices",
+      "credentials": {
+        "googleApi": {
+          "id": "pbOoWPtIeImRacxn",
+          "name": "Service Account - Gmail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "projectId": {
+          "__rl": true,
+          "value": "fine-proxy-470709-n9",
+          "mode": "list",
+          "cachedResultName": "automation",
+          "cachedResultUrl": "https://console.cloud.google.com/bigquery?project=fine-proxy-470709-n9"
+        },
+        "sqlQuery": "SELECT\n  DATETIME(timeOpen, 'UTC') as timeOpen,\n  DATETIME(timeClose, 'UTC') as timeClose,\n  DATETIME(timeHigh, 'UTC') as timeHigh,\n  DATETIME(timeLow, 'UTC') as timeLow,\n  open,\n  high,\n  low,\n  close\nFROM trading.bitcoin_history\nWHERE timeOpen < TIMESTAMP(CURRENT_DATE())\nORDER BY timeOpen DESC LIMIT 50",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleBigQuery",
+      "typeVersion": 2.1,
+      "position": [
+        640,
+        -16
+      ],
+      "id": "178e6dbe-ed3b-46ac-bfa7-da54cecbe916",
+      "name": "Get Prices from DB",
+      "credentials": {
+        "googleApi": {
+          "id": "8tNwfr1ZxTKOoe0Y",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const enrichedTimeSeries = []\nconst sellRSI = 70 // RSI threshold for selling\nconst buyRSI = 30 // RSI threshold for buying\nconst output = []\nconst rsiRebuyThreshold = 5 // RSI threshold for re-buying after buy\nconst rsiResellThreshold = 5 // RSI threshold for re-selling after a sell\n\nconst getRSI = ({ timeSeries }) => {\n  // Calculate RSI based on the lastDays data\n    if (!timeSeries || timeSeries.length < 2) return 0\n    let gains = 0\n    let losses = 0\n    let countGains = 0\n    let countLosses = 0\n    let oldLoss = 0\n    let oldGain = 0\n    for (let i = 1; i < timeSeries.length; i++) {\n        const diff = timeSeries[i - 1].close - timeSeries[i].close\n        // if (isNaN(diff)) continue // Skip NaN values\n        if (diff > 0) {\n            gains += diff\n            if (i === timeSeries.length - 1) oldGain = diff\n            countGains++\n        } else {\n            losses -= diff\n            if (i === timeSeries.length - 1) oldLoss = -diff\n            countLosses++\n        }\n    }\n    const size = timeSeries.length - 1\n    const averageGain = countGains > 0 ? gains / size  : 0;\n    const averageLoss = countLosses > 0 ? losses / size : 0;\n    if (averageLoss === 0) return 100;\n\n    const rs = averageGain / averageLoss;\n    const rsi = 100 - 100 / (1 + rs)\n    const averageGainWithoutOld = countGains > 0 ? ( gains - oldGain) / ( size - 1)  : 0;\n    const averageLossWithoutOld = countLosses > 0 ? (losses - oldLoss) / ( size - 1) : 0;\n    const targetSellRSI = rsi > sellRSI ? sellRSI + rsiResellThreshold : sellRSI\n    const targetBuyRSI = rsi < buyRSI ? buyRSI - rsiRebuyThreshold : buyRSI\n    const targetLoss = Math.max(0, averageGainWithoutOld * (size - 1) * targetSellRSI / targetBuyRSI - (averageLossWithoutOld * (size - 1)))\n    const targetGain = Math.max(0, averageLossWithoutOld * (size - 1) * targetSellRSI / targetBuyRSI - (averageGainWithoutOld * (size - 1)))\n    const buyTarget = +(+timeSeries[0].close - targetLoss).toFixed(2)\n    const sellTarget = +(+timeSeries[0].close + targetGain).toFixed(2)\n    // console.debug('targetGain: ', targetGain, ' targetLoss: ', targetLoss)\n    return { rsi, buyTarget, sellTarget };\n}\nconst runBacktesting = async () => {\n  try {\n    let rsi, buyTarget, sellTarget, lowRsi, highRsi\n    // Parse the CSV data\n    const records = $input.first().json.data\n    \n    // Process the records\n    for (let i = records.length-15; i >= 0; i--) {\n      let timeSeries = records.slice(i, i+15)\n      let timeSeriesItem = {\n        date: records[i]['timeOpen'],\n        price: parseFloat(records[i]['close'])\n      }\n      ;({ rsi, buyTarget, sellTarget } = getRSI({ timeSeries }))\n      ;({ rsi: lowRsi  } = getRSI({ timeSeries: [{ ...timeSeries[0], close: timeSeries[0].low }, ...timeSeries.slice(1) ]}))\n      ;({ rsi: highRsi  } = getRSI({ timeSeries: [{ ...timeSeries[0], close: timeSeries[0].high }, ...timeSeries.slice(1) ]}))\n      timeSeriesItem.rsi = rsi\n      timeSeriesItem.buyTarget = buyTarget\n      timeSeriesItem.sellTarget = sellTarget\n      timeSeriesItem.highRsi = highRsi\n      timeSeriesItem.lowRsi = lowRsi\n      \n      enrichedTimeSeries.unshift(timeSeriesItem)\n      if (enrichedTimeSeries.length < 2) continue\n    }\n    // console.log('Time Series: ', enrichedTimeSeries.splice(0, 5))\n    console.log('Buy Target: ', buyTarget)\n    console.log('Sell Target: ', sellTarget)\n    return { buyTarget, sellTarget, lastFiveDays: enrichedTimeSeries.slice(0, 10) }\n  } catch (error) {\n    console.log(error)\n  }\n}\n\n\n\n// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n\n(async () => {\n  try {\n    const result = await runBacktesting()\n    output.push(result)\n  } catch (error) {\n    console.log(error)\n  }\n})()\n\nreturn output\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        -16
+      ],
+      "id": "7aef7f0b-bb9a-46fc-9bc5-ef58e5b98cdc",
+      "name": "Compute RSI"
+    },
+    {
+      "parameters": {
+        "sendTo": "thierry.ferland@gmail.com",
+        "subject": "Bitcoin Trading Bot",
+        "emailType": "text",
+        "message": "=RSI for {{ $json.lastFiveDays[0].date }} is {{ $json.lastFiveDays[0].rsi.toFixed(0) }}\nYou should buy at {{ $json.lastFiveDays[0].buyTarget }}\nYou should sell at {{ $json.lastFiveDays[0].sellTarget }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Nathan"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1312,
+        -16
+      ],
+      "id": "1424869f-c7ba-4ae4-80d6-8211681e8e24",
+      "name": "Send RSI by email",
+      "webhookId": "d2c5905d-f3f3-4595-82da-2142fb4e31eb",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ZhUnjtCudpGFAn85",
+          "name": "Choclo Email"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Compute RSI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Get Prices from DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Prices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Bitcoin Prices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Bitcoin Prices": {
+      "main": [
+        [
+          {
+            "node": "Format Prices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Prices": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Prices": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Prices from DB": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute RSI": {
+      "main": [
+        [
+          {
+            "node": "Send RSI by email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "17defbf2-392d-4d6e-9e71-eb565b56a5a6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "982def8d517f83b751285f3f9c4c1ade4b34b2509e058be15ee03b52e608bcfa"
+  },
+  "id": "t1YjVWkGPHWcYmLE",
+  "tags": []
+}

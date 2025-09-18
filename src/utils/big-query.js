@@ -5,10 +5,10 @@ const bigquery = new BigQuery()
 exports.getBitcoinPrices = async ({ date }) => {
   const query = `
 SELECT
-  DATETIME(timeOpen, 'UTC') as timeOpen,
-  DATETIME(timeClose, 'UTC') as timeClose,
-  DATETIME(timeHigh, 'UTC') as timeHigh,
-  DATETIME(timeLow, 'UTC') as timeLow,
+  FORMAT_DATETIME('%Y-%m-%dT%H:%M:%S', DATETIME(timeOpen, 'UTC')) as timeOpen,
+  FORMAT_DATETIME('%Y-%m-%dT%H:%M:%S', DATETIME(timeClose, 'UTC')) as timeClose,
+  FORMAT_DATETIME('%Y-%m-%dT%H:%M:%S', DATETIME(timeHigh, 'UTC')) as timeHigh,
+  FORMAT_DATETIME('%Y-%m-%dT%H:%M:%S', DATETIME(timeLow, 'UTC')) as timeLow,
   open,
   high,
   low,

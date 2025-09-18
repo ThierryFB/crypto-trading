@@ -129,7 +129,7 @@ const runBacktesting = async () => {
     for (let i = records.length - 15; i >= 0; i--) {
       const timeSeries = records.slice(i, i + 15)
       const timeSeriesItem = {
-        date: records[i].timeClose,
+        date: records[i].timeOpen,
         price: parseFloat(records[i].close),
         low: parseFloat(records[i].low),
         high: parseFloat(records[i].high)
