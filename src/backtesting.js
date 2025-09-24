@@ -1,16 +1,15 @@
 const { getTimeSeriesFromFile } = require('./utils')
 const { getBitcoinPrices } = require('./utils/big-query')
+const { getDummyRSI, getExpoWeightedRSI, getWilderRSI } = require('./utils/stats')
+const { sellRSI, buyRSI, rsiRebuyThreshold, rsiResellThreshold } = require('./utils/constants')
 const FILE_NAME = 'dogecoin-history.csv'
 const DATE_SOURCE = 'big-query' // 'file' or 'big-query'
 const transactions = []
 const enrichedTimeSeries = []
-const sellSize = 2500
-const buySize = sellSize * 2
+const sellSize = 1000
+const buySize = sellSize * 1.5
 const startingCash = 100000 // Starting cash
-const sellRSI = 70 // RSI threshold for selling
-const buyRSI = 30 // RSI threshold for buying
-const rsiRebuyThreshold = 5 // RSI threshold for re-buying after selling
-const rsiResellThreshold = 5 // RSI threshold for re-selling after buying
+const RSI_METHOD = 'wilder' // 'dummy' or 'expo-weighted'
 
 const getPortfolio = ({ transactions, marketPrice, windowSize }) => {
   // Calculate the portfolio based on transactions
@@ -46,51 +45,11 @@ const getPortfolio = ({ transactions, marketPrice, windowSize }) => {
   return portfolio
 }
 
-const getRSI = ({ timeSeries }) => {
-  // Calculate RSI based on the lastDays data
-  if (!timeSeries || timeSeries.length < 2) return 0
-  let gains = 0
-  let losses = 0
-  let countGains = 0
-  let countLosses = 0
-  let oldLoss = 0
-  let oldGain = 0
-  for (let i = 1; i < timeSeries.length; i++) {
-    const diff = timeSeries[i - 1].close - timeSeries[i].close
-    // if (isNaN(diff)) continue // Skip NaN values
-    if (diff > 0) {
-      gains += diff
-      if (i === timeSeries.length - 1) oldGain = diff
-      countGains++
-    } else {
-      losses -= diff
-      if (i === timeSeries.length - 1) oldLoss = -diff
-      countLosses++
-    }
-  }
-  const size = timeSeries.length - 1
-  const averageGain = countGains > 0 ? gains / size : 0
-  const averageLoss = countLosses > 0 ? losses / size : 0
-  if (averageLoss === 0) return 100
-
-  const rs = averageGain / averageLoss
-  const rsi = 100 - 100 / (1 + rs)
-  const averageGainWithoutOld = countGains > 0 ? (gains - oldGain) / (size - 1) : 0
-  const averageLossWithoutOld = countLosses > 0 ? (losses - oldLoss) / (size - 1) : 0
-  const targetSellRSI = rsi > sellRSI ? sellRSI + rsiResellThreshold : sellRSI
-  const targetBuyRSI = rsi < buyRSI ? buyRSI - rsiRebuyThreshold : buyRSI
-  const targetLoss = Math.max(0, averageGainWithoutOld * (size - 1) * targetSellRSI / targetBuyRSI - (averageLossWithoutOld * (size - 1)))
-  const targetGain = Math.max(0, averageLossWithoutOld * (size - 1) * targetSellRSI / targetBuyRSI - (averageGainWithoutOld * (size - 1)))
-  const buyTarget = +(+timeSeries[0].close - targetLoss).toFixed(2)
-  const sellTarget = +(+timeSeries[0].close + targetGain).toFixed(2)
-  return { rsi, buyTarget, sellTarget }
-}
-
 const getTransaction = ({ timeSeries }) => {
   if ((timeSeries[0].highRsi >= sellRSI && timeSeries[1].rsi < sellRSI) || (timeSeries[0].highRsi >= sellRSI && (timeSeries[0].highRsi - timeSeries[1].rsi) > rsiResellThreshold)) {
     if (timeSeries[1].sellTarget > timeSeries[0].high || timeSeries[1].sellTarget < timeSeries[0].low) {
       console.warn('sellTarget is wrong, this should not happen')
-      console.debug('timeSeries: ', timeSeries.slice(0, 2))
+      // console.debug('timeSeries: ', timeSeries.slice(0, 2))
     }
     return {
       type: 'sell',
@@ -104,7 +63,7 @@ const getTransaction = ({ timeSeries }) => {
   if ((timeSeries[0].lowRsi < buyRSI && timeSeries[1].rsi >= buyRSI) || ((timeSeries[0].lowRsi < buyRSI && (timeSeries[1].rsi - timeSeries[0].lowRsi) > rsiRebuyThreshold))) {
     if (timeSeries[1].buyTarget < timeSeries[0].low || timeSeries[1].buyTarget > timeSeries[0].high) {
       console.warn('buyTarget is wrong, this should not happen')
-      console.debug('timeSeries: ', timeSeries.slice(0, 2))
+      // console.debug('timeSeries: ', timeSeries.slice(0, 2))
     }
     return {
       type: 'buy',
@@ -119,7 +78,7 @@ const getTransaction = ({ timeSeries }) => {
 
 const runBacktesting = async () => {
   try {
-    let rsi, buyTarget, sellTarget, lowRsi, highRsi, records
+    let rsi, buyTarget, sellTarget, lowRsi, highRsi, records, previousGainAverage, previousLossAverage
     if (DATE_SOURCE === 'big-query') {
       records = await getBitcoinPrices({ date: '2023-01-01' })
     } else {
@@ -134,9 +93,25 @@ const runBacktesting = async () => {
         low: parseFloat(records[i].low),
         high: parseFloat(records[i].high)
       }
-      ;({ rsi, buyTarget, sellTarget, highRsi, lowRsi } = getRSI({ timeSeries }))
-      ;({ rsi: lowRsi } = getRSI({ timeSeries: [{ ...timeSeries[0], close: timeSeries[0].low }, ...timeSeries.slice(1)] }))
-      ;({ rsi: highRsi } = getRSI({ timeSeries: [{ ...timeSeries[0], close: timeSeries[0].high }, ...timeSeries.slice(1)] }))
+      switch (RSI_METHOD) {
+        case 'dummy':
+          ;({ rsi, buyTarget, sellTarget } = getDummyRSI({ timeSeries }))
+          ;({ rsi: lowRsi } = getDummyRSI({ timeSeries: [{ ...timeSeries[0], close: timeSeries[0].low }, ...timeSeries.slice(1)] }))
+          ;({ rsi: highRsi } = getDummyRSI({ timeSeries: [{ ...timeSeries[0], close: timeSeries[0].high }, ...timeSeries.slice(1)] }))
+          break
+        case 'expo-weighted':
+          ;({ rsi, buyTarget, sellTarget } = getExpoWeightedRSI({ timeSeries }))
+          ;({ rsi: lowRsi } = getExpoWeightedRSI({ timeSeries: [{ ...timeSeries[0], close: timeSeries[0].low }, ...timeSeries.slice(1)] }))
+          ;({ rsi: highRsi } = getExpoWeightedRSI({ timeSeries: [{ ...timeSeries[0], close: timeSeries[0].high }, ...timeSeries.slice(1)] }))
+          break
+        case 'wilder':
+          ;({ rsi, buyTarget, sellTarget, averageGain: previousGainAverage, averageLoss: previousLossAverage } = getWilderRSI({ timeSeries, previousGainAverage, previousLossAverage }))
+          ;({ rsi: lowRsi } = getWilderRSI({ timeSeries: [{ ...timeSeries[0], close: timeSeries[0].low }, ...timeSeries.slice(1)], previousGainAverage, previousLossAverage }))
+          ;({ rsi: highRsi } = getWilderRSI({ timeSeries: [{ ...timeSeries[0], close: timeSeries[0].high }, ...timeSeries.slice(1)], previousGainAverage, previousLossAverage }))
+          break
+        default:
+          throw new Error('Unknown RSI method')
+      }
       timeSeriesItem.rsi = rsi
       timeSeriesItem.buyTarget = buyTarget
       timeSeriesItem.sellTarget = sellTarget

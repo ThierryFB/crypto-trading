@@ -10,8 +10,6 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
     networks:
       net:
-    ports:
-      - "3002:3002"
     volumes:
       - ./src:/app/src
       - ./data:/app/data
