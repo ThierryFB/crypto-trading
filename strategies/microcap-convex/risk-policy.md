@@ -6,7 +6,106 @@ Owner: Ingrid, with capital and promotion criteria from Nadia. Merges only with 
 
 ## Limits and halt levels
 
-*Ingrid drafts this section.* Open inputs from `strategy.md`: exit impact caps (2% normal / 5% forced proposed), the 20%-of-NAV trim to 15%, per-position cost cap, where idle cash sits.
+*Drafted by Ingrid.* These limits apply from the first paper trade. They carry into live unchanged unless a PR changes them. Rule references (§) are to Rafael's rev 3 draft of `strategy.md`.
+
+### Definitions
+
+- **Sleeve:** the capital the strategy runs on. Paper: the notional in §1 below (USD 100,000 placeholder). Live: the mandated sleeve, or 25% of it at stage L1.
+- **NAV:** idle cash plus every open position marked at mid on its main credible venue at the daily close (00:00 UTC). Shadow positions are not in NAV.
+- **HWM:** highest daily NAV since the first trade of the phase (paper or live), reduced by any quarterly sweep.
+- **Cost:** everything paid into a position across its tranches, fees included. Stage-sell proceeds don't reduce it.
+- **Impact:** for one order, the gap between the pre-trade mid and the worst price filled. Paper measures it on the logged snapshot used for the fill; live measures it on the actual fills.
+- **Hard limit:** a breach halts the strategy and counts against P9. **Review trigger:** I write a note on the strategy's issue within 24 h. It doesn't halt anything.
+
+### Position limits (hard)
+
+| # | Limit | Level | Why |
+|---|---|---|---|
+| L1 | Cost per position | ≤ **5%** of the lower of sleeve and NAV, checked at every tranche | With no price stop, this cap is the stop: the most one name can lose is 5% of the sleeve. Using the lower of sleeve and NAV means a book that has drawn down trades smaller, as §1 requires. |
+| L2 | Depth per position | Cost ≤ **50%** of summed credible ±2% bid depth (median of ≥ 3 snapshots, §1), checked at every tranche | The position has to be sellable in one pass across our venues at about 1–2% impact. |
+| L3 | Market value per position | ≤ **20%** of NAV at any daily close. A trim to **≤ 15%** starts within 24 h at the normal impact cap. | Rafael's figures, accepted. A tighter cap would cut the tail the book exists for. The ladder normally keeps a winner under 20%. The trim mostly binds when the rest of the book has bled, which is when a single exploit would hurt most. The breach is not starting the trim, or buying into a name above 15%. A trim slowed by the impact cap is not a breach. |
+
+**No position-level price stops.** I accept the rev 3 §5 design. L1 is the loss limit. The −70% review in §5 stays as written.
+
+### Book limits (hard)
+
+| # | Limit | Level | Why |
+|---|---|---|---|
+| L4 | Open positions | ≤ **25** | Rafael's maximum. **Below 15** after the first 10 weeks of regime-on time is a review trigger, not a halt. L1 does not loosen to make up for a short book. Idle cash is the answer. |
+| L5 | Deployment pace | ≤ **2** new positions started per week, and ≤ **10%** of sleeve bought per week (all tranches, at cost). Weeks run Monday 00:00 UTC to Sunday. | Rafael's figures, accepted. A full book takes ≥ 10 weeks, so it isn't filled on one day's mood. |
+| L6 | Sector | ≤ **5** open positions sharing a sector tag on the merged watchlist | Micro-caps in one narrative (memes, AI, one chain's ecosystem) crash together. Five of twenty caps a correlated hit at about a quarter of the book. This needs Hugo's watchlist to tag each token's sector. |
+| L7 | Illiquid share | Positions whose market value is > 50% of their current summed credible ±2% bid depth: together ≤ **25%** of NAV | The per-position liquidity-collapse rule (§5) reduces names one at a time and can be slow. This caps how much of the book can be stuck at once. |
+| L8 | Instruments | **Spot only.** No leverage, margin, borrowing, derivatives or shorting. No lending, staking, LP provision, presales or airdrop farming. Cash never negative. | Each of these adds a loss path beyond "the token goes to zero", which is the only one this book is sized for. |
+| L9 | Universe and venues | Buys only in tokens on the merged watchlist and not suspended, and only while the regime is on and the strategy isn't halted. Orders only on credible venues where the strategy holds (or, on paper, assumes) accounts (§1). Tier 2 and wash venues: never. **Live DEX trading** only if the mandate names the wallet custody. | These are the strategy's own entry rules (§2). They're listed here so that breaking one is a halt. |
+
+### Impact caps (hard)
+
+| Order type | Cap per order (impact) | Minimum gap between orders on the same venue |
+|---|---|---|
+| **Buys** (entry tranches) | **1.5%** | 1 h |
+| **Normal exits:** stage sells T1–T4, trail, time stop, dead-token exit, L3 trims, liquidity reductions | **2%** | 1 h |
+| **Forced exits:** watchlist revocation, delisting | **5%** | 1 h |
+| **Emergency exits:** exploit or contract compromise (§5, row 3), or a venue insolvency signal (O4) | **10%** | 15 min |
+
+**Why:**
+- **Buys at 1.5%.** Buying is optional. A tranche that can't fill inside 1.5% waits or shrinks; it doesn't chase depth.
+- **Normal exits at 2%.** With fees, this keeps average cost inside P8's 3% per side.
+- **Forced exits at 5%.** A revoked or delisting token usually loses more than 5% while we wait, so speed is worth more than price.
+- **Emergency exits at 10%, faster.** This is a change from rev 3 §5, which sells exploits under the forced cap. In an exploit a token can lose most of its value within hours. At 5% per order and one order an hour, most of the position would still be held when it does. A position is at most 5% of the sleeve at cost, so the extra impact costs at most about 0.5% of the sleeve, set against a likely total loss. @Rafael, please fold this into `strategy.md`.
+
+A sell bigger than its cap is split across venues and over time (§3). An exit that can't finish within its window at its cap isn't a breach. It continues at the cap's pace, and it's a review trigger. **Filling beyond the cap is a breach.**
+
+### Idle cash
+
+- **Where it sits:** in USD or USDC. USDT and other quote stablecoins are held only as needed for a pending order or a settled sale, and converted back within 24 h. Paper charges the conversion cost.
+- **No yield.** Idle cash isn't lent, staked, or put into exchange Earn or other yield products, and paper assumes 0%. Yield on cash adds counterparty risk for a few percent a year. This sleeve's risk budget is for the tokens.
+- **Live, on exchanges:** idle cash across all venues ≤ **40%** of sleeve (four weeks of L5 pace), and ≤ **20%** of sleeve at any one venue. The rest is held in the custody the mandate names. **Live doesn't start until the mandate names it** (THE-270).
+- **Depeg:** see O6.
+
+### Halt levels
+
+A halt **stops all buys**: new positions and pending tranches. Sells that `strategy.md` requires still run and are logged, unless the halt issue says otherwise. A halt is recorded as an open `HALT — Micro-cap Convex` issue in this project, as set out in my role. Only Nadia resumes, after my written review. Nothing in this file changes my authority to halt for reasons not listed here.
+
+**Book drawdown**
+
+| # | Trigger | Action | Why |
+|---|---|---|---|
+| D1 | NAV ≤ **75%** of HWM | Review trigger. Rafael confirms that every position is within L1–L9. | The book is built to lose on most names. In the backtest the median 2022–25 position ended at 0.38×. A fully deployed book can be down 25–30% before any T1 fills, and that alone says nothing. |
+| D2 | NAV ≤ **60%** of HWM | **Halt** | Forces a look before the remaining capital goes in. Exits keep running, so this mostly pauses entries. The review asks whether the loss is inside the design: capped names going to zero, or something else. |
+| D3 | NAV ≤ **50%** of the starting sleeve | **Halt**, and I escalate to David (paper: notify him; live: escalate). | Losing half the capital is a mandate question, not a desk one. |
+| D4 | NAV down ≥ **20%** in one UTC day | **Halt** until the move is reconciled | It may be the market, a bad mark or a venue event. Until we know which, we don't add risk. Usually short. |
+
+The paper book may well hit D1, and possibly D2. That's acceptable: P2 asks for a bad tape on purpose.
+
+**Operational**
+
+| # | Trigger | Action |
+|---|---|---|
+| O1 | **Unreconciled record:** the daily reconciliation between the order log, the Crypto Book and (live) venue balances shows any unexplained difference in quantity or cash, or NAV can't be computed for a day. | **Halt** |
+| O2 | **Logging failure:** an order or fill without a logged decision and rationale; a paper fill without its stored book-snapshot reference; a reused snapshot (§6); or a decision logged more than 1 h after it was taken. | **Halt** |
+| O3 | **Fill-model divergence.** Paper: average cost over the last 20 fills > 3% per side. Live: over the last 20 fills, measured cost per side exceeds the paper fill model's cost for the same orders by > 1 pp on average. | **Halt** |
+| O4 | **Venue.** Trading or API down > 4 h on a venue holding ≥ 25% of NAV. Live: withdrawals suspended > 12 h without scheduled-maintenance notice on a venue holding our assets, or credible insolvency signals. | **Halt.** On live withdrawal or insolvency events I also escalate to David, and emergency exits are allowed. |
+| O5 | **Stale data:** no valid price or depth reading for a held token for > 24 h, or the BTC regime input missing at a weekly close. | **Halt** |
+| O6 | **Depeg:** the stablecoin held as idle cash trades below 0.98 for ≥ 1 h. | **Halt**, and I escalate to David. |
+| O7 | **Rule breach:** any hard limit above is breached; a revocation or exploit exit hasn't started within 4 h; a triggered stage sell isn't done within 24 h (P9). | **Halt** |
+| O8 | **Unreviewed change:** `strategy.md`, the watchlist files or this file differ from what merged by PR. `master` is not protected, so I check the history. | **Halt** |
+
+### Before the first paper trade
+
+I can't monitor what I can't check, so paper doesn't start until:
+- the order-placement skill is merged, and its log records tranche-level buys and **partial** sells (Crypto Book v1 can't), daily positions and NAV, the snapshot reference and impact for each order, the depth readings, and the regime flag;
+- `strategy.md`, `watchlist-criteria.md` and `watchlist.md` are merged, and the watchlist tags each token's sector (L6);
+- the mark and depth sources for NAV, L2 and L7 are named in `strategy.md` or the order-placement skill.
+
+### Assumptions and what I could not verify
+
+- **Strategy and phase:** Micro-cap Convex, definition. No capital at risk.
+- **Inputs:** Rafael's rev 3 ([THE-269](/THE/issues/THE-269), 2026-10-16); Sam's backtest ([THE-273](/THE/issues/THE-273)) as summarised there, not re-run by me; Hugo's depth scan (one snapshot, five tokens).
+- **Not verified:**
+  - **D1–D3 have no book-level calibration.** The backtest is per position, with no capital recycling, so I set these from per-position outcomes and judgement.
+  - The impact caps are untested at our sizes.
+  - The order-log format doesn't exist yet.
+- **Review:** when Thierry's sleeve and venue answer arrives (THE-270), at the first quarterly paper review, and on any change to sizing or exits in `strategy.md`.
 
 ## Capital and promotion criteria
 
@@ -42,7 +141,7 @@ Every item must pass. Ingrid confirms them in writing; only then does Nadia writ
 | # | Test | Threshold | Why |
 |---|---|---|---|
 | P1 | Duration | ≥ **12 months** of paper trading | One cycle of alt-season mood is not enough. |
-| P2 | Regime coverage | The period includes a drawdown of ≥ 30% from peak in an equal-weight basket of the watchlist. If not, paper is extended. | Tests the book in a bad tape, not only a good one. |
+| P2 | Regime coverage | The period includes a drawdown of ≥ 30% from peak in an equal-weight basket of the watchlist, **and at least one switch of the BTC regime filter to off**. If not, paper is extended. | Tests the book in a bad tape, not only a good one, and tests the filter's handling of pending tranches (§2 of `strategy.md`). |
 | P3 | Sample | ≥ **40 entries with a resolved T1 outcome**: T1 filled, or the position closed without it (time stop, revocation, other forced exit). | T1 can take up to 12 months to resolve, so open positions don't count. In practice P3, not P1, sets the paper length; expect 18–24 months. |
 | P4 | Entries clear break-even | Share of resolved entries reaching T1 ≥ **24%**, or the break-even share recomputed from the paper book's own payoffs if that is higher. 90% CI reported. | Below break-even the book loses money by construction. 24% is the THE-273 break-even at today's payoffs; random entries got about 15%. |
 | P5 | Entries beat the control | T1 rate ≥ **10 pp above** the shadow control's, on the same dates. 90% CI reported. | The edge being claimed is selection. This is the measurable part of it, and it doesn't depend on catching one 50×. |
@@ -50,7 +149,7 @@ Every item must pass. Ingrid confirms them in writing; only then does Nadia writ
 | P7 | Exit fillability | Every triggered stage sell was fillable at the logged size against the logged book within the normal exit impact cap. Unfillable sells are counted and reported. | Paper winners that couldn't be sold aren't winners. |
 | P8 | Cost realism | Average cost ≤ **3% per side**, and modelled cost within 25% of measured cost on a sample of books checked after the fact. | THE-273 assumed 1.5% per side; above 3% the thin edge is gone. |
 | P9 | Discipline | 100% of decisions logged with a rationale. **Zero** entries off the watchlist. **Zero** hard-limit breaches. Every revocation exit started immediately and every stage sell executed within 24 h of its trigger. | Live is autonomous, so paper must show the rules hold without supervision. |
-| P10 | Drawdown | The paper book never breached a halt level above, or every breach was reviewed and is understood. | |
+| P10 | Halts | Every halt in the period (D1–D4, O1–O8) has Ingrid's written review and was resumed by Nadia. None was caused by a hard-limit breach; that would fail P9. | Market drawdown halts are expected in a bad tape. Halts the strategy caused itself are not. |
 
 **Not a promotion criterion:** a positive headline P&L on its own. A positive P&L that fails P4 or P5 means "extend paper", not "go live".
 
