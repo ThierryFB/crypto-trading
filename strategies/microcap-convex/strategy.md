@@ -4,7 +4,7 @@ Owner: Rafael (Micro-cap Trader). Nadia merges. Changes go through a PR with the
 
 **Phase: definition.** No trading, paper or live. Paper starts only once `risk-policy.md` is merged and the `order-placement` skill exists.
 
-**Inputs:** Sam's base rates (THE-271), Hugo's watchlist supply and depth scan (THE-272), Sam's backtest of these rules (THE-273), Nadia's decisions on the draft (THE-274). Drafted on THE-269 (rev 3).
+**Inputs:** Sam's base rates (THE-271), Hugo's watchlist supply and depth scan (THE-272), Sam's backtest of these rules (THE-273), Nadia's decisions on the draft (THE-274), Thierry's sleeve indication (THE-270) and Nadia's sizing changes (THE-282). Drafted on THE-269 (rev 3).
 
 **Not in this file, by design:** risk limits, halt levels, capital and the paper→live promotion test (`risk-policy.md`); watchlist criteria and revocation triggers (`watchlist-criteria.md`, Hugo); order mechanics (the `order-placement` skill).
 
@@ -35,9 +35,8 @@ So the book only works today if **Hugo's gate plus my entry triggers lift the sh
 - Market cap $5M–$50M at entry. A held token that grows out of the band stays in; the band applies to entries only.
 - **Depth means credible depth on venues where we actually hold accounts and inventory**, summed across them, plus any real DEX pool. Credible venues per Hugo: Binance, Coinbase, Kraken, OKX, Bybit. Upbit counts only if we get access. Tier 2 (Bitget, KuCoin, Gate, MEXC) and wash venues (HTX, LBank, GroveX, BTCC…) count for zero.
 - **Depth is the median of at least 3 snapshots on different days**, not one reading. Books move 2–3× within a day.
-- **Proposed depth floor: $50k summed credible ±2% bid depth.** Hugo estimates ~30 tokens (20–45) pass the gate at that floor across the 5 credible venues, against the ~35 approvals needed to fill 20 slots over 12 weeks. That's tight but workable. **Fallback: a $25k floor** (~50 pass), with positions capped at $12.5k.
-- **±5% depth must be at least 1.5× the ±2% depth.** Otherwise the book is a thin shell right around the mid and the next fill falls off a cliff (FLUX on Binance: ±2% ~$56–66k, ±5% only ~$65–68k).
-- **Venue requirement:** the strategy needs accounts on **at least two of Binance, OKX, Bybit and Coinbase**. Kraken alone supports about 5 passing tokens, which isn't a book. Venues are still open on THE-270.
+- **Depth floor: $50k summed credible ±2% bid depth.** This is a **market-quality filter**, not an exit-capacity limit: at a EUR 1,000 sleeve no position comes near needing that depth to exit (§3). What the floor screens out is manipulated or hollow markets, where a quoted price can't be traded. Hugo estimates ~30 tokens (20–45) pass the gate at that floor across the 5 credible venues, against the ~35 approvals needed to fill 20 slots over 12 weeks. That's tight but workable.
+- **Venues:** one venue is enough to trade at this size, since each position lives on one venue (§3). Accounts on two or more of Binance, OKX, Bybit and Coinbase widen the watchlist, because only depth on our own venues counts. Kraken alone supports about 5 passing tokens, which isn't a book. Venues and custody are Thierry's call (THE-270).
 
 Sample against the floor (Hugo's summed credible depth, one snapshot, 2026-10-16):
 
@@ -46,7 +45,7 @@ Sample against the floor (Hugo's summed credible depth, one snapshot, 2026-10-16
 | SSV | ~$230k | Yes | Conditional (mint allowance, Labs wallet) |
 | API3 | ~$153k | Yes | Fails (staking unlocks) |
 | EUL | ~$100k | Yes | Fails on concentration unless the Safes are treasury |
-| FLUX | ~$78k | Yes, but fails ±5% shape on Binance | Fails (team reserves to hot wallets) |
+| FLUX | ~$78k | Yes | Fails (team reserves to hot wallets) |
 | MOG | ~$68k ($50k of it on Kraken) | Yes | Passes |
 
 Depth is not what limits this sample; the gate is. None of the five is approved until Hugo's criteria merge.
@@ -55,7 +54,7 @@ Depth is not what limits this sample; the gate is. None of the five is approved 
 
 ### Eligibility (all must hold at **each** entry tranche)
 1. Approved on the merged watchlist, not suspended by Hugo, and strategy not halted.
-2. Depth floor and ±5% shape test met (§1), and depth ≥ 2× the full target position.
+2. Depth floor met (§1), and depth ≥ 2× the full target position.
 3. No scheduled unlock or known treasury release above 2% of circulating supply within the next 30 days (matches Hugo's proposed revocation trigger).
 4. **Regime on:** BTC's last weekly close is above its 30-week average. When it isn't, no new positions start and pending tranches 2–3 wait (cancelled if the regime is still off after 21 days). Open positions keep their exit rules.
 5. Room in the book: position count and weekly pace limits (below).
@@ -81,21 +80,23 @@ Depth is not what limits this sample; the gate is. None of the five is approved 
 
 - **Equal cost per position.** Each position can go to zero, so equal cost is equal risk. Target cost = sleeve ÷ N.
 - **N = 20 target, minimum 15, maximum 25** (Hugo's supply at $50k supports ~20). Below 15 concurrent positions it isn't a lottery book, just a concentrated bet. If the watchlist can't supply 15, I say so instead of oversizing.
-- **Depth cap:** position cost ≤ **50% of summed credible ±2% bid depth on our venues** at each tranche. Selling it split across those venues would walk roughly 1–2%, allowing for a book that doesn't refill instantly. Actual size = min(sleeve ÷ N, depth cap).
-- **Exit impact limit (method; Ingrid sets the number):** any single sell may move price at most **X% from mid** (proposed: 2% for normal exits, 5% for forced exits in §5). If a sale is bigger than that, split it across venues and across time, with at least 1 hour between sells on the same venue so the book can refill.
+- **Depth cap:** position cost ≤ **50% of summed credible ±2% bid depth on our venues** at each tranche (`risk-policy.md` L2). Actual size = min(sleeve ÷ N, depth cap). At this sleeve size the cap never binds (below).
+- **One venue per position.** Each position is bought, held and sold on **one venue**, with no cross-venue transfers. A transfer's fixed cost would fail the 0.5% test in §6 at this order size.
+- **Venue choice per token:** where a token trades on more than one of our venues, use the one with the **cheapest base-tier taker fee**, provided its minimum order and depth pass. Base-tier taker fees are about 0.10% at Binance, OKX and Bybit, 0.40% at Kraken and 0.60% at Coinbase (checked on each venue's fee page at paper start). Coinbase's 0.60% alone uses 40% of the 1.5% per-side cost assumption from THE-273.
+- **Impact caps per order** (set by Ingrid in `risk-policy.md`): buys **1.5%** from mid, normal exits (stage sells, trail, time stop, dead-token exit, trims, liquidity reductions) **2%**, forced exits (revocation, delisting) **5%**, emergency exits (exploit or contract compromise, venue insolvency signal) **10%**. Minimum gap between orders on the same venue: 1 hour, 15 minutes for emergency exits. A sell bigger than its cap is split over time, and across venues only where the position is held on more than one, which at this size it isn't. At EUR 50 a position, no sell comes near a cap.
 - **Maximum share of the sleeve:** 5% of the sleeve at cost (1/20). Because winners grow, a market-value cap also applies: if one position goes above **20% of sleeve NAV**, trim it back to **15%** (proposed; Ingrid sets the actual limits).
-- **Sleeve size** is set in `risk-policy.md`: a USD 500k capacity ceiling, and a USD 100k paper notional as a placeholder until Thierry answers on THE-270.
+- **Sleeve size** is set in `risk-policy.md`. Paper runs at **EUR 1,000**. Thierry's live indication is **EUR 1,000–2,000** (THE-270, non-binding). The strategy's **capacity ceiling stays at USD 500k**: a property of the watchlist's depth, not a plan.
 
-How sleeve size meets the depth floor:
+What EUR 1,000 means per order (N = 20, 3 entry tranches, EUR/USD about 1.15):
 
-| Sleeve | Target per position (N=20) | Summed credible ±2% depth needed | Supportable? |
-|---|---|---|---|
-| $100k | $5k | $50k (floor binds) | Yes |
-| $250k | $12.5k | $50k (floor binds) | Yes; also at the $25k fallback floor |
-| $500k | $25k | $50k | Yes, at the $50k floor only |
-| $1M | $50k | $100k | **No:** ~10 tokens pass at $100k |
+| Item | Size |
+|---|---|
+| Position (sleeve ÷ 20) | about **EUR 50** |
+| Entry tranche (position ÷ 3) | about **EUR 17 (≈ USD 19)** |
+| Smallest normal stage sell (T1, ~34% of a 3× position) | about EUR 50 of value |
+| ±2% depth needed for the depth cap | about USD 115, against a $50k floor |
 
-That table is why the ceiling is $500k at the $50k floor; at the $25k fallback floor it would be $250k.
+**The depth cap never binds at this size**: every token that clears the $50k floor has over 400× the depth a position needs. What binds instead are venue minimum orders and fixed costs per order (§6). At EUR 2,000 the numbers double and the conclusion holds. At the USD 500k ceiling a position is USD 25k and needs USD 50k of depth, which is the floor; above that the floor would have to rise.
 
 ## 4. Staged exits on gains
 
@@ -136,7 +137,7 @@ The ladder gives up a lot of the very top in exchange for banking profit on the 
 |---|---|
 | **Watchlist revocation** (Hugo's triggers include exploits, unscheduled mints, admin-key changes, a Binance Monitoring tag, insider moves to exchanges, ≥2% unlocks within 30 days) | Exit in full, starting immediately; done within 24h if the forced-exit impact cap allows, otherwise at the cap's pace. |
 | **Watchlist suspension** (unconfirmed exploit, pending mint vote, missed re-check, depth below floor 1–2 days) | No new tranches; hold. Act on Hugo's re-check within 72h. |
-| **Exploit or contract compromise** (protocol exploit, unexpected mint, ownership regained, blacklist/pause enabled, proxy upgrade, LP unlocked or pulled) | Exit in full immediately under the forced-exit cap. Don't wait for the revocation; notify Hugo and Ingrid. |
+| **Exploit or contract compromise** (protocol exploit, unexpected mint, ownership regained, blacklist/pause enabled, proxy upgrade, LP unlocked or pulled) | Exit in full immediately under the **emergency-exit cap: 10% impact per order, 15 minutes between orders on the same venue** (Ingrid, `risk-policy.md`). An exploited token can lose most of its value within hours, so speed is worth more than price. Don't wait for the revocation; notify Hugo and Ingrid. |
 | **Delisting** announced on the venue I hold on, or on any venue with ≥30% of credible depth | Exit within 24h of the notice, well before the delisting date. |
 | **Liquidity collapse:** summed credible ±2% bid depth below 2× the position's current value on 3 consecutive daily checks | Reduce until the position is ≤50% of depth. Exit in full if credible depth falls below $15k or 30-day credible volume falls below 30% of its level at entry. |
 | **Time stop:** 12 months after tranche 1, T1 hasn't filled | Exit in full and recycle the capital. No extension. |
@@ -161,7 +162,9 @@ Paper has to be at least as hard as live, or it will flatter the strategy.
 - **Forced exits use actual liquidity.** If a venue delists or a pool is drained, the paper position exits at whatever was really there, down to zero.
 - **No look-ahead:** signals use only data available at the decision time, and daily/weekly closes only after the close.
 - **No survivorship bias:** dead and delisted tokens stay in the record at their real outcome.
-- **Transfer frictions:** if moving between venues or chains is needed, include its cost and delay.
+- **Venue minimum orders.** A sell below the venue's minimum order for the pair doesn't fill. The residual is carried as **dust** and marked at **zero** once it's unsellable. That is what would happen live. (A pair is traded on a venue only if its minimum is ≤ half an entry tranche; `risk-policy.md` §1.)
+- **Fixed costs per order.** If any fixed cost of an order (gas, priority fee, transfer, withdrawal) is above **0.5% of the order's value**, the order isn't placed, on paper or live. At EUR 17 a tranche that's about USD 0.10. This rules out **Ethereum-mainnet DEX** at this size; DEX orders are allowed only on chains where a swap clears the test.
+- **No transfers per position.** Each position stays on one venue (§3). The sleeve is funded once per venue, and that one-off conversion and transfer cost is charged to paper at the start.
 - **Slippage audit:** keep a running comparison of modelled vs book-walked slippage, so the live/paper gap can be measured at promotion.
 
 **Record-keeping gap:** the Crypto Book v1 allows one exit per entry, in full, with no partial exits. Staged exits don't fit that. I propose asking for partial-exit support in the Crypto Book (Nadia → David). Until then, the full tranche history lives in the order-placement log, and the Crypto Book gets the lot structure that skill defines.
@@ -191,4 +194,5 @@ A material change to this file resets the paper clock for the part it touches (`
 
 - **Inputs used:** the brief (THE-267, THE-269); Sam's base rates, round-trip, drawdown, time-to-peak and regime figures (THE-271, as of 2026-10-16, CMC weekly closes, medium-high confidence on direction, low-medium on exact percentages); Hugo's supply and depth scan and proposed revocation triggers (THE-272, one snapshot 2026-10-16, pass rate a guess from 5 tokens); Sam's backtest of the rev 2 rules and its variants (THE-273, as of 2026-10-16; medium confidence on the direction of the comparisons, low on exact levels, because 2022–25 is only 14 calendar quarters); Hugo's five in-band Crypto Book analyses; Nadia's decisions (THE-274); my own read for the ladder levels and the entry triggers.
 - **Known weaknesses:** Sam's data is weekly and CMC-only, so the DEX-only left tail is missing and the 40% trail hasn't been tested on intra-week moves. The backtest is random entry: the entry triggers, tranches, watchlist gate, depth rules, pace limits and NAV trim are all untested. Forced exits (revocation, exploit, delisting) aren't in the data. Results are per position, with no capital recycling.
-- **Open:** venues and the live sleeve figure (THE-270); where idle cash sits (risk policy / mandate); the impact caps (2% normal / 5% forced proposed) and the 20%/15% NAV trim (Ingrid); partial exits in the Crypto Book (Nadia with David).
+- **Sizing assumptions:** EUR/USD about 1.15 and venue minimums about USD 5–10 per order, both checked at paper start. If the mandate is set above EUR 2,000, §3 and §6 are re-checked before live.
+- **Open:** venues and the final live sleeve figure (THE-270); where idle cash sits (risk policy / mandate); the 20%/15% NAV trim (Ingrid); partial exits in the Crypto Book (Nadia with David).
