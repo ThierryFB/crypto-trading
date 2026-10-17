@@ -10,8 +10,9 @@ Owner: Ingrid, with capital and promotion criteria from Nadia. Merges only with 
 
 ### Definitions
 
-- **Sleeve:** the capital the strategy runs on. Paper: the notional in §1 below (USD 100,000 placeholder). Live: the mandated sleeve, or 25% of it at stage L1.
-- **NAV:** idle cash plus every open position marked at mid on its main credible venue at the daily close (00:00 UTC). Shadow positions are not in NAV.
+- **Sleeve:** the capital the strategy runs on. Paper: the notional in §1 below (EUR 1,000). Live: the mandated sleeve, or 25% of it at stage L1 where §5 stages it (sleeves above EUR 4,000).
+- **Base currency: USD.** The sleeve is set in EUR but converted once to USDC at funding (paper: at the ECB reference rate on the day paper starts, with the conversion cost charged). From then on, **sleeve, NAV, HWM, every limit below and D1–D4 are measured in USD** at that funding amount. No EUR is held after funding. Reports show EUR alongside, at the day's rate, for information only: an EUR/USD move is not a strategy loss and never trips a limit or a halt. The FX risk on the sleeve is Thierry's, and it's stated in the report.
+- **NAV:** idle cash plus every open position marked at mid on the venue where it's held, at the daily close (00:00 UTC). A residual too small to sell (below the venue minimum, §1) is marked at zero. Shadow positions are not in NAV.
 - **HWM:** highest daily NAV since the first trade of the phase (paper or live), reduced by any quarterly sweep.
 - **Cost:** everything paid into a position across its tranches, fees included. Stage-sell proceeds don't reduce it.
 - **Impact:** for one order, the gap between the pre-trade mid and the worst price filled. Paper measures it on the logged snapshot used for the fill; live measures it on the actual fills.
@@ -21,8 +22,8 @@ Owner: Ingrid, with capital and promotion criteria from Nadia. Merges only with 
 
 | # | Limit | Level | Why |
 |---|---|---|---|
-| L1 | Cost per position | ≤ **5%** of the lower of sleeve and NAV, checked at every tranche | With no price stop, this cap is the stop: the most one name can lose is 5% of the sleeve. Using the lower of sleeve and NAV means a book that has drawn down trades smaller, as §1 requires. |
-| L2 | Depth per position | Cost ≤ **50%** of summed credible ±2% bid depth (median of ≥ 3 snapshots, §1), checked at every tranche | The position has to be sellable in one pass across our venues at about 1–2% impact. |
+| L1 | Cost per position | ≤ **5%** of the lower of sleeve and NAV, checked at every tranche. Order sizes round **down** to the venue's lot size; a tranche that would fall below the venue minimum isn't placed. It is never rounded up to meet the minimum. | With no price stop, this cap is the stop: the most one name can lose is 5% of the sleeve. Using the lower of sleeve and NAV means a book that has drawn down trades smaller, as §1 requires. At about USD 19 a tranche, rounding up to a USD 5–10 minimum could put a position well over its cap. Skipping the tranche is the right failure. Deep in a drawdown (D3, about USD 10 a tranche) this will start to thin the book. That is expected. |
+| L2 | Depth per position | Cost ≤ **50%** of the ±2% bid depth **on the venue where the position is held** (median of ≥ 3 snapshots, §1), checked at every tranche | The position has to be sellable in one pass at about 1–2% impact. §1 keeps each position on one venue, so only that venue's depth counts. At EUR 50 positions this rarely binds. It stays as a check against hollow books. |
 | L3 | Market value per position | ≤ **20%** of NAV at any daily close. A trim to **≤ 15%** starts within 24 h at the normal impact cap. | Rafael's figures, accepted. A tighter cap would cut the tail the book exists for. The ladder normally keeps a winner under 20%. The trim mostly binds when the rest of the book has bled, which is when a single exploit would hurt most. The breach is not starting the trim, or buying into a name above 15%. A trim slowed by the impact cap is not a breach. |
 
 **No position-level price stops.** I accept the rev 3 §5 design. L1 is the loss limit. The −70% review in §5 stays as written.
@@ -34,13 +35,13 @@ Owner: Ingrid, with capital and promotion criteria from Nadia. Merges only with 
 | L4 | Open positions | ≤ **25** | Rafael's maximum. **Below 15** after the first 10 weeks of regime-on time is a review trigger, not a halt. L1 does not loosen to make up for a short book. Idle cash is the answer. |
 | L5 | Deployment pace | ≤ **2** new positions started per week, and ≤ **10%** of sleeve bought per week (all tranches, at cost). Weeks run Monday 00:00 UTC to Sunday. | Rafael's figures, accepted. A full book takes ≥ 10 weeks, so it isn't filled on one day's mood. |
 | L6 | Sector | ≤ **5** open positions sharing a sector tag on the merged watchlist | Micro-caps in one narrative (memes, AI, one chain's ecosystem) crash together. Five of twenty caps a correlated hit at about a quarter of the book. This needs Hugo's watchlist to tag each token's sector. |
-| L7 | Illiquid share | Positions whose market value is > 50% of their current summed credible ±2% bid depth: together ≤ **25%** of NAV | The per-position liquidity-collapse rule (§5) reduces names one at a time and can be slow. This caps how much of the book can be stuck at once. |
+| L7 | Illiquid share | Positions whose market value is > 50% of the current ±2% bid depth on the venue where they're held: together ≤ **25%** of NAV | The per-position liquidity-collapse rule (§5) reduces names one at a time and can be slow. This caps how much of the book can be stuck at once. |
 | L8 | Instruments | **Spot only.** No leverage, margin, borrowing, derivatives or shorting. No lending, staking, LP provision, presales or airdrop farming. Cash never negative. | Each of these adds a loss path beyond "the token goes to zero", which is the only one this book is sized for. |
 | L9 | Universe and venues | Buys only in tokens on the merged watchlist and not suspended, and only while the regime is on and the strategy isn't halted. Orders only on credible venues where the strategy holds (or, on paper, assumes) accounts (§1). Tier 2 and wash venues: never. **Live DEX trading** only if the mandate names the wallet custody. | These are the strategy's own entry rules (§2). They're listed here so that breaking one is a halt. |
 
 ### Impact caps (hard)
 
-| Order type | Cap per order (impact) | Minimum gap between orders on the same venue |
+| Order type | Cap per order (impact) | Minimum gap between orders in the same token on the same venue |
 |---|---|---|
 | **Buys** (entry tranches) | **1.5%** | 1 h |
 | **Normal exits:** stage sells T1–T4, trail, time stop, dead-token exit, L3 trims, liquidity reductions | **2%** | 1 h |
@@ -53,13 +54,18 @@ Owner: Ingrid, with capital and promotion criteria from Nadia. Merges only with 
 - **Forced exits at 5%.** A revoked or delisting token usually loses more than 5% while we wait, so speed is worth more than price.
 - **Emergency exits at 10%, faster.** This is a change from rev 3 §5, which sells exploits under the forced cap. In an exploit a token can lose most of its value within hours. At 5% per order and one order an hour, most of the position would still be held when it does. A position is at most 5% of the sleeve at cost, so the extra impact costs at most about 0.5% of the sleeve, set against a likely total loss. @Rafael, please fold this into `strategy.md`.
 
-A sell bigger than its cap is split across venues and over time (§3). An exit that can't finish within its window at its cap isn't a breach. It continues at the cap's pace, and it's a review trigger. **Filling beyond the cap is a breach.**
+**At EUR 1,000 the caps stay as they are, measured from mid.** A USD 19 order rarely walks past the best level, so impact is mostly the half-spread, and the caps now work as spread limits: no buy where the quoted spread is wider than about 3%, no normal exit wider than about 4%. That is the cost we need to control at this size. A cap set against the quoted spread would do the opposite: it would let wide-spread tokens through at any cost, and those are the thin, hollow books we most want to avoid. Fee plus capped impact stays inside P8's 3% per side even at Coinbase's 0.60%.
+- **Review trigger:** on more than 3 of the last 20 orders, impact exceeds the quoted half-spread at decision time by more than 0.5 pp. A USD 19 order going past the best level means the displayed book is thinner than it looks.
+
+A sell bigger than its cap is split over time on the venue where the position is held (§3). §1 keeps each position on one venue; moving tokens to sell elsewhere is allowed only for forced and emergency exits, and only if the transfer passes the §1 fixed-cost test. An exit that can't finish within its window at its cap isn't a breach. It continues at the cap's pace, and it's a review trigger. **Filling beyond the cap is a breach.**
 
 ### Idle cash
 
 - **Where it sits:** in USD or USDC. USDT and other quote stablecoins are held only as needed for a pending order or a settled sale, and converted back within 24 h. Paper charges the conversion cost.
 - **No yield.** Idle cash isn't lent, staked, or put into exchange Earn or other yield products, and paper assumes 0%. Yield on cash adds counterparty risk for a few percent a year. This sleeve's risk budget is for the tokens.
-- **Live, on exchanges:** idle cash across all venues ≤ **40%** of sleeve (four weeks of L5 pace), and ≤ **20%** of sleeve at any one venue. The rest is held in the custody the mandate names. **Live doesn't start until the mandate names it** (THE-270).
+- **Live, on exchanges, sleeve at or below EUR 4,000:** the whole sleeve may sit on the trading venues. No off-exchange custody and no refill transfers. At this size each refill would be a transfer of about USD 20–60 with a fixed fee, which fails the 0.5% test in §1. The venue-loss risk this accepts is at most the sleeve, which the mandate already sizes to be lost in full. O4 still halts on a venue event. With more than one venue, each is funded once at the start (§1), and cash moves between venues at most once a quarter, only if the transfer passes the same 0.5% test.
+- **Live, on exchanges, sleeve above EUR 4,000:** idle cash across all venues ≤ **40%** of sleeve (four weeks of L5 pace), and ≤ **20%** of sleeve at any one venue. The rest is held in the custody the mandate names.
+- **Live doesn't start until the mandate names the venue(s)**, and above EUR 4,000 the off-exchange custody too (THE-270).
 - **Depeg:** see O6.
 
 ### Halt levels
@@ -72,7 +78,7 @@ A halt **stops all buys**: new positions and pending tranches. Sells that `strat
 |---|---|---|---|
 | D1 | NAV ≤ **75%** of HWM | Review trigger. Rafael confirms that every position is within L1–L9. | The book is built to lose on most names. In the backtest the median 2022–25 position ended at 0.38×. A fully deployed book can be down 25–30% before any T1 fills, and that alone says nothing. |
 | D2 | NAV ≤ **60%** of HWM | **Halt** | Forces a look before the remaining capital goes in. Exits keep running, so this mostly pauses entries. The review asks whether the loss is inside the design: capped names going to zero, or something else. |
-| D3 | NAV ≤ **50%** of the starting sleeve | **Halt**, and I escalate to David (paper: notify him; live: escalate). | Losing half the capital is a mandate question, not a desk one. |
+| D3 | NAV ≤ **50%** of the starting sleeve (in USD, at funding) | **Halt**, and I escalate to David (paper: notify him; live: escalate). | Losing half the capital is a mandate question, not a desk one. |
 | D4 | NAV down ≥ **20%** in one UTC day | **Halt** until the move is reconciled | It may be the market, a bad mark or a venue event. Until we know which, we don't add risk. Usually short. |
 
 The paper book may well hit D1, and possibly D2. That's acceptable: P2 asks for a bad tape on purpose.
@@ -95,7 +101,8 @@ The paper book may well hit D1, and possibly D2. That's acceptable: P2 asks for 
 I can't monitor what I can't check, so paper doesn't start until:
 - the order-placement skill is merged, and its log records tranche-level buys and **partial** sells (Crypto Book v1 can't), daily positions and NAV, the snapshot reference and impact for each order, the depth readings, and the regime flag;
 - `strategy.md`, `watchlist-criteria.md` and `watchlist.md` are merged, and the watchlist tags each token's sector (L6);
-- the mark and depth sources for NAV, L2 and L7 are named in `strategy.md` or the order-placement skill.
+- the mark and depth sources for NAV, L2 and L7 are named in `strategy.md` or the order-placement skill;
+- the funding record is logged: the EUR/USD rate used, the USD sleeve, and, for each venue, the minimum order and the base taker fee for every watchlisted pair (§1).
 
 ### Assumptions and what I could not verify
 
@@ -103,9 +110,11 @@ I can't monitor what I can't check, so paper doesn't start until:
 - **Inputs:** Rafael's rev 3 ([THE-269](/THE/issues/THE-269), 2026-10-16); Sam's backtest ([THE-273](/THE/issues/THE-273)) as summarised there, not re-run by me; Hugo's depth scan (one snapshot, five tokens).
 - **Not verified:**
   - **D1–D3 have no book-level calibration.** The backtest is per position, with no capital recycling, so I set these from per-position outcomes and judgement.
-  - The impact caps are untested at our sizes.
+  - The impact caps are untested at our sizes. Spreads on the watchlisted pairs haven't been measured at our venues, so I don't yet know how many tokens the 1.5% buy cap screens out.
+  - Venue minimums and fees are from Nadia's §1 figures, not checked by me.
   - The order-log format doesn't exist yet.
-- **Review:** when Thierry's sleeve and venue answer arrives (THE-270), at the first quarterly paper review, and on any change to sizing or exits in `strategy.md`.
+- **Sizing checked against EUR 1,000 (2026-10-17):** L1–L9, the impact caps and D1–D4 are percentages and carry over. The changes for this size are the USD base currency, rounding down under L1, single-venue depth in L2 and L7, the spread review trigger and the idle-cash rule for small sleeves. Nothing else assumed a USD 100,000 book.
+- **Review:** when the mandate fixes the sleeve and venues (THE-270), at the first quarterly paper review, and on any change to sizing or exits in `strategy.md`.
 
 ## Capital and promotion criteria
 
