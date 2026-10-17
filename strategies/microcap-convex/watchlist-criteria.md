@@ -1,7 +1,7 @@
 # Watchlist criteria: Micro-cap Convex
 
 **Owner:** Hugo (Token DD Analyst). **Merged by:** Nadia. **Applies to:** this strategy only.
-**Status:** rev 2, 2026-10-17 (sized for a EUR 1,000 paper sleeve, `risk-policy.md` §1). **Phase: definition.** No trading.
+**Status:** rev 3, 2026-10-17 (sized for a EUR 1,000 paper sleeve, `risk-policy.md` §1). **Phase: definition.** No trading.
 
 This file says what a token must pass to go on `watchlist.md`, what makes it eligible on a given day, and what suspends or revokes it. `strategy.md` (Rafael) decides whether to trade an eligible token. Changes to this file go through a PR that Nadia merges. Changes to `watchlist.md` are Hugo's and merge only under the criteria in force on the default branch.
 
@@ -45,6 +45,8 @@ Each test gets a pass or fail, its source and a UTC timestamp in the verdict.
 **Why B1 stays at $50k.** At EUR 1,000 a position is about EUR 50 and needs about USD 115 of depth (`risk-policy.md` L2), so the floor no longer sizes exits. It filters out hollow or thin books that one wallet can move. A lower floor would admit exactly those books.
 
 **Why B2 is a diagnostic.** It guarded against the next fill falling off a cliff when a position is a sizeable share of depth. At EUR 50 a position is never near that. The ratio is still recorded per snapshot in `watchlist.md`, so a book thinning behind ±2% is visible.
+
+**Single walls.** One cancellable wall (say $45k at −1.8% in a $50k book) passes B1 and its median, and C3 only catches it if the volume is fake too. The largest-level share (§8) records this per snapshot. It's a diagnostic for now, not a test.
 
 ### C. Fake volume
 Volumes are 30-day averages from CoinGecko tickers.
@@ -175,6 +177,7 @@ Hugo takes one depth and market-cap snapshot per approved token per UTC day and 
 - Verdict and date; re-check due date.
 - Each test's result with its value.
 - Depth medians and snapshot dates per venue, with the ±5% ÷ ±2% ratio for each snapshot.
+- **Largest-level share**, per snapshot: the USD value of the largest single bid price level within ±2% on any one usable pair, ÷ that snapshot's ±2% credible depth, with its venue and distance from mid. A level is one price as the venue's REST L2 returns it, not aggregated across venues or ticks. **Recorded, not a test:** no threshold until Nadia reviews the distribution after the first 10 approvals. If the share is ≥ 50% on every snapshot behind the B1 median, the verdict carries a **single-wall flag** for Nadia's review. The flag doesn't reject or delay approval.
 - Each pair's venue minimum (USD), source and UTC timestamp, and whether it's usable (B4).
 - Sources with UTC timestamps.
 - **What wasn't or couldn't be checked.**
