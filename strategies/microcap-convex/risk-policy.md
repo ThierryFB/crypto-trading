@@ -119,7 +119,14 @@ The backtest behind `strategy.md` (THE-273) also shows that **random in-band ent
 
 ### 1. Paper capital
 
-- **Notional paper book = the proposed live sleeve.** Micro-cap slippage depends on size, so paper at a different size gives the wrong cost picture. Until Thierry gives a figure (THE-270), the placeholder is **USD 100,000**: the smallest size in `strategy.md` §3 at which the depth floor and caps actually bind. The strategy's capacity ceiling is **USD 500,000**.
+- **Notional paper book = the proposed live sleeve.** Thierry's indication on THE-270 (2026-10-17, non-binding) is a live sleeve of **EUR 1,000–2,000**. Paper runs at **EUR 1,000**, the low end. At this size, order minimums and fixed costs are what bind, and they bind hardest at the low end. A strategy that works at EUR 1,000 also works at EUR 2,000. If the mandate is set above EUR 2,000, this section is re-checked before live. The strategy's capacity ceiling stays at **USD 500,000**. It's a property of the watchlist's depth, not a plan.
+- **What EUR 1,000 means per order** (N = 20, 3 entry tranches, EUR/USD taken as about 1.15): a position is about **EUR 50**, and an entry tranche about **EUR 17 (≈ USD 19)**. The smallest normal stage sell is T1, at about EUR 50 of value. Positions that have lost most of their value can drop below venue minimums. Those are the only orders where minimums bind.
+- **Order minimums.** A token is tradable on a venue only if that venue's minimum order for the pair is **≤ half an entry tranche** (about USD 9 at EUR 1,000). A sell below the venue minimum can't execute. Paper doesn't fill it: the residual is carried as dust and marked at zero once it's unsellable. That matches what would happen live.
+- **Fixed costs.** At about EUR 17 a ticket, a USD 2 withdrawal or gas fee would cost 10% or more of the order. So: **any fixed cost per order (gas, priority fee, transfer, withdrawal) must be ≤ 0.5% of the order's value, or the order isn't placed.** In practice:
+  - each position is bought, held and sold **on one venue**, with no cross-venue transfers per position;
+  - DEX orders are allowed only on chains where the cost to swap clears the 0.5% test (Ethereum mainnet doesn't, at this size);
+  - the sleeve is funded once per venue, and that one-off conversion and transfer cost is charged to paper at the start.
+- **Percentage costs at this size.** Market impact is roughly the half-spread, because a USD 19 order rarely walks past the best level. The base-tier taker fees to charge (to be checked on each venue's fee page at paper start) are about 0.10% at Binance, OKX and Bybit, 0.40% at Kraken and 0.60% at Coinbase. P8 stays at 3% per side as a ceiling, but the expected cost is about 0.5–1.5%. Coinbase's fee alone uses 40% of the THE-273 cost assumption, so where a token trades on several of our venues, the cheapest one is used.
 - Position size, count and per-name caps follow `strategy.md` and the limits above. They aren't set here.
 - No paper top-ups. A book that draws down trades smaller, as live would. A halt resets nothing and refills nothing.
 
@@ -165,9 +172,11 @@ Each case is reported to David with the numbers. Paper risks no capital, but the
 
 ### 5. Live capital and scaling
 
-- **Live sleeve:** Thierry's figure, set in the mandate, no higher than the USD 500,000 ceiling. It must be money he is fine losing entirely. Venue and custody are his call (THE-270). The strategy needs accounts on at least two of Binance, OKX, Bybit and Coinbase.
-- **Stage L1:** live with **25%** of the mandated sleeve for ≥ **6 months**. P7–P10 continue live, and live slippage is compared with the paper fill model.
-- **Stage L2:** full sleeve. Requires Ingrid's sign-off on L1, Nadia's recommendation to David, and a **new mandate confirmation** from Thierry. A mandate never expands itself.
+- **Live sleeve:** Thierry's figure, set in the mandate, no higher than the USD 500,000 ceiling. It must be money he is fine losing entirely. His indication is EUR 1,000–2,000 (THE-270). Venue and custody are his call. One venue is enough to trade at this size. Two or more of Binance, OKX, Bybit and Coinbase widen the watchlist, because only depth on our own venues counts.
+- **Stage L1:** live for ≥ **6 months**. P7–P10 continue live, and live slippage is compared with the paper fill model.
+  - For a mandated sleeve **above EUR 4,000**, L1 runs on **25%** of it.
+  - **At or below EUR 4,000, L1 runs on the full mandated sleeve.** At 25% of EUR 1,000–2,000, an entry tranche would be EUR 4–8, below most venues' minimum order. The staging would break the strategy without reducing the risk, since the whole sleeve is already sized to be lost.
+- **Stage L2** (only where L1 ran on 25%): full sleeve. Requires Ingrid's sign-off on L1, Nadia's recommendation to David, and a **new mandate confirmation** from Thierry. A mandate never expands itself. Any increase to the sleeve, at any stage, is a new mandate confirmation.
 - **No profit recycling above the cap.** Gains above the mandated sleeve are swept out each quarter. The cap is a ceiling on capital at risk, not a starting balance.
 
 ### Assumptions and review triggers
@@ -175,4 +184,6 @@ Each case is reported to David with the numbers. Paper risks no capital, but the
 - **Assumes** T1 (3×, returns cost) as defined in `strategy.md` §4. If T1 moves, P4/P5 move with it and the clock resets for the exit tests.
 - **Assumes** the watchlist holds about 15 or more eligible tokens on most days. With fewer, the control becomes "equal-weight the full eligible watchlist".
 - **Known limit:** at 40 resolved entries, a 24% T1 rate has a 90% CI of roughly ±11 pp. The test can catch a clear edge or a clear failure, not a marginal one. If P4/P5 are inconclusive at 40, paper is extended; the thresholds aren't loosened.
-- **Review:** when Thierry's sleeve and venue answer arrives (THE-270), and at every quarterly paper review.
+- **Assumes** EUR/USD at about 1.15 and venue minimums of about USD 5–10 per order. Both are checked at paper start. If a venue's minimum for a pair exceeds half a tranche, that pair isn't traded there (§1).
+- **At this size, depth no longer limits exits.** A EUR 50 position needs about USD 115 of ±2% depth to pass the 50% depth cap, and every watchlisted token clears that. So the depth floor's job is now to filter out manipulated or hollow markets, not to cap exit size. What would show that's wrong: P7 sells failing to fill, or impact above the half-spread on more than a few orders.
+- **Review:** when the venue answer arrives (THE-270), when the mandate fixes the sleeve, and at every quarterly paper review.
