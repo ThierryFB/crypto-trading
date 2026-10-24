@@ -61,6 +61,7 @@ DEX tokens are in scope **for paper only**, as a separate cohort (`risk-policy.m
 - **Universe.** Same gate (Hugo's DEX criteria for the chosen chain), same $5M–$50M band.
 - **One chain, one wallet.** Each DEX position is bought, held and sold on the one supported chain, through one router, from one wallet. No bridging; a bridge fails the 0.5% test and adds a contract risk.
 - **DEX depth** is the ±2% bid depth computed from pool state, summed across the pools on the supported chain that the router routes through and that Hugo's gate counts (his LP-lock test, F8). It uses the same median of at least 3 snapshots on different days and the **same $50k floor**. The floor is there to screen out hollow markets, and that matters more on a DEX, not less. If too few tokens clear it, the cohort retires on supply (`risk-policy.md` §4); I don't lower the floor to fill a book.
+- **Terms.** For the DEX cohort, "credible depth" and "credible volume" everywhere in this file mean DEX depth (this section) and organic volume (§2). That includes the depth floor and eligibility (§1, §2), the depth cap (§3), and the liquidity-collapse and dead-token rules (§5).
 - **No venue minimum.** DEX swaps have no minimum order. The 0.5% fixed-cost test (§6) plays that role.
 
 ## 2. Entry
@@ -89,6 +90,7 @@ DEX volume is cheap to fake: a wallet can trade with itself at the cost of the p
   - unique net-buyer wallets at least 2× their 30-day daily average;
   - the top 5 wallets at no more than 50% of organic volume;
   - **confirmation:** the next daily close also above the prior 90-day high. This costs one day of the move. Painting one daily close is cheap on a DEX; painting two in a row is not.
+  - **Tranche 1 is bought on the confirmation close**, not the breakout close. At that close the 2.5×-of-90-day-low cap and the "not a trigger" price rules (up more than 100% in 14 days, more than 3× the 90-day low) are checked again, on the confirmation close's price. If any fails, there's no entry: the extra day doesn't let in a token that has already run. Tranches 2–3 count their day ≥5 and day ≥10 from the confirmation close.
 - **Listing date** for the 14-day exclusion is the token's first pool creation on any chain.
 - **Sell check at each buy.** Before each DEX tranche, the router must also quote a sell of the full target position. If the sell won't quote, or shows a transfer tax, there's no buy, and the token goes to Hugo as a possible honeypot.
 
