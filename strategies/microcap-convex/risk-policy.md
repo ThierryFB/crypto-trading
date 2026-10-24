@@ -139,12 +139,22 @@ The backtest behind `strategy.md` (THE-273) also shows that **random in-band ent
 - Position size, count and per-name caps follow `strategy.md` and the limits above. They aren't set here.
 - No paper top-ups. A book that draws down trades smaller, as live would. A halt resets nothing and refills nothing.
 
+### 1a. Two cohorts: CEX and DEX
+
+Thierry asked for DEX tokens in scope (THE-277, 2026-10-24). They are paper only, and they run as a **separate cohort** that is never pooled with the CEX book.
+
+- **Two paper books.** The CEX cohort keeps the EUR 1,000 book above. The DEX cohort gets **its own EUR 1,000 notional book**, with its own NAV, its own position count and caps from `strategy.md`, and the same §1 sizing, minimum and fixed-cost rules. Neither book funds or absorbs the other. Paper risks no capital, so a separate book costs nothing and keeps each record clean.
+- **One chain:** Solana or Base, chosen by Nadia and Hugo from where in-band tokens that pass the gate actually trade. Ethereum mainnet stays out: it fails the 0.5% fixed-cost test at this size. Adding a second chain is a change to this section and starts that chain's own sample.
+- **DEX fills** (`strategy.md` §6): at each decision, a pool-state snapshot plus a router quote for our exact size. Charged: the pool fee, gas and priority fee, and the 0.5% MEV allowance. The router quote is the scored fill if it's worse than the pool-state walk. A sell whose gas and fees fail the 0.5% fixed-cost test is treated like a sell below a CEX minimum: carried as dust and marked at zero once unsellable.
+- **Build order:** the CEX cohort starts first, on Bybit Demo. The DEX cohort starts when its adapter exists. Its clock (P1) starts on its own first trade.
+- **Mixed listings.** A token on both a supported CEX and the supported chain belongs to the CEX cohort. It goes to the DEX cohort only if no CEX we use lists it. This keeps the cohorts disjoint, so each cohort's control is drawn from its own eligible list.
+
 ### 2. Pre-registration (fixed before the first paper trade)
 
 Changing any of these after paper starts requires a PR, and the change is reported with the results.
 
-- **Shadow control.** For every paper entry, the log records **5 shadow entries**: tokens drawn at random from the same day's eligible watchlist (same regime filter, same eligibility checks), sized the same and run under the same exit rules. The control isolates the entry trigger. Five draws per entry keep the control's own noise well below the strategy's.
-- **No-ladder shadow.** Each real entry is also tracked held with the 40% trail and no ladder. This is reported, not pass/fail; it tells us what the ladder costs.
+- **Shadow control.** For every paper entry, the log records **5 shadow entries**: tokens drawn at random from the same day's eligible watchlist **in the same cohort** (same regime filter, same eligibility checks), sized the same and run under the same exit rules. The control isolates the entry trigger. Five draws per entry keep the control's own noise well below the strategy's.
+- **No-ladder shadow.** Each real entry, in either cohort, is also tracked held with the 40% trail and no ladder. This is reported, not pass/fail; it tells us what the ladder costs.
 - **The tests in §3**, with their thresholds.
 - **The fill model** in `strategy.md` §6: walk the logged book at decision time, plus fees.
 
@@ -153,6 +163,8 @@ A **material change to `strategy.md` resets the paper clock** for the part it to
 ### 3. Promotion test (paper → live recommendation)
 
 Every item must pass. Ingrid confirms them in writing; only then does Nadia write the recommendation to David.
+
+**The test runs per cohort.** P1–P10 are applied to the CEX cohort and the DEX cohort separately, each against its own shadow control, with its own sample, clock, costs and halts. Nothing is pooled: CEX entries can't fill the DEX sample, and a strong CEX record doesn't carry a weak DEX one. A cohort can be promoted, extended or retired without the other. For the DEX cohort, P8's costs include pool fee, gas and the MEV allowance, P7 is checked against the logged pool state and router quote, and P11 applies.
 
 | # | Test | Threshold | Why |
 |---|---|---|---|
@@ -167,15 +179,18 @@ Every item must pass. Ingrid confirms them in writing; only then does Nadia writ
 | P9 | Discipline | 100% of decisions logged with a rationale. **Zero** entries off the watchlist. **Zero** hard-limit breaches. Every revocation exit started immediately and every stage sell executed within 24 h of its trigger. | Live is autonomous, so paper must show the rules hold without supervision. |
 | P10 | Halts | Every halt in the period (D1–D4, O1–O8) has Ingrid's written review and was resumed by Nadia. None was caused by a hard-limit breach; that would fail P9. | Market drawdown halts are expected in a bad tape. Halts the strategy caused itself are not. |
 
+| P11 | DEX only: gate misses | Every DEX position that ends in a rug, liquidity pull, honeypot, mint or freeze event, or drain is reviewed by Hugo. If the gate's checks at entry should have caught it, the criteria are fixed by PR and the DEX entry sample (P3–P6) restarts. Two or more such misses in the sample fail the cohort. | On a DEX the gate, not the venue, is the protection against outright theft. A loss from a bad bet is the strategy working. A loss the gate should have stopped is a broken gate. |
+
 **Not a promotion criterion:** a positive headline P&L on its own. A positive P&L that fails P4 or P5 means "extend paper", not "go live".
 
 ### 4. Retirement during paper
 
-Nadia recommends retiring the strategy, rather than extending paper, if at any quarterly review after **25 resolved entries**:
+Nadia recommends retiring a cohort (or the strategy, if both qualify), rather than extending paper, if at any quarterly review after **25 resolved entries**:
 
 - the T1 rate is **at or below the shadow control's**, meaning the entry triggers add nothing; or
 - the T1 rate is **below 15%** (the random-entry base rate), meaning selection is worse than random; or
-- more than a third of triggered stage sells were unfillable, meaning the universe is too thin for this exit design at this size.
+- more than a third of triggered stage sells were unfillable, meaning the universe is too thin for this exit design at this size; or
+- DEX cohort only: the supported chain has fewer than about 10 eligible tokens on most days for a quarter, so the cohort can't build a book or a control.
 
 Each case is reported to David with the numbers. Paper risks no capital, but the desk's attention isn't free.
 
@@ -186,13 +201,14 @@ Each case is reported to David with the numbers. Paper risks no capital, but the
   - For a mandated sleeve **above EUR 4,000**, L1 runs on **25%** of it.
   - **At or below EUR 4,000, L1 runs on the full mandated sleeve.** At 25% of EUR 1,000–2,000, an entry tranche would be EUR 4–8, below most venues' minimum order. The staging would break the strategy without reducing the risk, since the whole sleeve is already sized to be lost.
 - **Stage L2** (only where L1 ran on 25%): full sleeve. Requires Ingrid's sign-off on L1, Nadia's recommendation to David, and a **new mandate confirmation** from Thierry. A mandate never expands itself. Any increase to the sleeve, at any stage, is a new mandate confirmation.
+- **Live DEX is a separate mandate.** Promotion of the CEX cohort says nothing about DEX. A live DEX cohort needs its own passing paper record, its own recommendation, and its own mandate confirmation from Thierry naming the chain, the wallet custody and the sleeve. A CEX mandate never covers on-chain trading.
 - **No profit recycling above the cap.** Gains above the mandated sleeve are swept out each quarter. The cap is a ceiling on capital at risk, not a starting balance.
 
 ### Assumptions and review triggers
 
 - **Assumes** T1 (3×, returns cost) as defined in `strategy.md` §4. If T1 moves, P4/P5 move with it and the clock resets for the exit tests.
-- **Assumes** the watchlist holds about 15 or more eligible tokens on most days. With fewer, the control becomes "equal-weight the full eligible watchlist".
+- **Assumes** the watchlist holds about 15 or more eligible tokens on most days, per cohort. With fewer, that cohort's control becomes "equal-weight the full eligible list for the cohort". The DEX cohort is the likelier one to hit this; how many tokens pass the DEX gate on the chosen chain isn't known yet.
 - **Known limit:** at 40 resolved entries, a 24% T1 rate has a 90% CI of roughly ±11 pp. The test can catch a clear edge or a clear failure, not a marginal one. If P4/P5 are inconclusive at 40, paper is extended; the thresholds aren't loosened.
 - **Assumes** EUR/USD at about 1.15 and venue minimums of about USD 5–10 per order. Both are checked at paper start. If a venue's minimum for a pair exceeds half a tranche, that pair isn't traded there (§1).
 - **At this size, depth no longer limits exits.** A EUR 50 position needs about USD 115 of ±2% depth to pass the 50% depth cap, and every watchlisted token clears that. So the depth floor's job is now to filter out manipulated or hollow markets, not to cap exit size. What would show that's wrong: P7 sells failing to fill, or impact above the half-spread on more than a few orders.
-- **Review:** when the venue answer arrives (THE-270), when the mandate fixes the sleeve, and at every quarterly paper review.
+- **Review:** when the chain is chosen and the DEX gate is merged, when the venue answer arrives (THE-270), when the mandate fixes the sleeve, and at every quarterly paper review.
