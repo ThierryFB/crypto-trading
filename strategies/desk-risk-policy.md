@@ -75,11 +75,51 @@ I can't test (1) until the skill exists. Until it does, nothing trades (see each
 
 ## Micro-cap Convex at $300
 
-Micro-cap's draft policy (PR #3) is sized at EUR 1,000 with about 20 positions and 3 tranches. At **$300**, that is about $15 a position and **$5 a tranche**, which fails its own order-minimum rule (venue minimum ≤ half a tranche; minimums are about $5–10). Something has to change in `strategy.md`: fewer positions (about 6–8 at ~$40), fewer tranches, or both. Its L1 cap (5% of sleeve per position) would then need to rise to match. That's a strategy and capital change for Rafael and Nadia. I'll review it on PR #3 and #4. **Micro-cap doesn't start paper at $300 until the sizing is fixed.** The desk limits above assume Micro-cap's losses are capped at its $300.
+Micro-cap's draft policy (PR #3) is sized at EUR 1,000 with about 20 positions and 3 tranches. At **$300**, that is about $15 a position and **$5 a tranche**, which fails its own order-minimum rule (venue minimum ≤ half a tranche; minimums are about $5–10). Something has to change in `strategy.md`: fewer positions (about 6–8 at ~$40), fewer tranches, or both. Its L1 cap (5% of sleeve per position) would then need to rise to match. That's a strategy and capital change for Rafael and Nadia (Nadia's decision: Capital below). I'll review it on PR #3 and on Rafael's `strategy.md` PR. **Micro-cap doesn't start paper at $300 until the sizing is fixed.** The desk limits above assume Micro-cap's losses are capped at its $300.
 
 ## Capital
 
-*Drafted by Nadia.* Draft allocation (paper): Majors Trend **$450** · Micro-cap Convex **$300** · Alt Momentum **$250**. To be completed by Nadia.
+*Drafted by Nadia.*
+
+### Allocation (paper, USD)
+
+| Strategy | Sub-sleeve | Share | Why this size |
+|---|---|---|---|
+| Majors Trend | **$450** | 45% | The most liquid book and, if the backtest holds, the shallowest drawdowns. Its edge is the best documented of the three. It anchors the desk. |
+| Micro-cap Convex | **$300** | 30% | The desk's only real diversifier (see "Why a desk layer is needed"). It's a lottery book sized to be lost in full, so its size is set by what the family is fine losing, and by order minimums (below). |
+| Alt Momentum | **$250** | 25% | The smallest sleeve. It has the momentum-crash loss path, and it's correlated with Majors Trend through the shared filter. It earns more capital by showing that its ranking adds something Majors Trend doesn't. |
+| **Desk** | **$1,000** | 100% | Paper notional = Thierry's sleeve (THE-286). |
+
+- **Paper notional = proposed live sub-sleeve** for each strategy. Order minimums and fixed costs bind hardest at the small end, so paper has to run at the real size.
+- **USD throughout.** Micro-cap's earlier EUR 1,000 sizing (PR #3) is superseded by $300.
+- **No unallocated reserve.** Idle cash sits inside each strategy's own sub-sleeve (C4).
+- **Changes only at a quarterly review, by PR** (S1, S3). Capital from a retired or stopped strategy goes back to the desk as unallocated. It isn't handed to the others automatically; moving it is a new allocation PR, and live, a new mandate.
+- **Micro-cap's DEX cohort** is paper only and can't go live under any mandate this desk holds. It runs on its own notional, **outside** the $1,000. It's sized the same as the CEX book ($300) so the two records stay comparable.
+
+### Micro-cap Convex at $300: decision
+
+Ingrid is right that the PR #3 sizing doesn't work at $300. I'm **not** cutting to 6–8 positions. `strategy.md` itself says that below 15 positions it isn't a lottery book, just a concentrated bet. A book of 6–8 would be a different strategy, and one that wasn't backtested.
+
+The fix is to cut **tranches**, not names:
+
+- **N = 15** (the strategy's own minimum), held as the target rather than the floor: position ≈ **$20**.
+- **2 entry tranches** instead of 3 (day 0 and day ≥5): tranche ≈ **$10**.
+- The order-minimum rule stays as written: venue minimum **≤ half a tranche (≈ $5)**. A pair with a higher minimum isn't traded on that venue.
+- The per-position cap at cost rises from 5% to **1/15 ≈ 6.7%** of the sleeve. The market-value trim (20% → 15%) is unchanged.
+
+**What this costs.** One less chance to re-check eligibility and to skip a position that has already run (the "more than 50% above tranche 1" rule). Fewer venues and pairs qualify at a $5 minimum. If Hugo's supply at that minimum can't keep 15 slots filling, I'll revisit the split, not the strategy. The likeliest move is about $100 from Majors Trend to Micro-cap.
+
+Rafael makes the `strategy.md` change; I update PR #3's §1 to $300. Ingrid reviews both. Micro-cap doesn't start paper until they merge.
+
+### Promotion order
+
+The strategies are promoted one at a time, each on its own test. **Alt Momentum isn't recommended for live before Majors Trend.** It trades on Majors Trend's regime flag, and it's the more crash-prone of the two. Micro-cap's CEX cohort is independent of both and can go first if it passes first; its test is the longest.
+
+### Review triggers
+
+- At each quarterly paper review: is each sleeve still the right size, given its record so far and its correlation with the others?
+- When the Alt Momentum backtest reports its correlation with Majors Trend. **Above 0.85** on daily returns while the regime is on, the desk is running one bet twice, and I'll make the case to fold Alt Momentum's capital into the other two.
+- When the mandate sets the live sleeve, if it isn't $1,000.
 
 ## Assumptions and what I could not verify
 

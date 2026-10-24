@@ -82,4 +82,71 @@ Kill switch and stablecoin depeg: see the desk policy (kill switch, DO2).
 
 ## Capital and promotion criteria
 
-*Drafted by Nadia.* Draft capital: **$450** paper. To be completed by Nadia.
+*Drafted by Nadia.*
+
+### Why the test looks like this
+
+The claim behind this strategy is about **drawdown, not return**: hold BTC and ETH while they trend up, sit in cash while they don't, and so miss most of a −70% bear market while keeping most of a bull. That claim needs years and several cycles to test. The backtest from 2018 is where it gets tested. At 5–15 trades a year, a year of paper is about ten decisions. Its P&L says almost nothing about the edge either way.
+
+So paper tests what the backtest can't: **whether the merged rules are followed exactly, without supervision, at the costs assumed.** Live is autonomous. A trend book that skips one exit, or holds through an off signal "because it looks like a bottom", isn't this strategy any more.
+
+### 1. Paper capital
+
+- **Paper notional = proposed live sub-sleeve: $450** of the desk's $1,000 (desk split in [`../desk-risk-policy.md`](../desk-risk-policy.md), Capital).
+- **What $450 means per order.** At the vol target, BTC or ETH positions are about $100–270. Normal trades are $50 and up; L7's $10 floor stops drift trades. Venue minimums (about $5–10) don't bind.
+- **Costs charged.** The venue's base-tier taker fee for BTC/USDC and ETH/USDC, read off its fee page at paper start, plus impact on the logged book snapshot (L7). The THE-296 assumption is 0.1% per side.
+- No top-ups and no cross-funding (desk S1). A book that draws down trades smaller, as it would live. A halt resets nothing and refills nothing.
+
+### 2. Pre-registration (fixed before the first paper trade)
+
+Changing any of these after paper starts needs a PR. The change is reported with the results.
+
+- **Mechanical replay.** Every day, the merged rules are run on the logged signal data with no discretion. This gives the trades and NAV the book *should* have had. The paper book is compared against the replay (P3, P4).
+- **Benchmark:** 50/50 BTC/ETH buy-and-hold, rebalanced monthly, from the same start date and with the same costs. Reported every quarter; it isn't pass/fail on paper (see below).
+- **Parameters:** the signal, vol target and check time in the merged `strategy.md`. A **material change to `strategy.md` restarts the paper clock** (P1, P2).
+- **The tests in §3**, with their thresholds.
+
+### 3. Promotion test (paper → live recommendation)
+
+Every item must pass. Ingrid confirms them in writing; only then do I write the recommendation to David.
+
+| # | Test | Threshold | Why |
+|---|---|---|---|
+| P0 | Backtest edge | The merged backtest (2018 onwards, net of fees) beats the benchmark on **maximum drawdown** and on **return ÷ max drawdown**, in-sample **and** on the hold-out years the backtest reserves. This was checked before paper and must still hold after any later change to `strategy.md`. | The edge is tested here, not in paper. Without it, a clean paper record is a well-run strategy with nothing to run. |
+| P1 | Duration | ≥ **6 months** of paper | Long enough to run the whole loop many times (daily checks, NAV, reconciliation, the Crypto Book). It isn't meant to prove the edge. |
+| P2 | Signal coverage | At least **one entry and one exit** in each coin, or **four signal changes** across the book. If not, paper continues until it happens. At 12 months without it, I report to David with a recommendation either way. | The exits are what matter. A paper period where nothing ever turned off hasn't tested the rule that carries the edge. |
+| P3 | Fidelity | Every paper trade matches the replay: same coin, same day, same direction, and size within **10% or $10**. **Zero** trades the replay didn't make, and **zero** replay trades skipped. | This is the test that matters most. Autonomy is only safe if the book is the rule. |
+| P4 | Tracking | Paper NAV return within **±1.5 pp** of the replay's over the period, with every gap explained by fills or fees. | Small, explained gaps are execution. Large or unexplained ones are a broken record or a hidden decision. |
+| P5 | Cost realism | Average fees plus impact ≤ **0.3% per side**, and the modelled cost is within **25%** of the measured cost on a sample of books checked after the fact. | The backtest assumed 0.1% plus nearly no impact. Costs well above that mean the venue or the fill model is wrong. |
+| P6 | Discipline | 100% of decisions logged with their signal values, at the time of the decision. **Zero** hard-limit breaches. Every signal-off exit done by the end of the day after the check. | Same reason as P3: live has no supervision on each trade. |
+| P7 | Halts | Every halt in the period (D1–D4, O1–O8, any desk halt) has Ingrid's written review and was resumed by me. None was caused by the strategy breaking its own rules; that fails P6. | Market halts are expected. Self-inflicted ones aren't. |
+| P8 | Shared regime flag | **Zero** O4 / desk C3 mismatches over the last 3 months. | Alt Momentum depends on this flag. Its source has to be dependable before either book trades real money on it. |
+
+**Not a promotion criterion:** paper P&L, or paper beating the benchmark over 6 months. That is too few decisions to read. It is reported every quarter, with the sample size, and labelled paper.
+
+### 4. Retirement or redesign during paper
+
+At any quarterly review, I recommend stopping (or sending the strategy back to definition) instead of continuing paper if:
+
+- **P3 fails twice.** One deviation gets a fix and a fresh start. A second means the process can't follow the rule, and the problem is the execution, not the market.
+- **Cost runs above 2× the model** for a quarter, after a venue check. At that point the backtest's numbers don't describe what we can trade.
+- **The filter doesn't protect.** Over any paper period that includes a BTC fall of **≥ 30%** from its peak, the book's drawdown is **≥ 80%** of the benchmark's. That is the claimed edge failing in real time, and the one P&L result paper can read.
+- **Whipsaw is worse than history.** The book's loss across a whipsaw streak (Ingrid's signal-flip trigger) is larger than the backtest's worst whipsaw streak.
+
+Each case goes to David with the numbers and the sample size.
+
+### 5. Live capital and scaling
+
+- **Live sub-sleeve: $450**, the paper figure, inside the desk's $1,000, unless the mandate sets a different one. It has to be money Thierry is fine losing. Venue and custody are his call in the mandate.
+- **Stage L1 runs on the full $450.** Splitting it would mean $25–135 positions. That's fine on minimums, but it saves less than $250 of risk on a sleeve that is already sized to be lost. L1 lasts **≥ 6 months**. P3–P8 continue live, and live cost is compared with the paper fill model (Ingrid's O6).
+- **Any increase** (capital, a second venue, a loosened limit) is a **new mandate confirmation** from Thierry, through David. A mandate never expands itself.
+- **Gains** stay in the sub-sleeve until the quarterly review (desk S3). Anything above the mandated cap is swept out each quarter. The cap limits capital at risk; it isn't a starting balance.
+- **Capacity:** BTC and ETH books don't limit this strategy at any size the family would consider. The constraints are the mandate and venue risk, not liquidity.
+
+### Assumptions and review triggers
+
+- **Phase:** definition. No paper record exists; nothing above is a result.
+- **Assumes** the THE-296 design: slow signal, about 5–15 trades a year, vol-scaled, cash when off. If `strategy.md` comes out much faster (say, more than 30 trades a year), paper sees enough trades to read P&L, and P1 and the "not a criterion" line are re-checked.
+- **Assumes** the backtest holds out at least its last two years from parameter choice. If it doesn't, P0 can't be checked as written, and I'll ask Leo for a hold-out before paper.
+- **What would show the thesis is wrong:** the §4 "filter doesn't protect" case, or a backtest where the drawdown edge comes from one crash (2022) and disappears in the others.
+- **Review:** when `strategy.md` and the backtest merge, at each quarterly paper review, and before the live recommendation.
