@@ -98,7 +98,7 @@ Unlike Majors Trend, this book makes enough decisions for paper to say something
 
 - **Paper notional = proposed live sub-sleeve: $250** of the desk's $1,000 (desk split in [`../desk-risk-policy.md`](../desk-risk-policy.md), Capital).
 - **What $250 means per order.** Top 3–5 equal-weight is about **$50–85 a position**. Rotations sell one and buy one at about that size. Venue minimums (about $5–10) and L8's $10 floor don't bind, except on trims.
-- **Costs charged.** The venue's base-tier taker fee for each universe pair, read off its fee page at paper start, plus impact on the logged book snapshot (L8). Fee assumption: 0.1% per side, which only holds at a 0.1% venue. **A venue charging 0.4% or more per side isn't used for this strategy**: at about 150 trades a year it would use most of the 6% cost budget on fees alone.
+- **Costs charged.** The venue's base-tier taker fee for each universe pair, read off its fee page at paper start, plus impact on the logged book snapshot (L8). Fee assumption: 0.1% per side. **Only a venue whose base-tier taker fee is ≤ 0.1% per side is used**, unless the merged backtest shows the edge net of costs at the higher fee. At about 150 trades a year (roughly 40× NAV in turnover), 0.1% plus impact already uses the whole 6% cost budget (P7); 0.4% would be about 16% a year.
 - No top-ups and no cross-funding (desk S1). A halt resets nothing and refills nothing.
 
 ### 2. Pre-registration (fixed before the first paper trade)
@@ -106,8 +106,9 @@ Unlike Majors Trend, this book makes enough decisions for paper to say something
 Changing any of these after paper starts needs a PR. The change is reported with the results.
 
 - **Universe control.** Every week, the same universe, held **equal-weight**, under the same regime flag and the same rebalance day, charged its own (lower) turnover cost. This isolates the ranking: it's what the book would earn without selection.
-- **Random control.** Every week, **5 shadow books**, each picking the same number of coins at random from that week's universe. Same weights, rules and costs. This separates selection from concentration: a 3-coin book swings more than a 20-coin one whatever the ranking says.
-- **Mechanical replay.** The merged rules run on the logged ranking data with no discretion. The paper book is compared against it (P6).
+- **Random control.** Every week, **at least 100 shadow books**, each picking the same number of coins at random from that week's universe. Same weights, rules and costs. This separates selection from concentration: a 3-coin book swings more than a 20-coin one whatever the ranking says.
+- **Mechanical replay.** The merged rules run on the logged ranking data with no discretion. The replay applies **the same halt state** as the book: no buys while a `HALT —` issue (strategy or desk) is open, and the sells a halt or kill requires are made in the replay too, on the same day. The paper book is compared against it like-for-like (P6), so a market halt doesn't count as a deviation.
+- **Crash benchmark.** From the merged backtest, the distribution of the **worst 7-day loss in a window of the same number of regime-on weeks** as the paper period (P8).
 - **Parameters:** lookback, number held, rebalance day and universe rule in the merged `strategy.md`. A **material change restarts the paper clock** (P1–P4).
 - **The tests in §3**, with their thresholds.
 
@@ -122,18 +123,18 @@ A **regime-on week** is a week where the shared flag was on at the rebalance, so
 | P0 | Backtest edge | The merged backtest (from 2019, survivorship-free, net of tiered costs) beats the universe control after costs, in-sample **and** on its hold-out years, and Ingrid's D3 check passes (no starting month hits D3). | Paper can't stand in for a missing backtest. The backtest is also where the momentum-crash risk is measured. |
 | P1 | Duration | ≥ **12 months** of paper | Momentum works in some alt markets and not others. A shorter period is mostly one market mood. |
 | P2 | Regime coverage | ≥ **26 regime-on weeks**, and **at least one regime switch off and back on**. If not, paper continues. | Fewer than 26 weeks of selection is too few to read. The switch tests the exit to cash and the re-entry, where most of the cost lands. |
-| P3 | Selection beats the universe | Over the regime-on weeks: (a) **net** book return ≥ the universe control's net return; and (b) the mean weekly **gross** spread (book minus universe) is above zero, with its 90% CI reported. | (a) is whether it's worth doing after costs. (b) is whether the ranking itself does anything. |
-| P4 | Selection beats chance | Net book return ≥ the **median** of the 5 random shadow books. | Rules out a concentrated book that got lucky in a rising market. |
-| P5 | Luck check | P3(a) is also reported with the **best 2 positions removed**. If one position makes up more than 100% of the excess over the universe, **and** P3(b)'s CI includes zero, the strategy isn't promoted. | Separates one lucky run from a ranking that works. |
-| P6 | Fidelity | Every ranking, rotation and exit matches the replay: same coins, same week, sizes within **10% or $10**. **Zero** unexplained deviations. | Live is autonomous. The book has to be the rule. |
+| P3 | Selection beats the universe | Over the regime-on weeks: (a) **net** book return ≥ the universe control's net return; and (b) the mean weekly **gross** spread (book minus universe) has a **90% CI whose lower bound is above zero**. A positive point estimate alone doesn't pass. | (a) is whether it's worth doing after costs. (b) is whether the ranking itself does anything. |
+| P4 | Selection beats chance | Net book return ≥ the **median** of the ≥ 100 random shadow books. The book's percentile among them is reported with the result. | Rules out a concentrated book that got lucky in a rising market. |
+| P5 | Luck check | P3(a) is also reported with the **best 2 positions removed**. If one position makes up more than 100% of the excess over the universe, the strategy isn't promoted, whatever P3(b) shows. | Separates one lucky run from a ranking that works. |
+| P6 | Fidelity | Every ranking, rotation and exit matches the replay: same coins, same week, sizes within **10% or $10, whichever is larger**. Halt-state trades compared like-for-like (§2). **Zero** unexplained deviations. | Live is autonomous. The book has to be the rule. |
 | P7 | Cost | Annualised fees plus impact ≤ **6%** of average NAV (Ingrid's cost trigger), and the modelled cost within **25%** of measured on a sample of books checked after the fact. | Turnover is this strategy's main hidden cost. Above 6%, the backtest's edge is probably gone. |
-| P8 | Crash behaviour | No D3. D5 fired **at most once**, with Ingrid's review. In the worst 7-day stretch, the book lost no more than the backtest's 5th-percentile week. | A momentum book that crashes worse in paper than in its own history isn't the backtested strategy. |
+| P8 | Crash behaviour | No D3. D5 fired **at most once**, with Ingrid's review. The paper period's worst 7-day loss is no worse than the **5th percentile** of the crash benchmark (§2): the backtest's worst week over windows of the same length. | A momentum book that crashes worse in paper than in its own history isn't the backtested strategy. |
 | P9 | Discipline and halts | 100% of decisions logged with the ranking they came from, at the time. **Zero** hard-limit breaches. Every halt has Ingrid's written review and was resumed by me; none was self-inflicted. | Same as Majors Trend. |
 | P10 | Majors Trend first | Majors Trend is live, or has passed its own test, and the shared regime flag has run with **zero** mismatches for 3 months. | This book depends on that flag, and it's the riskier of the two (desk Capital, Promotion order). |
 
 **Reported every quarter, not pass/fail:** the correlation of daily returns with Majors Trend during regime-on weeks. **Above 0.85**, the desk is running one bet twice. I'll say so in the recommendation, and may recommend moving this capital rather than promoting.
 
-**Known limit:** at 26–50 regime-on weeks, a weekly spread is only distinguishable from zero if the edge is large. If P3(b) is inconclusive but P3(a) and P4 pass, paper is extended, up to **24 months**. The thresholds aren't loosened.
+**Known limit:** at 26–50 regime-on weeks, a weekly spread is only distinguishable from zero if the edge is large. If P3(b)'s CI still includes zero but P3(a) and P4 pass, paper is extended, up to **24 months**. The thresholds aren't loosened. **At 24 months, if the CI still includes zero, the strategy isn't promoted**: I recommend stopping, or a redesign through a `strategy.md` PR that restarts the clock.
 
 ### 4. Retirement or redesign during paper
 
@@ -149,8 +150,8 @@ Each case goes to David with the numbers and the sample size.
 
 ### 5. Live capital and scaling
 
-- **Live sub-sleeve: $250**, the paper figure, inside the desk's $1,000, unless the mandate sets a different one. Money Thierry is fine losing. Venue and custody are his call; this strategy needs a venue with base-tier fees around **0.1%** that lists most of the universe.
-- **Stage L1 runs on the full $250.** At half, positions would be $25–40, and rotations would be close to the $10 floor once the book drifts. L1 lasts **≥ 6 months**. P3–P9 continue live, and live cost is compared with the paper fill model (Ingrid's O8).
+- **Live sub-sleeve: $250**, the paper figure, inside the desk's $1,000, unless the mandate sets a different one. Money Thierry is fine losing. Venue and custody are his call; this strategy needs a venue with base-tier taker fees **≤ 0.1%** per side (§1) that lists most of the universe.
+- **Live stage 1 runs on the full $250.** At half, positions would be $25–40, and rotations would be close to the $10 floor once the book drifts. Live stage 1 lasts **≥ 6 months**. P3–P9 continue live, and live cost is compared with the paper fill model (Ingrid's O8).
 - **Any increase** (capital, a second venue, a wider universe, a loosened limit) is a **new mandate confirmation** from Thierry, through David.
 - **Gains** stay in the sub-sleeve until the quarterly review (desk S3). Anything above the mandated cap is swept out each quarter.
 - **Capacity:** at $250, liquidity isn't a constraint on the top-20 universe. It would start to matter in the low hundreds of thousands, for the smaller names in the universe. That's not a plan.
