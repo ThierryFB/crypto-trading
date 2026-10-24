@@ -16,6 +16,7 @@ Owner: Ingrid, with capital and promotion criteria from Nadia. Merges only with 
 - **HWM:** highest daily NAV since the first trade of the phase (paper or live), reduced by any quarterly sweep.
 - **Cost:** everything paid into a position across its tranches, fees included. Stage-sell proceeds don't reduce it.
 - **Impact:** for one order, the gap between the pre-trade mid and the worst price filled. Paper measures it on the logged snapshot used for the fill; live measures it on the actual fills.
+- **Cohort:** the CEX book or the DEX book (§1a). **Every limit in this file applies to each cohort separately**, against that cohort's own sleeve, NAV and HWM. Neither book's cash or positions count toward the other's limits. The DEX-only rules are under *DEX cohort* below.
 - **Hard limit:** a breach halts the strategy and counts against P9. **Review trigger:** I write a note on the strategy's issue within 24 h. It doesn't halt anything.
 
 ### Position limits (hard)
@@ -37,7 +38,7 @@ Owner: Ingrid, with capital and promotion criteria from Nadia. Merges only with 
 | L6 | Sector | ≤ **5** open positions sharing a sector tag on the merged watchlist | Micro-caps in one narrative (memes, AI, one chain's ecosystem) crash together. Five of twenty caps a correlated hit at about a quarter of the book. This needs Hugo's watchlist to tag each token's sector. |
 | L7 | Illiquid share | Positions whose market value is > 50% of the current ±2% bid depth on the venue where they're held: together ≤ **25%** of NAV | The per-position liquidity-collapse rule (§5) reduces names one at a time and can be slow. This caps how much of the book can be stuck at once. |
 | L8 | Instruments | **Spot only.** No leverage, margin, borrowing, derivatives or shorting. No lending, staking, LP provision, presales or airdrop farming. Cash never negative. | Each of these adds a loss path beyond "the token goes to zero", which is the only one this book is sized for. |
-| L9 | Universe and venues | Buys only in tokens on the merged watchlist and not suspended, and only while the regime is on and the strategy isn't halted. Orders only on credible venues where the strategy holds (or, on paper, assumes) accounts (§1). Tier 2 and wash venues: never. **Live DEX trading** only if the mandate names the wallet custody. | These are the strategy's own entry rules (§2). They're listed here so that breaking one is a halt. |
+| L9 | Universe and venues | Buys only in tokens on the merged watchlist and not suspended, and only while the regime is on and the strategy isn't halted. Orders only on credible venues where the strategy holds (or, on paper, assumes) accounts (§1). Tier 2 and wash venues: never. **Live DEX trading** only under its own mandate (§5) and its own risk-policy PR. Nothing in this file authorises it. | These are the strategy's own entry rules (§2). They're listed here so that breaking one is a halt. |
 
 ### Impact caps (hard)
 
@@ -70,7 +71,7 @@ A sell bigger than its cap is split over time on the venue where the position is
 
 ### Halt levels
 
-A halt **stops all buys**: new positions and pending tranches. Sells that `strategy.md` requires still run and are logged, unless the halt issue says otherwise. A halt is recorded as an open `HALT — Micro-cap Convex` issue in this project, as set out in my role. Only Nadia resumes, after my written review. Nothing in this file changes my authority to halt for reasons not listed here.
+A halt **stops all buys**: new positions and pending tranches. Sells that `strategy.md` requires still run and are logged, unless the halt issue says otherwise. A halt is recorded as an open `HALT — Micro-cap Convex` issue in this project, as set out in my role. A halt that covers one cohort only is titled `HALT — Micro-cap Convex (CEX cohort)` or `(DEX cohort)`; which halts cover which cohort is set out under *DEX cohort* below. Only Nadia resumes, after my written review. Nothing in this file changes my authority to halt for reasons not listed here.
 
 **Book drawdown**
 
@@ -96,6 +97,103 @@ The paper book may well hit D1, and possibly D2. That's acceptable: P2 asks for 
 | O7 | **Rule breach:** any hard limit above is breached; a revocation or exploit exit hasn't started within 4 h; a triggered stage sell isn't done within 24 h (P9). | **Halt** |
 | O8 | **Unreviewed change:** `strategy.md`, the watchlist files or this file differ from what merged by PR. `master` is not protected, so I check the history. | **Halt** |
 
+### DEX cohort
+
+*Paper only.* The DEX cohort (§1a) runs under every rule above, per cohort, plus the rules here. Where a rule here differs from one above, the rule here wins for DEX positions. Live DEX needs its own mandate (§5) and a new risk-policy PR covering wallet custody, keys and approvals; none of that is written yet. The chain isn't chosen (THE-293). Rules that depend on it are marked **[chain]**, and the table at the end of this section says what each chain changes.
+
+**Terms for DEX**
+
+- **Venue:** the supported chain, traded through the router named in `strategy.md` or the order-placement skill. "On one venue" (§1) means on that chain, through that router. The pools a router reaches are one venue.
+- **Depth (L2, L7):** the size the router quotes for a sell at 2% impact, from pool state, median of ≥ 3 snapshots. It replaces the ±2% bid depth used for CEX.
+- **Mark (NAV):** the **lower** of the pool mid and the router's sell quote for the full position, per token. On CEX, mid is a fair mark. A thin pool's mid can be moved with one swap, and a token that can't be sold at mid isn't worth mid. A held token whose sell simulation fails is marked at **zero** until a simulation passes.
+- **Impact:** the gap between the pool mid before the swap and the scored fill (the worse of the pool-state walk and the router quote, §1a), **plus the 0.5% MEV allowance**, pool fee excluded. The pool fee is charged as a fee, the same as a CEX taker fee.
+- **Fixed cost:** gas (base and priority fee), any validator or builder tip, and any non-refundable account or approval cost. **[chain]** A refundable deposit, such as Solana's token-account rent, isn't a cost. It is held as cash in NAV and must come back when the account is closed. A deposit that isn't recovered on close is a cost, charged then.
+
+**How the limits above apply**
+
+| Limit | DEX cohort |
+|---|---|
+| L1 cost per position | Unchanged: ≤ 5% of the lower of the cohort's sleeve and NAV. A rug takes a DEX position to zero. L1 already sizes every position to be lost. |
+| L2, L7 depth | Unchanged levels, measured as above. |
+| L3 trim | Unchanged. |
+| L4 open positions | ≤ 25 in the cohort. |
+| L5 pace | ≤ 2 new positions and ≤ 10% of the cohort's sleeve per week, in the cohort. The CEX pace doesn't use it up. |
+| L6 sector | ≤ 5 per sector tag, as on CEX. The chain isn't a sector tag. All positions share the chain, and the chain is covered by the halts below. **New, L6a:** ≤ **3** open positions whose tokens share a deployer wallet or a controlling entity identified at the gate (Hugo). One deployer with one exit plan can rug several tokens at once. |
+| L8 instruments | Unchanged, and also **no contract interaction beyond a swap through the named router.** No claims, airdrops, migrations, "V2 swaps", bridges or approvals to any other contract. On a DEX these are how wallets get drained. **[chain]** EVM: approvals only for the exact swap amount, and none left open. Unknown tokens that turn up in the wallet are ignored: never sold, moved or opened, and not in NAV. |
+| L9 universe | Buys only on the supported chain, through the named router, in tokens on the merged DEX watchlist whose sell simulation passed within the last 24 h. |
+| Idle cash | Native USDC on the chain. Bridged stablecoins are not allowed. **Gas reserve:** the chain's native token, ≤ **3%** of the cohort's sleeve, in NAV at mid. Topped up from cash only when it falls below 1%. A move in the gas token's price is a strategy P&L item, not an FX item. O6 applies to the cohort's USDC. |
+| Impact caps | Same caps (buys 1.5%, normal exits 2%, forced 5%, emergency 10%), with impact measured as above, so the MEV allowance uses up 0.5 pp of each. Minimum gap between swaps in the same token: 1 h, and **2 min** for emergency exits. An AMM pool refills by arbitrage within blocks, not over an hour, and a drain happens in one transaction. |
+| D1–D4 | Per cohort, against the cohort's own HWM and starting sleeve. D3 on either cohort means I notify David. |
+
+**MEV and priority fees (within the 0.5% fixed-cost test)**
+
+- **Priority fees are fixed costs.** They count in the 0.5% test with gas and any tip. When the network is busy, a buy waits rather than bidding up its fee. A normal exit waits the same way; if fees keep it from being placed within 24 h, that's a review trigger, not a breach.
+- **Forced and emergency exits get a bigger fixed-cost budget:** up to **2%** of the order's value for forced exits and **5%** for emergency exits. For a position of about USD 58, 5% is about USD 3, against a likely total loss. Buys and normal exits stay at 0.5%.
+- **MEV is a percentage cost, not a fixed cost.** It doesn't count in the 0.5% test. It counts in impact, as defined above, and in P8.
+- **Paper keeps the 0.5% MEV allowance on every swap** for the whole paper period, private route or not. Paper can't measure MEV, so there's no evidence to lower it. A change needs a PR and evidence from live.
+- **Live (for the later DEX PR):** every swap carries a minimum-out no wider than its impact cap from the pre-swap mid. That caps what a sandwich can take. **[chain]** a private or protected route where the chain has one.
+
+**Emergency exits: exploit or drain**
+
+These triggers replace rev 3 §5 row 3 for DEX positions. Any one starts an emergency exit of the whole position in that token, and the strategy notifies Hugo and me.
+
+| # | Trigger |
+|---|---|
+| E1 | **LP pulled:** the token's main pool loses ≥ **50%** of its liquidity within 1 h, or any locked or burned LP position moves. (A lock expiring within 7 days is a revocation, a forced exit at 5%, not an emergency.) |
+| E2 | **Authority re-enabled or changed:** any change from the state recorded at entry. **[chain]** Solana: mint, freeze or update authority, a permanent delegate or a transfer hook, or a change to an upgradeable program. EVM: owner regained, proxy implementation changed, blacklist, pause or transfer-tax setting changed. Or any mint not in the published schedule. |
+| E3 | **Router, pool or token exploit:** a credible report of an exploit of the router, the pool program or the token contract. Credible means the project's own channel, or two independent security sources on Hugo's list. If the **router** is exploited, every order through it stops at once. Exits wait for a router or direct pool route that the order-placement skill names, and the wait is a halt (X3), not a breach. |
+| E4 | **Honeypot after entry:** the sell simulation for a held token fails twice, 15 min apart. The position is marked at zero and an exit is tried at each later check. |
+
+**Detection.** Each held token's pool liquidity, authority state and sell simulation are checked at least every **15 min** and logged. A check missed for more than 1 h is a halt (X1). On paper, the emergency fill uses pool state taken at least 60 s after the logged detection, as for every fill (§6).
+
+**Pace.**
+1. The exit starts within **15 min** of detection. A later start is a breach (O7). For CEX the limit stays at 4 h.
+2. If the whole position sells within the 10% cap in one swap, it goes in one swap. Otherwise, swaps at the 10% cap, 2 min apart.
+3. **Salvage.** If after 30 min the position isn't out, or E1 is still in progress (liquidity down a further 50%), the remainder goes in one swap at whatever the pool pays, with minimum-out set to the router quote less 2%. The cap no longer protects anything once the pool is being emptied, but the minimum-out still protects against a sandwich. A salvage swap is **not** a cap breach if it's logged with its trigger and quote. I review each salvage swap on the halt issue.
+
+**When the pool is gone.** If no route returns a sell quote, or every quote fails the fixed-cost budget for an emergency exit:
+- the position is marked at **zero** from that check onward;
+- the router is re-quoted once a day for **30 days**, across every pool it reaches on the chain. A route that passes a sell simulation is used once, at any price, with minimum-out at the quote less 2%;
+- after 30 days the position is written off at zero and closed in the record. Live, the tokens stay in the wallet untouched (L8). Nothing is "recovered" through a migration, claim or bridge contract;
+- paper fills follow §6: whatever was really there, down to zero.
+
+Every emergency exit opens a P11 review for Hugo.
+
+**Operational halts (DEX)**
+
+These are in addition to O1–O8, which apply per cohort.
+
+| # | Trigger | Action |
+|---|---|---|
+| X1 | **Chain or RPC outage:** the chain stops producing blocks, or the strategy has no consistent chain state from at least **2 independent RPC providers** for > **30 min**, or a held token's 15-min check is missed for > 1 h. One provider down isn't a halt. That's why there are two. | **Halt (DEX cohort).** Nothing is sold because of the outage itself. When the chain is back: reconcile, re-mark, run E1–E4 on every holding, and only then any other order. A chain halt > 24 h: I notify David. |
+| X2 | **Failed transactions or quotes:** on paper, a router quote or sell simulation that errors; live, a transaction that reverts or doesn't land. **3 in a row on one token:** that token is suspended (no buys) until Hugo's re-check. **≥ 5 across the cohort in 24 h**, or more than 4 of the last 20 attempts: halt. Live, the fees of failed transactions are charged to the order and count in P8. | **Halt (DEX cohort)** |
+| X3 | **Router failure:** the named router is down > 4 h; or it's exploited (E3); or over the last 20 orders its quotes differ from the pool-state walk by > 1 pp on average. A single order differing by > 2 pp is a review trigger. | **Halt (DEX cohort)** |
+| X4 | **Wallet reconciliation.** Paper: the order log, the Crypto Book and the positions rebuilt from the logged snapshots must match each day (O1). Live: also the on-chain balances of the named wallet, for every token held, the USDC and the gas token. Any unexplained difference is O1. **Any outflow from the wallet that isn't a logged swap or fee** is treated as a key compromise. | O1 **halt (DEX cohort)**. On an unlogged outflow I also escalate to David at once, and no further transaction is sent from the wallet. |
+| X5 | **Gate under strain:** **2 or more** E1–E4 events in the cohort within 30 days. | **Halt (DEX cohort)** until Hugo's P11 reviews are done. A single rug is the strategy working. Two in a month may mean the gate is broken, and the cohort shouldn't keep buying until we know. |
+
+**Halt scope: does a DEX halt halt CEX?**
+
+- **Cohort-only halts.** D1–D4, L1–L9 and impact-cap breaches, O3, O5, O6, O7 and X1–X5 halt only the cohort where they happen, as `HALT — Micro-cap Convex (DEX cohort)` (or CEX). The CEX book doesn't hold DEX tokens, use the chain or share the wallet, so a rug, a chain outage or a router failure doesn't change its risk.
+- **Strategy-wide halts** (`HALT — Micro-cap Convex`, both cohorts):
+  - **O8**: an unreviewed change to `strategy.md`, the watchlist files or this file. The files are shared.
+  - **O1 or O2** where the fault is in the shared order log or Crypto Book, not clearly confined to one cohort's records. If I can't tell which cohort a record belongs to, both halt.
+  - **A cohort mix-up:** a DEX token bought in the CEX book, or the reverse, or cash moved between the books (§1a). The cohorts' separation is part of the test.
+  - **Both cohorts halted at the same time** for unrelated reasons: I review whether the fault is shared before either resumes.
+- A halt in one cohort never stops the required sells in the other.
+- P10 counts each cohort's halts against that cohort. A strategy-wide halt counts against both.
+
+**What depends on the chain**
+
+| | Solana | Base |
+|---|---|---|
+| E2 authority checks | mint, freeze and update authority; Token-2022 permanent delegate and transfer hook; upgradeable programs | owner/admin, proxy upgrades, blacklist, pause, transfer tax |
+| MEV | public sandwiching is common; private routes (bundles) exist | sequencer ordering, no public mempool. Lower sandwich risk, but not none |
+| Fixed costs | low fees, but token-account rent (about 0.002 SOL, about USD 0.3–0.4 at SOL ≈ USD 150–200) per new token is, more than 0.5% of a USD 19 tranche. Treated as a refundable deposit (above), which depends on accounts being closed on exit | gas is usually a few cents. Exact-amount approvals add a transaction per swap |
+| X1 outage history | full-chain halts have happened | single sequencer; outages have happened |
+| Router | named when the chain is chosen | named when the chain is chosen |
+
+**Before the DEX cohort's first paper trade**, in addition to the list below: the chain and router are named in `strategy.md` or the order-placement skill; Hugo's DEX gate is merged, with the authority state recorded at entry for E2 and deployers tagged for L6a; the DEX adapter logs pool-state snapshots, router quotes, sell simulations and the 15-min checks; and two RPC providers are named.
+
 ### Before the first paper trade
 
 I can't monitor what I can't check, so paper doesn't start until:
@@ -114,7 +212,8 @@ I can't monitor what I can't check, so paper doesn't start until:
   - Venue minimums and fees are from Nadia's §1 figures, not checked by me.
   - The order-log format doesn't exist yet.
 - **Sizing checked against EUR 1,000 (2026-10-17):** L1–L9, the impact caps and D1–D4 are percentages and carry over. The changes for this size are the USD base currency, rounding down under L1, single-venue depth in L2 and L7, the spread review trigger and the idle-cash rule for small sleeves. Nothing else assumed a USD 100,000 book.
-- **Review:** when the mandate fixes the sleeve and venues (THE-270), at the first quarterly paper review, and on any change to sizing or exits in `strategy.md`.
+- **DEX cohort (2026-10-24, THE-294):** written chain-neutral before the chain is chosen. Not verified: the 15-min check interval and the 50%-in-1-h LP trigger are judgement, not calibrated on any rug history; the 2-min emergency gap and the 30-min salvage window assume an AMM pool, and need re-checking against the chosen router's behaviour; the fixed-cost figures per chain are approximate and are checked at DEX paper start; how many DEX positions L6a binds depends on Hugo's deployer tagging. **No DEX record can be reconciled yet**: the adapter doesn't exist, and until it does the DEX cohort can't start.
+- **Review:** when the DEX chain and router are chosen (THE-293), when the mandate fixes the sleeve and venues (THE-270), at the first quarterly paper review, and on any change to sizing or exits in `strategy.md`.
 
 ## Capital and promotion criteria
 
