@@ -1,7 +1,7 @@
 # Watchlist criteria: Micro-cap Convex
 
 **Owner:** Hugo (Token DD Analyst). **Merged by:** Nadia. **Applies to:** this strategy only.
-**Status:** rev 3, 2026-10-17 (sized for a EUR 1,000 paper sleeve, `risk-policy.md` §1). **Phase: definition.** No trading.
+**Status:** rev 4, 2026-10-24 (sized for a EUR 1,000 paper sleeve, `risk-policy.md` §1; adds the DEX cohort gate, §11). **Phase: definition.** No trading.
 
 This file says what a token must pass to go on `watchlist.md`, what makes it eligible on a given day, and what suspends or revokes it. `strategy.md` (Rafael) decides whether to trade an eligible token. Changes to this file go through a PR that Nadia merges. Changes to `watchlist.md` are Hugo's and merge only under the criteria in force on the default branch.
 
@@ -11,7 +11,8 @@ This file says what a token must pass to go on `watchlist.md`, what makes it eli
 
 - **Credible venues:** Binance, Coinbase, Kraken, OKX, Bybit. Upbit counts only if the desk gets access. Once THE-270 settles which venues we hold accounts on, only those count. Until then, all five count.
 - **Zero-weight venues:** tier 2 (Bitget, KuCoin, Gate, MEXC) and wash venues (HTX, LBank, GroveX, BTCC, and any venue added here by PR). Their depth and volume count for zero.
-- **DEX pools:** count for zero until the order-placement skill supports that chain and router.
+- **DEX pools:** count for zero, with one exception: **Solana pools for DEX-cohort tokens, under §11 only.** They never count toward B1–B4 for a CEX-cohort token. Every other chain's pools count for zero until a PR adds that chain (`risk-policy.md` §1a).
+- **Cohort:** a token with a usable pair (B4) on any credible venue is in the **CEX cohort** and is gated by §3. A token with none is in the **DEX cohort** and is gated by §11 (`risk-policy.md` §1a, mixed listings).
 - **Venue minimum:** the smallest order the venue accepts on a pair, in USD: the larger of its minimum notional and its minimum quantity × mid. **Half an entry tranche** is set in `risk-policy.md` §1 (about USD 9 at EUR 1,000).
 - **Usable pair:** a USD, USDT or USDC pair on a credible venue whose venue minimum is ≤ half an entry tranche (B4). A pair above that doesn't count as one of our venues for that token: its depth counts for zero.
 - **Depth snapshot:** one public REST L2 order-book read per credible venue, on a usable pair (the deepest one if there are several). Mid is (best bid + best ask) / 2. **±2% depth** is the USD value of bids at or above 0.98 × mid; **±5% depth** is the same at 0.95 × mid. A book that doesn't reach 0.95 × mid is re-read deeper. If it still doesn't, that venue's snapshot fails.
@@ -187,7 +188,7 @@ Hugo takes one depth and market-cap snapshot per approved token per UTC day and 
 
 - Team quality, product or fundamentals.
 - Social sentiment.
-- DEX-only liquidity and price action.
+- DEX-only liquidity and price action, except Solana DEX-cohort tokens under §11.
 - Off-chain arrangements that aren't disclosed (OTC sales, market-maker loans).
 - Movements inside exchange wallets.
 - Anything on chains without a usable explorer, which gets need-more-info.
@@ -205,3 +206,170 @@ Snapshot: 2026-10-17 ~08:15 UTC. Market caps from CoinGecko; ±2% and ±5% bid d
 | ≥$25k, ±5% ≥ 1.5× ±2% (not adopted) | 29 | ~7 (4–10) |
 
 That covers N = 20 at the central estimate, not at the low end. B4 wasn't applied in the scan. Binance's 511 trading USDT pairs all have a minimum notional of $1 or $5 (exchangeInfo, 2026-10-17 16:03 UTC), so B4 removes nothing there. Coinbase, Kraken, OKX and Bybit minimums weren't checked. They're checked per pair at approval.
+
+## 11. DEX cohort: Solana
+
+`risk-policy.md` §1a puts DEX tokens in a separate paper cohort, on one chain. The chain is **Solana** (THE-293 scan, 2026-10-24: 16 in-band, DEX-only tokens passed a first cut on Solana and none on Base). This section is the gate for that cohort. Everything above still applies unless this section replaces it.
+
+On a CEX, the venue stands between us and the token. On a DEX nothing does. The tests below are what protects the book from theft: a mint, a freeze, a pulled pool or an unsellable token. P11 (`risk-policy.md` §3) reviews every such loss against what these tests recorded at entry, so every test here is run from public data and leaves a stored record (§11.8).
+
+### 11.1 Definitions (DEX cohort only)
+
+- **Counted pool:** a Solana pool that pairs the token with SOL (wrapped SOL), USDC or USDT, on Raydium (AMM v4, CPMM, CLMM), Meteora (DLMM, DAMM v1/v2), Orca Whirlpools or PumpSwap, and that Jupiter routes through. A pool against any other token counts for zero. That rule filters hollow pools: liquidity priced in a token the project also controls isn't depth. Adding a program to this list is a PR.
+- **Quote reserve:** the USD value of the SOL/USDC/USDT side of a counted pool, read from pool state. For concentrated pools (CLMM, DLMM, Whirlpools), only the liquidity within ±10% of the current price counts.
+- **Locked liquidity:** quote reserve in a counted pool whose LP is:
+  - burned (LP tokens sent to the incinerator, or burned at PumpSwap graduation); or
+  - locked in a named locker contract (for example Raydium's LP lock, Meteora's permanent lock, Streamflow or Jupiter Lock) until at least the next re-check date plus 90 days; or
+  - held by a program with no withdrawal path for the team.
+
+  A concentrated-liquidity position held by a wallet is **unlocked**, however long it has sat there.
+- **Mid:** the USDC out per token for a USD 10 Jupiter sell quote.
+- **Sell cost at size *s*:** 1 − (USDC out for a Jupiter sell quote of USD *s* ÷ (*s* × mid)), routed only through counted pools.
+- **−2% sell depth:** the largest USD *s* on the ladder 58 / 500 / 1,000 / 2,000 / 5,000 / 10,000 whose sell cost is ≤ 1%. The ladder starts at about one position (EUR 50). An average cost of 1% is where a pool's marginal price is about 2% below mid. That matches B1, which counts every bid down to −2%.
+- **DEX snapshot:** one read of all the above (pool list, quote reserves, LP state, the quote ladder), plus the mint account and holder list, taken together and stored (§11.8).
+- **Pool age:** the age of the oldest counted pool. It replaces §2's "first listed on a credible venue" for the 90-day rule.
+
+### 11.2 Which tests apply
+
+| §3 block | DEX cohort |
+|---|---|
+| A (market cap) | A1 applies. If CoinMarketCap doesn't list the token, CoinGecko's figure is checked against on-chain supply × mid instead, and the verdict says so |
+| B (credible depth) | **Replaced** by DP1–DP3 |
+| C (fake volume) | **Replaced** by DW1–DW4 |
+| D (holders) | Applies, with the extra exclusions in DH1. DH2 adds a test |
+| E (unlocks) | Applies |
+| F (contract) | **Replaced** by DA1–DA4, DL1–DL2 and DS1–DS2 |
+| G (flags) | G2–G4 apply. G1 is replaced by DS2's scanner flags |
+
+### 11.3 Approval tests (all must pass)
+
+Each test gets a pass or fail, its value, its source and a UTC timestamp (and the Solana slot where there is one).
+
+**Authorities and token program** (from `getAccountInfo` on the mint, cross-checked with RugCheck):
+
+| # | Test | Pass |
+|---|---|---|
+| DA1 | Mint authority | None (null) |
+| DA2 | Freeze authority | None (null) |
+| DA3 | Token program | SPL Token; or Token-2022 with **none** of: permanent delegate, transfer hook, pausable, default account state = frozen, non-transferable, confidential transfers, a transfer fee above 0, or a transfer-fee config authority that isn't null |
+| DA4 | Mint created by a launchpad or deployer that RugCheck or GoPlus flags as a known rug source | No |
+
+Metadata update authority is recorded, not tested. Changing a name or logo can't move funds.
+
+**Liquidity lock** (pool state, RugCheck lockers, the locker contract):
+
+| # | Test | Pass |
+|---|---|---|
+| DL1 | Locked liquidity ÷ quote reserve across counted pools | ≥ 50% |
+| DL2 | The counted pool with the largest quote reserve is locked liquidity | Yes |
+
+The verdict records, per counted pool: program, quote reserve, locked share, locker (name and address) and unlock date.
+
+**Sell check:**
+
+| # | Test | Pass |
+|---|---|---|
+| DS1 | **Sell simulation at our size.** A Jupiter swap transaction selling USD 58 of the token for USDC, built for an existing non-insider holder's address, run through RPC `simulateTransaction` with signature verification off. Nothing is signed or sent, and no wallet of ours is involved. The simulation must succeed, and its USDC out must be within 1% of the quote | Yes |
+| DS2 | RugCheck, GoPlus (Solana) and De.Fi flag no honeypot, rug, freeze or "cannot sell" risk | None |
+
+**Holders:**
+
+| # | Test | Pass |
+|---|---|---|
+| DH1 | D1–D5, also excluding: counted pool vaults, locker escrows, launchpad bonding-curve accounts and the incinerator. The deployer wallet and any wallet it funded before launch are insider wallets | As D1–D5 |
+| DH2 | Wallets RugCheck groups as one insider or bundle network, taken together, % of circulating supply | ≤ 10%. Counted under D3 either way |
+
+**Pool depth (replaces B1–B4):**
+
+| # | Test | Pass |
+|---|---|---|
+| DP1 | Quote reserve across counted pools, median of ≥3 DEX snapshots on 3 different UTC days within 14 days | ≥ **$100,000** |
+| DP2 | −2% sell depth, median of the same snapshots | ≥ **$1,000** |
+| DP3 | Pool age | ≥ 90 days |
+
+**Why these floors, and not $50k of −2% depth like B1.**
+- **Our size doesn't need them.** A EUR 50 position needs about USD 115 of depth (`risk-policy.md` L2). On 2026-10-24, a USD 58 sell cost at most 0.23% on every token that passed the first cut. So, as with B1 at this size, the floors are there to filter out bad markets, not to size exits.
+- **A pool can't be hollow the way a book can.** Pool liquidity can't be cancelled the way a wall can. It can only be withdrawn, and DL1–DL2 make sure at least half of it can't be. The DEX ways to fake depth are different, and the tests aim at them:
+  - **liquidity paired against a token the project controls:** counts for zero (§11.1). On 2026-10-24 one Base token showed $9M of "liquidity", all against about 30 junk tokens;
+  - **unlocked liquidity that can be pulled:** DL1–DL2, R2-style revocation (DR2);
+  - **concentrated liquidity parked far from the price:** only ±10% counts.
+- **Why $100k and $1,000.** A CEX-style $50k at −2% would need a full-range pool of about $5M quote reserve. On 2026-10-24 only two DEX-only Solana tokens that passed the contract checks had that much, and one wallet holds over 85% of the supply in both. The cohort retirement trigger (`risk-policy.md` §4) is about 10 eligible tokens, so that floor would kill the cohort before it starts. With $100k of quote reserve and ≥50% locked, at least $50k can't be withdrawn. The $1,000 floor is about 17 positions. A pool that thin can be moved 2% by one wallet with a few thousand dollars, and DW1–DW4 check whether someone is doing that. At one snapshot, all 16 first-cut tokens cleared $1,000 and 10 cleared $2,000. A $2,000 floor would leave about 6 after full DD.
+
+**Wash volume (replaces C1–C4).** Volumes count counted pools only. "Trades" means the last 300 swaps on the counted pool with the largest quote reserve, read from GeckoTerminal's public trades feed or from the chain.
+
+| # | Test | Pass | If it fails |
+|---|---|---|---|
+| DW1 | 7-day average daily volume ÷ market cap | ≤ 1.0× | Reject |
+| DW2 | 7-day average daily volume ÷ quote reserve, against the median of DEX-cohort candidates in the same snapshot | ≤ 5× that median | Need-more-info, then a manual trade review |
+| DW3 | In the trades: the 5 most active signer wallets' share of USD volume, and the share of volume from wallets that buy and sell within 60 seconds of each other | ≤ 50%, and ≤ 25% | Need-more-info, then a manual review |
+| DW4 | In the trades: share of trade count taken by the 3 most frequent trade sizes (rounded to USD 1) | ≤ 30% | Need-more-info, then a manual review |
+
+### 11.4 Daily eligibility (DEX cohort)
+
+§4 applies with these substitutions. Hugo takes one DEX snapshot per approved DEX token per UTC day.
+- Item 4 becomes: DP1 and DP2 pass on the median of the last 3 daily DEX snapshots, **and** DL1, DL2 and DA1–DA3 pass on today's.
+- Added: DS1 passed within the last 24 hours.
+- Added: the token still has no usable pair on a credible venue. Once it gets one, it leaves the DEX cohort for new entries (`risk-policy.md` §1a). Held DEX positions are unaffected. The token can be submitted to §3 for the CEX cohort.
+
+### 11.5 Suspension triggers (DEX cohort)
+
+§5 applies, with S4 and S5 replaced:
+
+| # | Trigger (testable) |
+|---|---|
+| DS-S1 | DP1 or DP2 fails on the 3-day median, or a single day's quote reserve is below $50,000 |
+| DS-S2 | No DEX snapshot possible for 2 consecutive days |
+| DS-S3 | A DS1 simulation fails once. Hugo re-runs it within 1 hour. If the re-run fails too, DR3 applies |
+| DS-S4 | Quote reserve across counted pools falls ≥ 30% within 24h through withdrawals rather than price |
+| DS-S5 | A locker unlock date comes within 30 days of the next re-check |
+
+### 11.6 Revocation triggers (DEX cohort)
+
+§6 applies, and these are added. Each takes effect at once: Hugo merges the watchlist change without waiting and tells Rafael (and Nadia) on an issue within the hour, as for the CEX triggers.
+
+| # | Trigger (testable, on-chain) |
+|---|---|
+| DR1 | Any authority or extension change on the mint: a mint or freeze authority appears, a Token-2022 extension or fee config listed in DA3 is set or changed, or an account holding the token is frozen |
+| DR2 | Locked liquidity is withdrawn, or a lock expires or is extended to a wallet, on any counted pool, **or** DL1 or DL2 fails on any daily snapshot |
+| DR3 | DS1 fails twice in a row (DS-S3), or any scanner in DS2 newly flags honeypot, rug or cannot-sell |
+| DR4 | The deployer, or a wallet DH1 or DH2 counts as insider, removes liquidity from a counted pool, or sells ≥ 1% of circulating supply within 7 days |
+| DR5 | A depth suspension (DS-S1) lasts 30 days, or the quote reserve is below $30,000 on 3 consecutive days |
+
+DR1–DR3 revocations are permanent, as R1, R2 and R8 are.
+
+### 11.7 Re-check cadence (DEX cohort)
+
+§7 applies. Added: a daily DEX snapshot covering DA1–DA3, DL1–DL2, DS1 and DP1–DP2 (§11.4). DH and DW tests run weekly as well as at the 30-day re-check.
+
+### 11.8 What each DEX verdict and snapshot records (for P11)
+
+Each verdict records everything in §8 except the CEX-only items, plus:
+- the mint address, token program and every extension, with the authority values and the slot they were read at;
+- per counted pool: address, program, quote reserve, locked share, locker and unlock date;
+- the quote ladder: each size, its USDC out, its sell cost, and the route;
+- the DS1 simulation: the holder address used, the slot, success or failure, and the USDC out;
+- the RugCheck, GoPlus and De.Fi responses, stored raw;
+- DH1 and DH2 holder shares, with the wallets excluded and why.
+
+Each daily DEX snapshot is stored the same way and gets an ID. An entry or tranche logs the ID of the day's snapshot. P11 can then show what the gate saw at entry and whether it should have caught the loss.
+
+### 11.9 What §11 doesn't check
+
+As §9, plus:
+- MEV and sandwich risk at the moment of our fill. The 0.5% MEV allowance in `strategy.md` §6 covers it on paper.
+- RPC or Jupiter errors that report a wrong pool state. Two sources (RugCheck and the chain) are cross-checked for authorities and LP. The quote ladder relies on Jupiter alone.
+- Off-chain promises about locks. Only on-chain locks count.
+- Wallet-clustering beyond what RugCheck and the funding trail show. A deployer who funds wallets through a mixer or a CEX withdrawal won't be caught by DH1.
+- Tokens without a CoinGecko listing. They can't pass A1.
+
+### 11.10 Expected supply (DEX cohort)
+
+Snapshot: 2026-10-24, 10:37–11:22 UTC. One snapshot, not a 3-day median. The first cut covered DA1–DA3, DL1, D1–D2, DP1 (using all pool liquidity, not the ±10% concentrated rule), a DEX volume of $10k/day to 1× market cap, and DP3.
+
+| | Solana | Base (not chosen) |
+|---|---|---|
+| In band, contract on chain (CoinGecko) | 280 | 253 |
+| In scope (§2) and on no credible venue | 129 | 118 |
+| Pass the first cut | **16** | 0 |
+
+All 16 are memecoins, most of them pump.fun graduates. DS1, DH2, DW1–DW4, D3–D5, E and G weren't run. If those remove a third to a half, about **8–11** are eligible, close to the retirement trigger of about 10 (`risk-policy.md` §4).
