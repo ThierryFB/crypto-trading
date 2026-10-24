@@ -225,7 +225,7 @@ On a CEX, the venue stands between us and the token. On a DEX nothing does. The 
   A concentrated-liquidity position held by a wallet is **unlocked**, however long it has sat there.
 - **Mid:** the USDC out per token for a USD 10 Jupiter sell quote.
 - **Sell cost at size *s*:** 1 − (USDC out for a Jupiter sell quote of USD *s* ÷ (*s* × mid)), routed only through counted pools.
-- **−2% sell depth:** the largest USD *s* on the ladder 58 / 500 / 1,000 / 2,000 / 5,000 / 10,000 whose sell cost is ≤ 2%. The ladder starts at about one position (EUR 50).
+- **−2% sell depth:** the largest USD *s* on the ladder 58 / 500 / 1,000 / 2,000 / 5,000 / 10,000 whose sell cost is ≤ 1%. The ladder starts at about one position (EUR 50). An average cost of 1% is where a pool's marginal price is about 2% below mid. That matches B1, which counts every bid down to −2%.
 - **DEX snapshot:** one read of all the above (pool list, quote reserves, LP state, the quote ladder), plus the mint account and holder list, taken together and stored (§11.8).
 - **Pool age:** the age of the oldest counted pool. It replaces §2's "first listed on a credible venue" for the 90-day rule.
 
@@ -284,7 +284,7 @@ The verdict records, per counted pool: program, quote reserve, locked share, loc
 | # | Test | Pass |
 |---|---|---|
 | DP1 | Quote reserve across counted pools, median of ≥3 DEX snapshots on 3 different UTC days within 14 days | ≥ **$100,000** |
-| DP2 | −2% sell depth, median of the same snapshots | ≥ **$2,000** |
+| DP2 | −2% sell depth, median of the same snapshots | ≥ **$1,000** |
 | DP3 | Pool age | ≥ 90 days |
 
 **Why these floors, and not $50k of −2% depth like B1.**
@@ -293,7 +293,7 @@ The verdict records, per counted pool: program, quote reserve, locked share, loc
   - **liquidity paired against a token the project controls:** counts for zero (§11.1). On 2026-10-24 one Base token showed $9M of "liquidity", all against about 30 junk tokens;
   - **unlocked liquidity that can be pulled:** DL1–DL2, R2-style revocation (DR2);
   - **concentrated liquidity parked far from the price:** only ±10% counts.
-- **Why $100k and $2,000.** A CEX-style $50k at −2% would need a full-range pool of about $5M quote reserve. On 2026-10-24 only two DEX-only Solana tokens that passed the contract checks had that much, and one wallet holds over 85% of the supply in both. The cohort retirement trigger (`risk-policy.md` §4) is about 10 eligible tokens, so that floor would kill the cohort before it starts. With $100k of quote reserve and ≥50% locked, at least $50k can't be withdrawn. The $2,000 floor is about 35 positions: one wallet with a few thousand dollars moves a pool like that 2% either way, and DW1–DW4 check whether someone is doing it. Of the 16 first-cut tokens, all cleared $2,000 at one snapshot and 9 cleared $5,000.
+- **Why $100k and $1,000.** A CEX-style $50k at −2% would need a full-range pool of about $5M quote reserve. On 2026-10-24 only two DEX-only Solana tokens that passed the contract checks had that much, and one wallet holds over 85% of the supply in both. The cohort retirement trigger (`risk-policy.md` §4) is about 10 eligible tokens, so that floor would kill the cohort before it starts. With $100k of quote reserve and ≥50% locked, at least $50k can't be withdrawn. The $1,000 floor is about 17 positions. A pool that thin can be moved 2% by one wallet with a few thousand dollars, and DW1–DW4 check whether someone is doing that. At one snapshot, all 16 first-cut tokens cleared $1,000 and 10 cleared $2,000. A $2,000 floor would leave about 6 after full DD.
 
 **Wash volume (replaces C1–C4).** Volumes count counted pools only. "Trades" means the last 300 swaps on the counted pool with the largest quote reserve, read from GeckoTerminal's public trades feed or from the chain.
 
