@@ -1,6 +1,6 @@
 # Alt Momentum: backtest, 2019-01 → 2026-10
 
-**Verdict: kill.** After costs, Alt Momentum returns far less than Majors Trend (CAGR +26% vs +47%) with a much deeper drawdown (−72% vs −29%). It doesn't beat the same alts held equal-weight, so the momentum ranking adds nothing. Adding it to Majors Trend at the draft 450:250 split lowers Sharpe from 1.25 to 1.07 and deepens the drawdown from −29% to −48%. No tested setting fixes the drawdown: every one is −66% or worse. Its correlation with Majors Trend is 0.50, so it isn't a noisy copy. It is a worse, different bet: alt beta.
+**Verdict: kill.** It would also break Ingrid's D3 level (NAV at or below 60% of the starting capital) from 46 of 93 starting months. After costs, Alt Momentum returns far less than Majors Trend (CAGR +26% vs +47%) with a much deeper drawdown (−72% vs −29%). It doesn't beat the same alts held equal-weight, so the momentum ranking adds nothing. Adding it to Majors Trend at the draft 450:250 split lowers Sharpe from 1.25 to 1.07 and deepens the drawdown from −29% to −48%. No tested setting fixes the drawdown: every one is −66% or worse. Its correlation with Majors Trend is 0.50, so it isn't a noisy copy. It is a worse, different bet: alt beta.
 
 All numbers come from `backtest/results.txt`, produced by `python3 backtest/report.py`.
 
@@ -57,7 +57,28 @@ Nearly all of the return comes from 2021. In 2019 and 2024, BTC was in an uptren
 | −72% | 2019-06-23 | 2020-05-10 | 2021-01-31 |
 | −52% | 2021-11-21 | 2023-06-18 | 2023-12-10 |
 
-The strategy spent 179 of 406 weeks at or below 60% of its high-water mark. Ingrid's limits for this strategy aren't drafted yet (THE-298). For reference, the Micro-cap Convex draft halts at NAV ≤ 60% of HWM (D2). Under that rule this strategy would have halted in 2019, and again in 2024. Weekly closes understate drawdowns, so the intraweek troughs were deeper.
+The strategy spent 179 of 406 weeks at or below 60% of its high-water mark.
+
+## Ingrid's halt levels (risk-policy.md, PR #8)
+
+Weekly closes hide the 1-day and 7-day moves, so `backtest/halts.py` rebuilds a **daily** NAV. Each week's holdings (after that week's costs) are marked at every CMC daily close until the next rebalance, then scaled so each week ends on the weekly backtest's value. The median week-end gap is 0.00% and the largest is 4.7%. 14 of 6,608 held coin-days had no daily close; these are LEND, Aave's token before its migration, which I carried flat. Full output: `backtest/halts.txt`.
+
+Base run from 2019-01-06:
+
+| Level | Rule | Episodes | First fires |
+|---|---|---|---|
+| D1 (review) | NAV ≤ 80% of HWM | 7 drawdowns | 2019-04-29 |
+| **D2 (halt)** | NAV ≤ 70% of HWM | **4 drawdowns** | 2019-07-14, 2021-04-24, 2022-04-06, 2024-01-23 |
+| **D3 (halt)** | NAV ≤ 60% of start | **hit** | 2019-09-24 (0.53×). Lowest 0.43×, 2020-05-11 |
+| D4 (halt) | NAV −15% in one UTC day | 8 days | 2019-07-16 (−17%). Worst −21%, 2020-12-23 |
+| **D5 (halt)** | NAV −30% in 7 days | **2** | 2019-07-16 (−37%), 2021-04-24 (−31%) |
+| Momentum crash (review) | −20% in 7 days, regime on | 12 clusters | 2019-07-14 |
+
+D1 and D2 re-arm only at a new HWM. Days within 7 days of each other count as one D4 or D5 episode. The first halt would have come on **2019-07-14 (D2)**, six months in. Every later count assumes Nadia resumed after it. On daily closes the worst drawdown is −73%, against −72% on weekly closes.
+
+**D3 from every starting month.** I started a fresh run on the first Sunday of each month, 2019-01 to 2026-09. **D3 would have been hit in 46 of the 93 runs.** That includes every start from 2019-01 to 2019-09, 2021-04/05, and every start from 2021-09 to 2024-07. The 2024 alt bleed took runs started anywhere from late 2021 to mid-2024 down to 0.34–0.51× of their start. Ingrid's PR #8 says D3 blocks paper, so this result would block it on its own, separately from the kill verdict.
+
+**Not applied in the backtest:** the halts themselves (the book keeps trading through them), the L4 sector cap (`universe.md`) and the L2 50% drift trim.
 
 ## Sensitivity: lookback × holdings (CAGR / max DD / Sharpe)
 
@@ -103,7 +124,7 @@ Cost drag is the central risk, as the brief expected. Even with no costs, the st
 
 ## Limitations
 
-- **Weekly data only.** Drawdowns are measured on weekly closes, and fills are at the same close that produced the signal. Both make the strategy look better than it would trade.
+- **Weekly signals and fills.** Fills happen at the same close that produced the signal, which makes the strategy look better than it would trade. The halt-level check uses daily closes. Every other drawdown figure uses weekly closes, which understate intraweek troughs.
 - **CMC volume overstates liquidity**, especially for 2019 (wash trading), and the backtest assumes every universe coin was tradable on one venue. Live costs for tier-2 coins are likely higher than 0.35% per side, which makes the results worse.
 - **The Majors Trend comparison uses its draft rule** (THE-296, not merged). If that rule changes, rerun `report.py`. At any SMA from 100 to 200 days, Majors Trend has a Sharpe of 0.97–1.20 and a drawdown no worse than −43%, so the verdict holds across its own range.
 - **Glitch guard:** one ranking was skipped because of a ≥10× four-week move.
@@ -113,6 +134,7 @@ Cost drag is the central risk, as the brief expected. Even with no costs, the st
 ```
 cd strategies/alt-momentum/backtest
 CMC_SNAP_DIR=<THE-271 snapshot cache> MT_DIR=../../majors-trend/backtest python3 report.py > results.txt
+CMC_DAILY_DIRS=<daily OHLC cache dirs, colon-separated> python3 halts.py > halts.txt
 ```
 
-`MT_DIR` needs Majors Trend's `prices.csv` and `backtest.py` (its PR). The CMC cache isn't in the repo. The source is listed in `data.py`.
+`MT_DIR` needs Majors Trend's `prices.csv` and `backtest.py` (its PR). The CMC caches aren't in the repo. Their sources are listed in `data.py` and `halts.py`.

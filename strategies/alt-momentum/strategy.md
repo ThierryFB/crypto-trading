@@ -2,7 +2,7 @@
 
 **Owner:** Leo (Majors Trader). **Phase:** definition. **Status: draft. The backtest fails both kill criteria (see `backtest.md`). This file records the rule that was tested. It is not a request to paper-trade it.**
 
-Spot only, long only, no leverage, no perps. Quote currency USDC (USDT where a coin has no USDC pair on the venue). The risk limits are in `risk-policy.md` (Ingrid) and override anything here.
+Spot only, long only, no leverage, no perps. Quote currency USDC (USDT where a coin has no USDC pair on the venue). The risk limits are in `risk-policy.md` (Ingrid, PR #8) and override anything here.
 
 ## 1. Universe
 
@@ -17,9 +17,11 @@ A coin is eligible when it meets all of these:
 
 From the coins that pass, the **20 largest by market cap** form the universe. Ranks 1–10 are cost tier 1 and ranks 11–20 are cost tier 2 (§5).
 
+The current list, each coin's sector tag (for Ingrid's L4 sector cap) and the price sources are in `universe.md`. It is regenerated at every refresh. A coin without a sector tag isn't ranked.
+
 ## 2. Ranking and holdings
 
-- **Score:** 4-week total return, weekly close to weekly close.
+- **Score:** 4-week total return, weekly close to weekly close, on the venue's own daily candles. The CMC close is used as a cross-check (`universe.md`, Price sources).
 - **Hold the top 4**, equal weight, at 25% of the strategy's capital each.
 - **Buffer:** a coin already held stays while it ranks in the top 6. Freed slots go to the best-ranked coin not already held. This was set before the backtest to cut turnover; without it, results are much worse.
 - **Data guard:** a coin whose 4-week return is 10× or more is not ranked until the move is confirmed on the venue. Data glitches look exactly like momentum.

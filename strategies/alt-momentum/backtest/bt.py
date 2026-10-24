@@ -20,7 +20,7 @@ from data import *   # noqa
 
 START = '2019-01-06'
 BASE = dict(look=4, k=4, buf=2, regime='sma150', fee=0.001, slip1=0.001, slip2=0.0025, cost_mult=1.0,
-            majors=False, univ_n=20, reweight='monthly', abs_mom=False)
+            majors=False, univ_n=20, reweight='monthly', abs_mom=False, start=START)
 
 # --- BTC daily (same file as Majors Trend) ---
 # Majors Trend's backtest folder (prices.csv + backtest.py). Default: the sibling strategy in this repo.
@@ -56,10 +56,12 @@ def ret4(i, w, look):
 def run(**kw):
     c = {**BASE, **kw}
     eq = 1.0; hold = {}            # coin -> weight (fraction of equity)
-    curve = [(dates[w0], 1.0)]; rets = []; trades = 0; cost_paid = 0.0; invested = []
+    s0 = dates.index(c['start'])
+    curve = [(dates[s0], 1.0)]; rets = []; trades = 0; cost_paid = 0.0; invested = []
     U = None; tier = {}
     glitch_skips = 0
-    for w in WEEKS[:-1]:
+    book = []                      # (week index, equity after costs, weights held over the coming week)
+    for w in range(s0, N - 1):
         d = dates[w]
         new_month = U is None or d[:7] != dates[w - 1][:7]
         if new_month:
@@ -99,6 +101,7 @@ def run(**kw):
         hold = target
         eq_before = eq
         eq *= (1 - cost); cost_paid += cost
+        book.append((w, eq, dict(hold)))
         # mark to next snapshot
         g = 1 - sum(hold.values())
         nh = {}
@@ -114,7 +117,7 @@ def run(**kw):
         invested.append(1 if target else 0)
         eq = eq_after
         curve.append((dates[w + 1], eq))
-    return dict(curve=curve, rets=rets, trades=trades, cost=cost_paid, costfrac_yr=cost_paid / (len(rets) / 52.18), invested=invested, glitch=glitch_skips, cfg=c)
+    return dict(curve=curve, rets=rets, trades=trades, cost=cost_paid, costfrac_yr=cost_paid / (len(rets) / 52.18), invested=invested, glitch=glitch_skips, book=book, cfg=c)
 
 def stats(curve, rets, trades=None, cost=None, invested=None):
     yrs = len(rets) / 52.18

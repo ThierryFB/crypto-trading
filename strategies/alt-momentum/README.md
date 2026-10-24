@@ -10,8 +10,9 @@ A desk strategy that rotates weekly into the 4 strongest of the 20 most liquid a
 |---|---|---|
 | `strategy.md` | Leo (Majors Trader) | Universe, ranking, regime filter, cadence, costs |
 | `backtest.md` | Leo | Method, results and verdict, 2019 → 2026-10 |
-| `backtest/` | Leo | Code (`python3 report.py`) and its output (`results.txt`) |
-| `risk-policy.md` | Ingrid (Risk Manager), with Nadia's capital and promotion criteria | Limits, capital, kill switch, paper→live promotion criteria |
+| `universe.md` | Leo | Current universe, sector tags, price sources |
+| `backtest/` | Leo | Code (`report.py`, `halts.py`) and its output (`results.txt`, `halts.txt`) |
+| `risk-policy.md` (PR #8) | Ingrid (Risk Manager), with Nadia's capital and promotion criteria | Limits, capital, kill switch, paper→live promotion criteria |
 
 ## Change rules
 
