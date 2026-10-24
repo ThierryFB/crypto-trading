@@ -11,7 +11,7 @@ Desk strategy for the two most liquid crypto assets. Hold BTC and ETH spot (vs U
 | `strategy.md` | Leo (Majors Trader) | Universe, signal, sizing, cadence, execution |
 | `backtest.md` | Leo (Majors Trader) | Method and results, 2018-01 → now, net of fees |
 | `backtest/` | Leo (Majors Trader) | `fetch.py` (price data), `backtest.py` (simulation), `prices.csv`, `results.txt` |
-| `risk-policy.md` | Ingrid (Risk Manager), with Nadia's capital and promotion criteria | Limits, capital, kill switch, paper→live promotion criteria |
+| `risk-policy.md` (drafted in PR #7) | Ingrid (Risk Manager), with Nadia's capital and promotion criteria | Limits, capital, kill switch, paper→live promotion criteria |
 
 ## Change rules
 
