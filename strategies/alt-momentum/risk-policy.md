@@ -32,7 +32,7 @@ Owner: Ingrid, with capital and promotion criteria from Nadia. Merges only with 
 
 ### Cost (review triggers)
 
-- **Cost drag:** realised fees plus impact over the trailing 13 weeks, annualised, above **6%** of average NAV. About 150 trades a year at $50–85 and 0.2–0.3% all-in is roughly 3–5% a year; above 6% the backtest's edge is probably gone.
+- **Cost drag:** realised fees plus impact over the trailing 13 weeks, annualised, above **6%** of average NAV. About 150 trades a year at $50–85 is roughly **40× NAV** in turnover. At 0.1% fees plus about 0.05% impact, that is already about **6%** a year; at 0.2–0.3% all-in it is 8–12%. So the THE-297 turnover sits at this trigger even at best-case fees, and the backtest has to show the edge net of it. If it doesn't, the design needs less turnover (for example, a rank buffer), not a looser trigger. Above 6% the backtest's edge is probably gone.
 - **Turnover:** more than **4** rotations (a coin sold and another bought) in one week, or more than **200** trades in any trailing 12 months.
 - **Momentum crash:** NAV down ≥ **20%** in any 7 days while the regime flag is on. I compare it with the backtest's worst weeks.
 
@@ -81,7 +81,7 @@ Kill switch and stablecoin depeg: see the desk policy (kill switch, DO2).
 
 - **Strategy and phase:** Alt Momentum, definition. No capital at risk.
 - **Inputs:** THE-297 spec, Nadia's THE-286 note. No `strategy.md`, universe or backtest.
-- **Not verified:** D1–D5 aren't calibrated to a backtest; they're set from alt volatility (roughly 2–3× BTC) and judgement. The impact caps assume the top-20 coins fill $50–85 orders inside the spread at our venue, unchecked. The cost estimate assumes 0.1% taker fees, which depends on the venue.
+- **Not verified:** D1–D5 aren't calibrated to a backtest; they're set from alt volatility (roughly 2–3× BTC) and judgement. The impact caps assume the top-20 coins fill $50–85 orders inside the spread at our venue, unchecked. The cost estimate assumes 0.1% taker fees, which depends on the venue. At the THE-297 turnover, the 6% cost trigger leaves no room for fees above that (see Cost).
 - **Review:** when `strategy.md`, the universe and the backtest merge, when the venue is chosen, and at every quarterly paper review.
 
 ## Capital and promotion criteria
