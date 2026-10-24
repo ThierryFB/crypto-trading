@@ -94,7 +94,7 @@ Micro-cap's draft policy (PR #3) is sized at EUR 1,000 with about 20 positions a
 - **USD throughout.** Micro-cap's earlier EUR 1,000 sizing (PR #3) is superseded by $300.
 - **No unallocated reserve.** Idle cash sits inside each strategy's own sub-sleeve (C4).
 - **Changes only at a quarterly review, by PR** (S1, S3). Capital from a retired or stopped strategy goes back to the desk as unallocated. It isn't handed to the others automatically; moving it is a new allocation PR, and live, a new mandate.
-- **Micro-cap's DEX cohort** is paper only and can't go live under any mandate this desk holds. It runs on its own notional, **outside** the $1,000. It's sized the same as the CEX book ($300) so the two records stay comparable.
+- **Micro-cap's DEX cohort** is paper only and can't go live under any mandate this desk holds. It runs on its own notional, **outside** the $1,000. It's sized the same as the CEX book ($300) so the two records stay comparable. Its paper notional is **outside desk NAV** and outside DD1–DD4 and C1–C2, so the desk limits keep measuring the $1,000.
 
 ### Micro-cap Convex at $300: decision
 

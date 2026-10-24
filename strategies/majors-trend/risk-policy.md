@@ -101,7 +101,7 @@ So paper tests what the backtest can't: **whether the merged rules are followed 
 
 Changing any of these after paper starts needs a PR. The change is reported with the results.
 
-- **Mechanical replay.** Every day, the merged rules are run on the logged signal data with no discretion. This gives the trades and NAV the book *should* have had. The paper book is compared against the replay (P3, P4).
+- **Mechanical replay.** Every day, the merged rules are run on the logged signal data with no discretion. This gives the trades and NAV the book *should* have had. The replay applies **the same halt state** as the book: no buys or size increases while a `HALT —` issue (strategy or desk) is open, and the sells a halt or kill requires are made in the replay too, on the same day. The paper book is compared against the replay like-for-like (P3, P4), so a market halt doesn't count as a deviation.
 - **Benchmark:** 50/50 BTC/ETH buy-and-hold, rebalanced monthly, from the same start date and with the same costs. Reported every quarter; it isn't pass/fail on paper (see below).
 - **Parameters:** the signal, vol target and check time in the merged `strategy.md`. A **material change to `strategy.md` restarts the paper clock** (P1, P2).
 - **The tests in §3**, with their thresholds.
@@ -112,10 +112,10 @@ Every item must pass. Ingrid confirms them in writing; only then do I write the 
 
 | # | Test | Threshold | Why |
 |---|---|---|---|
-| P0 | Backtest edge | The merged backtest (2018 onwards, net of fees) beats the benchmark on **maximum drawdown** and on **return ÷ max drawdown**, in-sample **and** on the hold-out years the backtest reserves. This was checked before paper and must still hold after any later change to `strategy.md`. | The edge is tested here, not in paper. Without it, a clean paper record is a well-run strategy with nothing to run. |
+| P0 | Backtest edge | The merged backtest (2018 onwards, net of fees) beats the benchmark on **maximum drawdown** and on **return ÷ max drawdown**, in-sample **and** on the hold-out years the backtest reserves. If the hold-out years contain no BTC fall of **≥ 30%** from its peak, the hold-out drawdown leg is reported as **uninformative**, not passed, and P0 rests on the in-sample cycles (2018, 2022). This was checked before paper and must still hold after any later change to `strategy.md`. | The edge is tested here, not in paper. Without it, a clean paper record is a well-run strategy with nothing to run. |
 | P1 | Duration | ≥ **6 months** of paper | Long enough to run the whole loop many times (daily checks, NAV, reconciliation, the Crypto Book). It isn't meant to prove the edge. |
-| P2 | Signal coverage | At least **one entry and one exit** in each coin, or **four signal changes** across the book. If not, paper continues until it happens. At 12 months without it, I report to David with a recommendation either way. | The exits are what matter. A paper period where nothing ever turned off hasn't tested the rule that carries the edge. |
-| P3 | Fidelity | Every paper trade matches the replay: same coin, same day, same direction, and size within **10% or $10**. **Zero** trades the replay didn't make, and **zero** replay trades skipped. | This is the test that matters most. Autonomy is only safe if the book is the rule. |
+| P2 | Signal coverage | At least **one entry and one exit** in each coin, or **four signal changes** across the book. If not, paper continues until it happens. At 12 months without it, I report to David, and the recommendation is **continue paper** or **stop**, never promote, until P2 passes. | The exits are what matter. A paper period where nothing ever turned off hasn't tested the rule that carries the edge. |
+| P3 | Fidelity | Every paper trade matches the replay: same coin, same day, same direction, and size within **10% or $10, whichever is larger**. Halt-state trades are compared like-for-like (§2). **Zero** trades the replay didn't make, and **zero** replay trades skipped. | This is the test that matters most. Autonomy is only safe if the book is the rule. |
 | P4 | Tracking | Paper NAV return within **±1.5 pp** of the replay's over the period, with every gap explained by fills or fees. | Small, explained gaps are execution. Large or unexplained ones are a broken record or a hidden decision. |
 | P5 | Cost realism | Average fees plus impact ≤ **0.3% per side**, and the modelled cost is within **25%** of the measured cost on a sample of books checked after the fact. | The backtest assumed 0.1% plus nearly no impact. Costs well above that mean the venue or the fill model is wrong. |
 | P6 | Discipline | 100% of decisions logged with their signal values, at the time of the decision. **Zero** hard-limit breaches. Every signal-off exit done by the end of the day after the check. | Same reason as P3: live has no supervision on each trade. |
@@ -138,7 +138,7 @@ Each case goes to David with the numbers and the sample size.
 ### 5. Live capital and scaling
 
 - **Live sub-sleeve: $450**, the paper figure, inside the desk's $1,000, unless the mandate sets a different one. It has to be money Thierry is fine losing. Venue and custody are his call in the mandate.
-- **Stage L1 runs on the full $450.** Splitting it would mean $25–135 positions. That's fine on minimums, but it saves less than $250 of risk on a sleeve that is already sized to be lost. L1 lasts **≥ 6 months**. P3–P8 continue live, and live cost is compared with the paper fill model (Ingrid's O6).
+- **Live stage 1 runs on the full $450.** Splitting it would mean $25–135 positions. That's fine on minimums, but it saves less than $250 of risk on a sleeve that is already sized to be lost. Live stage 1 lasts **≥ 6 months**. P3–P8 continue live, and live cost is compared with the paper fill model (Ingrid's O6).
 - **Any increase** (capital, a second venue, a loosened limit) is a **new mandate confirmation** from Thierry, through David. A mandate never expands itself.
 - **Gains** stay in the sub-sleeve until the quarterly review (desk S3). Anything above the mandated cap is swept out each quarter. The cap limits capital at risk; it isn't a starting balance.
 - **Capacity:** BTC and ETH books don't limit this strategy at any size the family would consider. The constraints are the mandate and venue risk, not liquidity.
