@@ -1,0 +1,81 @@
+Weekly CMC snapshots 2019-01-06 .. 2026-10-11 (405 weeks). Base: 4-week return, top 4 (+2 buffer), BTC > SMA150 regime, fee 0.10% + slippage 0.10%/0.25% per side. Glitch-guard skips: 1
+
+## Headline
+| Run | End value | CAGR | Max DD (weekly) | Sharpe | Sortino | Vol | Worst week | Orders / yr | Cost drag / yr | Time invested |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **Alt Momentum (base)** | 5.92x | +25.7% | -72% | 0.64 | 1.22 | 71% | -27% | 92 | 5.4% | 58% |
+| Control: equal-weight whole universe, same regime filter | 7.59x | +29.8% | -64% | 0.73 | 1.25 | 59% | -26% | 114 | 1.7% | 58% |
+| Majors Trend draft (SMA150, 50% vol target), sampled weekly | 20.25x | +47.3% | -29% | 1.25 | 2.43 | 36% | -14% | – | – | – |
+| Buy & hold BTC | 20.49x | +47.6% | -75% | 0.96 | 1.53 | 59% | -33% | – | – | – |
+
+## Correlation of weekly returns
+
+| Pair | Correlation | Beta of Alt Momentum to it |
+|---|---|---|
+| Alt Momentum vs Majors Trend, all weeks | 0.50 | 0.99 |
+| Alt Momentum vs Majors Trend, weeks Alt Momentum is invested | 0.52 | 1.06 |
+| Alt Momentum vs BTC | 0.40 | 0.49 |
+| Majors Trend vs BTC | 0.76 | – |
+
+Majors Trend + Alt Momentum at the draft 450:250 split (weekly rebalanced, no extra cost): 17.25x, CAGR +44.3%, max DD -48%, Sharpe 1.07 (Majors Trend alone: 20.25x, +47.3%, -29%, 1.25).
+
+## Calendar years
+
+| Year | Alt Momentum | EW-universe control | Majors Trend | BTC |
+|---|---|---|---|---|
+| 2019 | -48% | -28% | +56% | +82% |
+| 2020 | +87% | +54% | +145% | +254% |
+| 2021 | +761% | +598% | +76% | +93% |
+| 2022 | -13% | -13% | -12% | -67% |
+| 2023 | +42% | +24% | +78% | +151% |
+| 2024 | -46% | +11% | +70% | +121% |
+| 2025 | -12% | -34% | +1% | -6% |
+| 2026 (to 10-11) | +19% | +24% | +12% | -5% |
+
+## Worst drawdowns, Alt Momentum base (weekly closes)
+
+| Drawdown | Peak | Trough | Recovered |
+|---|---|---|---|
+| -72% | 2023-12-24 | 2024-11-03 | not yet |
+| -72% | 2019-06-23 | 2020-05-10 | 2021-01-31 |
+| -52% | 2021-11-21 | 2023-06-18 | 2023-12-10 |
+
+Weeks spent at or below 60% of the high-water mark: 179 of 406.
+
+## Sensitivity: lookback x holdings (CAGR / max DD / Sharpe)
+
+| Lookback \ top K | 3 | 4 | 5 |
+|---|---|---|---|
+| 2 weeks | +37% / -68% / 0.79 | +45% / -67% / 0.90 | +41% / -66% / 0.86 |
+| 4 weeks | +20% / -73% / 0.56 | +26% / -72% / 0.64 | +31% / -72% / 0.71 |
+| 8 weeks | -3% / -80% / 0.31 | +27% / -75% / 0.67 | +25% / -76% / 0.65 |
+| 12 weeks | +31% / -75% / 0.66 | +37% / -70% / 0.75 | +42% / -68% / 0.80 |
+
+## Regime filter
+| Run | End value | CAGR | Max DD (weekly) | Sharpe | Sortino | Vol | Worst week | Orders / yr | Cost drag / yr | Time invested |
+|---|---|---|---|---|---|---|---|---|---|---|
+| BTC > SMA150 (base, Majors Trend rule) | 5.92x | +25.7% | -72% | 0.64 | 1.22 | 71% | -27% | 92 | 5.4% | 58% |
+| BTC > SMA100 | 13.41x | +39.7% | -74% | 0.79 | 1.56 | 72% | -26% | 92 | 5.5% | 56% |
+| BTC > SMA200 | 2.63x | +13.3% | -78% | 0.51 | 0.90 | 72% | -46% | 91 | 5.4% | 58% |
+| No filter (always invested) | 2.10x | +10.0% | -91% | 0.53 | 0.86 | 87% | -46% | 143 | 8.3% | 100% |
+
+## Costs
+| Run | End value | CAGR | Max DD (weekly) | Sharpe | Sortino | Vol | Worst week | Orders / yr | Cost drag / yr | Time invested |
+|---|---|---|---|---|---|---|---|---|---|---|
+| No costs | 9.00x | +32.7% | -71% | 0.72 | 1.38 | 71% | -27% | 92 | 0.0% | 58% |
+| Base (0.20% / 0.35% per side) | 5.92x | +25.7% | -72% | 0.64 | 1.22 | 71% | -27% | 92 | 5.4% | 58% |
+| 2x base | 3.89x | +19.1% | -75% | 0.57 | 1.06 | 71% | -27% | 92 | 10.8% | 58% |
+| 3x base | 2.55x | +12.8% | -78% | 0.49 | 0.91 | 71% | -27% | 92 | 16.2% | 58% |
+
+## Other construction choices
+| Run | End value | CAGR | Max DD (weekly) | Sharpe | Sortino | Vol | Worst week | Orders / yr | Cost drag / yr | Time invested |
+|---|---|---|---|---|---|---|---|---|---|---|
+| No buffer (strict top 4 every week) | 2.91x | +14.8% | -72% | 0.52 | 0.87 | 63% | -28% | 115 | 7.0% | 58% |
+| Reset to equal weight every week | 6.60x | +27.5% | -72% | 0.66 | 1.27 | 72% | -27% | 109 | 5.8% | 58% |
+| Only hold coins with a positive 4-week return | 7.11x | +28.8% | -76% | 0.67 | 1.31 | 70% | -27% | 91 | 5.4% | 58% |
+| Universe includes BTC and ETH | 4.83x | +22.5% | -73% | 0.59 | 1.21 | 74% | -27% | 92 | 5.4% | 58% |
+
+## Universe
+
+Monthly refreshes: 94; size min 15, median 20.0; 86 distinct coins were members.
+52 of them are now >90% below their post-2019 high or no longer listed (3 no longer listed): ADA, AE, ALGO, APE, APT, ATOM, AVAX, AXS, BAT, BSV, BTG, BTTOLD, CAKE, CRO, DOT, DREP, EGLD, EOS, ETC, FET, FIL, FLOW, FTT, HEX, HT, ICP, IMX, IOTA, KLAY, LAB, LDO, LEND, LUNC, MANA, MATIC, NEO, OM, OMG, ONT, OP, PI, QTUM, RUNE, RVN, SHIB, THETA, VET, WAVES, XCN, XEM, XTZ, ZRX.
