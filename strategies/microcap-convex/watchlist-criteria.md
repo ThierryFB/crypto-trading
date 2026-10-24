@@ -1,7 +1,7 @@
 # Watchlist criteria: Micro-cap Convex
 
 **Owner:** Hugo (Token DD Analyst). **Merged by:** Nadia. **Applies to:** this strategy only.
-**Status:** rev 4, 2026-10-24 (sized for a EUR 1,000 paper sleeve, `risk-policy.md` §1; adds the DEX cohort gate, §11). **Phase: definition.** No trading.
+**Status:** rev 4, 2026-10-24 (§1–§10 sized for a EUR 1,000 paper sleeve, `risk-policy.md` §1; adds the DEX cohort gate, §11, sized for the DEX cohort's own **$300** paper book, which sits outside the desk sleeve: N = 15, a position about $20, 2 tranches of about $10; `strategy.md` §3, THE-299). **Phase: definition.** No trading.
 
 This file says what a token must pass to go on `watchlist.md`, what makes it eligible on a given day, and what suspends or revokes it. `strategy.md` (Rafael) decides whether to trade an eligible token. Changes to this file go through a PR that Nadia merges. Changes to `watchlist.md` are Hugo's and merge only under the criteria in force on the default branch.
 
@@ -223,9 +223,9 @@ On a CEX, the venue stands between us and the token. On a DEX nothing does. The 
   - held by a program with no withdrawal path for the team.
 
   A concentrated-liquidity position held by a wallet is **unlocked**, however long it has sat there.
-- **Mid:** the USDC out per token for a USD 10 Jupiter sell quote.
+- **Mid:** the USDC out per token for a USD 10 Jupiter sell quote, about one entry tranche.
 - **Sell cost at size *s*:** 1 − (USDC out for a Jupiter sell quote of USD *s* ÷ (*s* × mid)), routed only through counted pools.
-- **−2% sell depth:** the largest USD *s* on the ladder 58 / 500 / 1,000 / 2,000 / 5,000 / 10,000 whose sell cost is ≤ 1%. The ladder starts at about one position (EUR 50). An average cost of 1% is where a pool's marginal price is about 2% below mid. That matches B1, which counts every bid down to −2%.
+- **−2% sell depth:** the largest USD *s* on the ladder 58 / 500 / 1,000 / 2,000 / 5,000 / 10,000 whose sell cost is ≤ 1%. The ladder starts at USD 58, about 3 positions ($20 each), so the first rung keeps headroom over our size. An average cost of 1% is where a pool's marginal price is about 2% below mid. That matches B1, which counts every bid down to −2%.
 - **DEX snapshot:** one read of all the above (pool list, quote reserves, LP state, the quote ladder), plus the mint account and holder list, taken together and stored (§11.8).
 - **Pool age:** the age of the oldest counted pool. It replaces §2's "first listed on a credible venue" for the 90-day rule.
 
@@ -269,7 +269,7 @@ The verdict records, per counted pool: program, quote reserve, locked share, loc
 
 | # | Test | Pass |
 |---|---|---|
-| DS1 | **Sell simulation at our size.** A Jupiter swap transaction selling USD 58 of the token for USDC, built for an existing non-insider holder's address, run through RPC `simulateTransaction` with signature verification off. Nothing is signed or sent, and no wallet of ours is involved. The simulation must succeed, and its USDC out must be within 1% of the quote | Yes |
+| DS1 | **Sell simulation at our size.** A Jupiter swap transaction selling USD 58 of the token for USDC (about 3 positions: simulated above our size for headroom, so a slightly larger sell or a half-day of pool drift still passes), built for an existing non-insider holder's address, run through RPC `simulateTransaction` with signature verification off. Nothing is signed or sent, and no wallet of ours is involved. The simulation must succeed, and its USDC out must be within 1% of the quote | Yes |
 | DS2 | RugCheck, GoPlus (Solana) and De.Fi flag no honeypot, rug, freeze or "cannot sell" risk | None |
 
 **Holders:**
@@ -288,12 +288,12 @@ The verdict records, per counted pool: program, quote reserve, locked share, loc
 | DP3 | Pool age | ≥ 90 days |
 
 **Why these floors, and not $50k of −2% depth like B1.**
-- **Our size doesn't need them.** A EUR 50 position needs about USD 115 of depth (`risk-policy.md` L2). On 2026-10-24, a USD 58 sell cost at most 0.23% on every token that passed the first cut. So, as with B1 at this size, the floors are there to filter out bad markets, not to size exits.
+- **Our size doesn't need them.** A $20 position needs about $40 of depth (2× position, `risk-policy.md` L2). On 2026-10-24, a USD 58 sell cost at most 0.23% on every token that passed the first cut. So, as with B1 at this size, the floors are there to filter out bad markets, not to size exits.
 - **A pool can't be hollow the way a book can.** Pool liquidity can't be cancelled the way a wall can. It can only be withdrawn, and DL1–DL2 make sure at least half of it can't be. The DEX ways to fake depth are different, and the tests aim at them:
   - **liquidity paired against a token the project controls:** counts for zero (§11.1). On 2026-10-24 one Base token showed $9M of "liquidity", all against about 30 junk tokens;
-  - **unlocked liquidity that can be pulled:** DL1–DL2, R2-style revocation (DR2);
+  - **unlocked liquidity that can be pulled:** DL1–DL2, suspension when the locked share slips (DS-S6) and R2-style revocation when locked liquidity is withdrawn (DR2);
   - **concentrated liquidity parked far from the price:** only ±10% counts.
-- **Why $100k and $1,000.** A CEX-style $50k at −2% would need a full-range pool of about $5M quote reserve. On 2026-10-24 only two DEX-only Solana tokens that passed the contract checks had that much, and one wallet holds over 85% of the supply in both. The cohort retirement trigger (`risk-policy.md` §4) is about 10 eligible tokens, so that floor would kill the cohort before it starts. With $100k of quote reserve and ≥50% locked, at least $50k can't be withdrawn. The $1,000 floor is about 17 positions. A pool that thin can be moved 2% by one wallet with a few thousand dollars, and DW1–DW4 check whether someone is doing that. At one snapshot, all 16 first-cut tokens cleared $1,000 and 10 cleared $2,000. A $2,000 floor would leave about 6 after full DD.
+- **Why $100k and $1,000.** A CEX-style $50k at −2% would need a full-range pool of about $5M quote reserve. On 2026-10-24 only two DEX-only Solana tokens that passed the contract checks had that much, and one wallet holds over 85% of the supply in both. The cohort retirement trigger (`risk-policy.md` §4) is about 10 eligible tokens, so that floor would kill the cohort before it starts. With $100k of quote reserve and ≥50% locked, at least $50k can't be withdrawn. The $1,000 floor is about 50 positions ($20 each). A pool that thin can be moved 2% by one wallet with a few thousand dollars, and DW1–DW4 check whether someone is doing that. At one snapshot, all 16 first-cut tokens cleared $1,000 and 10 cleared $2,000. A $2,000 floor would leave about 6 after full DD.
 
 **Wash volume (replaces C1–C4).** Volumes count counted pools only. "Trades" means the last 300 swaps on the counted pool with the largest quote reserve, read from GeckoTerminal's public trades feed or from the chain.
 
@@ -322,6 +322,9 @@ The verdict records, per counted pool: program, quote reserve, locked share, loc
 | DS-S3 | A DS1 simulation fails once. Hugo re-runs it within 1 hour. If the re-run fails too, DR3 applies |
 | DS-S4 | Quote reserve across counted pools falls ≥ 30% within 24h through withdrawals rather than price |
 | DS-S5 | A locker unlock date comes within 30 days of the next re-check |
+| DS-S6 | DL1 or DL2 fails on a daily snapshot with no locked liquidity withdrawn (for example, unlocked liquidity is added, or price moves locked concentrated liquidity outside ±10%). Hugo re-checks. If DL1 and DL2 aren't both passing again within 7 days, the token is revoked under §6 (not permanent: it can be resubmitted as a new candidate) |
+
+**Telling DS-S6 from DR2.** A withdrawal is a change in the locked position itself: LP tokens leave the burn address or locker, a locker escrow's balance falls, or a locked CLMM/DLMM position's liquidity amount (the position's `liquidity` field, not its USD value) falls. A ±10%-band shift is read from the same positions: if every locked position's liquidity amount is unchanged and only its in-band USD value fell because price moved, nothing was withdrawn, and it's DS-S6, not DR2. The snapshot records both the liquidity amount and the in-band value per locked position (§11.8), so the call can be checked.
 
 ### 11.6 Revocation triggers (DEX cohort)
 
@@ -330,7 +333,7 @@ The verdict records, per counted pool: program, quote reserve, locked share, loc
 | # | Trigger (testable, on-chain) |
 |---|---|
 | DR1 | Any authority or extension change on the mint: a mint or freeze authority appears, a Token-2022 extension or fee config listed in DA3 is set or changed, or an account holding the token is frozen |
-| DR2 | Locked liquidity is withdrawn, or a lock expires or is extended to a wallet, on any counted pool, **or** DL1 or DL2 fails on any daily snapshot |
+| DR2 | Locked liquidity is withdrawn, or a lock expires or is moved to a wallet, on any counted pool. A DL1 or DL2 failure with nothing withdrawn is DS-S6, not DR2 |
 | DR3 | DS1 fails twice in a row (DS-S3), or any scanner in DS2 newly flags honeypot, rug or cannot-sell |
 | DR4 | The deployer, or a wallet DH1 or DH2 counts as insider, removes liquidity from a counted pool, or sells ≥ 1% of circulating supply within 7 days |
 | DR5 | A depth suspension (DS-S1) lasts 30 days, or the quote reserve is below $30,000 on 3 consecutive days |
@@ -345,7 +348,7 @@ DR1–DR3 revocations are permanent, as R1, R2 and R8 are.
 
 Each verdict records everything in §8 except the CEX-only items, plus:
 - the mint address, token program and every extension, with the authority values and the slot they were read at;
-- per counted pool: address, program, quote reserve, locked share, locker and unlock date;
+- per counted pool: address, program, quote reserve, locked share, locker and unlock date; per locked concentrated position, its liquidity amount and its in-band USD value (for DS-S6 vs DR2);
 - the quote ladder: each size, its USDC out, its sell cost, and the route;
 - the DS1 simulation: the holder address used, the slot, success or failure, and the USDC out;
 - the RugCheck, GoPlus and De.Fi responses, stored raw;
