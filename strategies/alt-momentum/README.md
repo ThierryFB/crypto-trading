@@ -2,7 +2,7 @@
 
 A desk strategy that rotates weekly into the 4 strongest of the 20 most liquid alts, and holds them only while BTC is above its 150-day average.
 
-**Phase:** definition. No capital, no mandate, no trades. **The backtest fails both kill criteria. It is not proposed for paper** (`backtest.md`).
+**Status: killed (2026-10-26, THE-297).** The backtest fails both kill criteria (`backtest.md`), and the kill verdict was accepted. It will not go to paper, and its $250 draft allocation is freed. No capital, no mandate, no trades. This folder is kept as the record of what was tested.
 
 ## Files
 
