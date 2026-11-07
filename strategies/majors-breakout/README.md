@@ -1,6 +1,6 @@
 # Majors Breakout
 
-Desk strategy for Thierry's "active" paper sleeve (THE-319). An 8h Donchian breakout, long or cash, on BTC, ETH, SOL, XRP, DOGE and ADA against USDT on Bybit spot. About 1.2 round trips a week in the backtest; three decision points a day.
+Desk strategy for Thierry's "active" paper sleeve (THE-319). An 8h Donchian breakout run at three speeds (10/5, 20/10 and 40/20 candles), each on its own third of the sleeve, long or cash, on BTC, ETH, SOL, XRP, DOGE and ADA against USDT on Bybit spot. About 3.8 round trips a week in the backtest; three decision points a day.
 
 **Phase:** definition. Paper on Bybit Demo starts once `strategy.md` and `risk-policy.md` are merged and the runner is ready. No live capital.
 
@@ -9,11 +9,11 @@ Desk strategy for Thierry's "active" paper sleeve (THE-319). An 8h Donchian brea
 | File | Owner | What it holds |
 |---|---|---|
 | `strategy.md` | Leo (Majors Trader) | Universe, candles, signals, sizing, cadence, overlay, execution |
-| `backtest/` | Nadia (Head of Trading) | `fetch.py` (Bybit 4h klines), `bt.py` (simulation), `bt2.py` (variants), `results.txt` |
+| `backtest/` | Nadia (Head of Trading) | `fetch.py` (Bybit 4h klines), `bt.py` (first single-speed proposal), `bt_active.py` + `sweep3.py` (the 3-speed rules in `strategy.md`), other sweeps, `results*.txt` |
 | `risk-policy.md` (to come) | Ingrid (Risk Manager), with Nadia's capital and promotion criteria | Limits, capital, halt rule, paper→live promotion criteria |
 | `runner/` (to come, separate PR) | Leo (Majors Trader) | Order placement for this strategy only: signals, sleeve ledger, Bybit Demo orders, decision log, Crypto Book records, shadow book |
 
-To reproduce the backtest: `cd backtest && python3 fetch.py BTCUSDT ETHUSDT SOLUSDT XRPUSDT DOGEUSDT ADAUSDT && python3 bt.py` (the CSVs are not committed). The proposal's numbers are the "No BTC regime filter" row.
+To reproduce the backtest: `cd backtest && python3 fetch.py BTCUSDT ETHUSDT SOLUSDT XRPUSDT DOGEUSDT ADAUSDT && python3 sweep3.py` (the CSVs are not committed). The strategy's numbers are the "3-speed 10/5 + 20/10 + 40/20" rows.
 
 ## Change rules
 
