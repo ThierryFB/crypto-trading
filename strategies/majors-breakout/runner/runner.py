@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Majors Breakout runner: order placement for this strategy only (strategy.md §5-§8).
+"""Majors Breakout runner: order placement for this strategy only (strategy.md §3, §6-§9). Three slices
+(fast 10/5, med 20/10, slow 40/20), each its own ledger, positions and shadow book; one demo account.
 
   runner.py wake --dry-run                     compute the wake's decision, place nothing, save nothing
-  runner.py wake [--skip SYM=why] [--exit-early SYM=why]
+  runner.py wake [--skip [SLICE:]SYM=why] [--exit-early [SLICE:]SYM=why]
                                                act on the candle that just closed: orders on Bybit Demo,
-                                               ledger, shadow book, BTC benchmark, decision log, Crypto Book
+                                               slice ledgers, shadow books, BTC benchmark, decision log, Crypto Book
   runner.py test-order [--symbol DOGEUSDT --usdt 10]
                                                one small buy + sell-back + non-marketable probe, outside the sleeve
   runner.py status | halt --by NAME --ref ISSUE | resume --by NAME --ref ISSUE | set-log-issue ISSUE
@@ -21,7 +22,7 @@ import engine, bybit  # noqa: E402
 
 STATE_DIR = os.environ.get("MB_STATE_DIR",
                            "/paperclip/instances/default/workspaces/a3ae5ff4-6eb6-4daa-9169-f2568b7087ba/majors-breakout-state")
-MAX_WAKE_DELAY = 2 * 3600  # a wake later than this after its close places no orders (strategy.md §5)
+MAX_WAKE_DELAY = 2 * 3600  # a wake later than this after its close places no orders (strategy.md §6)
 
 
 # ---------- small helpers ----------
@@ -47,16 +48,31 @@ def new_book(cash):
     return {"cash": cash, "pos": {}, "dust": {}, "closed": []}
 
 
+def new_books(cfg):
+    """{slice: book}, the sleeve split equally between the slices (strategy.md §3)."""
+    return {sl: new_book(cfg["sleeve_usdt"] / len(engine.SLICES)) for sl in engine.SLICES}
+
+
 def book_nav(b, marks):
     return b["cash"] + sum(p["qty"] * marks[s] for s, p in b["pos"].items()) + \
         sum(q * marks.get(s, 0) for s, q in b["dust"].items())
 
 
+def books_nav(B, marks):
+    return sum(book_nav(b, marks) for b in B.values())
+
+
 def load_state(cfg):
     p = os.path.join(STATE_DIR, "state.json")
     if os.path.exists(p):
-        return json.load(open(p))
-    return {"version": 1, "started": None, "real": new_book(cfg["sleeve_usdt"]), "shadow": new_book(cfg["sleeve_usdt"]),
+        st = json.load(open(p))
+        if st.get("version") == 1:  # single-speed ledger, before the 3-speed change (THE-321)
+            idle = st["wakes"] == 0 and not st["cb_pending"] and all(not st[k]["pos"] and not st[k]["closed"] for k in ("real", "shadow"))
+            if not idle:
+                sys.exit("state.json is a v1 ledger with activity: migrate it by hand before running the 3-speed runner")
+            st.update(version=2, real=new_books(cfg), shadow=new_books(cfg))
+        return st
+    return {"version": 2, "started": None, "real": new_books(cfg), "shadow": new_books(cfg),
             "bh": None, "last_bar": None, "day": None, "failed_wakes": 0, "halted": None, "log_issue": cfg.get("log_issue"),
             "cb_pending": [], "overlay": [], "test_orders": [], "wakes": 0}
 
@@ -116,23 +132,23 @@ def cb_post(cfg, body):
 def cb_flush(cfg, st, notes):
     """POST queued Crypto Book rows. Exits wait for their entry's id. Failures stay queued for the next wake."""
     keep = []
+    rows = [p for b in st["real"].values() for p in b["closed"] + list(b["pos"].values())]
     for item in st["cb_pending"]:
         body = dict(item["body"])
         if body["side"] == "exit":
-            eid = item.get("entry_id") or next((c["cb_id"] for c in st["real"]["closed"] + list(st["real"]["pos"].values())
-                                                if c.get("link_id") == item["entry_link"] and c.get("cb_id")), None)
+            eid = item.get("entry_id") or next((c["cb_id"] for c in rows if c.get("link_id") == item["entry_link"] and c.get("cb_id")), None)
             if not eid:
                 keep.append(item); continue
             body["entry_trade_id"] = eid
         try:
             tid = cb_post(cfg, body)
             if body["side"] == "entry":
-                for p in list(st["real"]["pos"].values()) + st["real"]["closed"]:
+                for p in rows:
                     if p.get("link_id") == item["link"]:
                         p["cb_id"] = tid
-            notes.append(f"Crypto Book {body['side']} {body['token_symbol']} recorded (`{tid}`)")
+            notes.append(f"Crypto Book [{item.get('slice', '?')}] {body['side']} {body['token_symbol']} recorded (`{tid}`)")
         except Exception as e:
-            keep.append(item); notes.append(f"Crypto Book {body['side']} {body['token_symbol']} **not recorded** ({e}); retried next wake")
+            keep.append(item); notes.append(f"Crypto Book [{item.get('slice', '?')}] {body['side']} {body['token_symbol']} **not recorded** ({e}); retried next wake")
     st["cb_pending"] = keep
 
 
@@ -173,24 +189,28 @@ def place(demo, sym, side, qty, px, link):
                 fee_usdt=fee_q + fee_base * avg, ms=int((time.time() - t0) * 1000), fills=len(F))
 
 
-def check_entry(cfg, b, sym, qty, px, stop, nav, n_after, usdt_avail, inst, gates):
-    """Every reason this buy would break a limit. Empty list = allowed."""
+def check_entry(cfg, b, sym, qty, px, stop, nav, n_after, usdt_avail, inst, gates, coin_other=0.0, sleeve_nav=None):
+    """Every reason this buy would break a limit. Empty list = allowed. b and nav are the slice's;
+    coin_other is the value of this coin held by the other slices, sleeve_nav the whole sleeve's NAV."""
     L, v = cfg["limits"], float(qty) * float(px)
     bad = list(gates)
     if sym not in cfg["universe"]: bad.append("not in universe")
-    if sym in b["pos"]: bad.append("already held")
-    if n_after > L["max_positions"]: bad.append(f"{n_after} positions > {L['max_positions']}")
+    if sym in b["pos"]: bad.append("already held by this slice")
+    if n_after > L["max_positions"]: bad.append(f"{n_after} positions in the slice > {L['max_positions']}")
     if float(px) <= stop: bad.append("limit price at or below stop")
-    if float(qty) * (float(px) - stop) > L["risk_per_trade_nav"] * nav * (1 + 1e-9): bad.append("risk at stop > 1% NAV")
-    if v > L["max_position_nav"] * nav * (1 + 1e-9): bad.append("position > 25% NAV")
-    if v > b["cash"] + 1e-9: bad.append(f"needs ${v:.2f}, sleeve cash ${b['cash']:.2f}")
+    if float(qty) * (float(px) - stop) > L["risk_per_trade_nav"] * nav * (1 + 1e-9): bad.append(f"risk at stop > {L['risk_per_trade_nav']:.0%} slice NAV")
+    if v > L["max_position_nav"] * nav * (1 + 1e-9): bad.append(f"position > {L['max_position_nav']:.0%} slice NAV")
+    cap = L.get("max_coin_sleeve_nav")
+    if cap is not None and sleeve_nav and coin_other + v > cap * sleeve_nav * (1 + 1e-9):
+        bad.append(f"{sym[:-4]} across slices ${coin_other + v:.2f} > {cap:.0%} sleeve NAV")
+    if v > b["cash"] + 1e-9: bad.append(f"needs ${v:.2f}, slice cash ${b['cash']:.2f}")
     if usdt_avail is not None and v > usdt_avail: bad.append(f"demo USDT {usdt_avail:.2f} < ${v:.2f}")
     if float(qty) < inst["min_qty"] or v < inst["min_amt"]: bad.append(f"below venue minimum (${v:.2f})")
     return bad
 
 
 def entry_qty(cfg, w, nav, cash, px, stop, inst):
-    """bt.py sizing (weight × NAV, capped at cash), then trimmed so the risk and position limits hold at the limit price."""
+    """bt_active.py sizing (weight × slice NAV, capped at slice cash), then trimmed so the risk and position limits hold at the limit price."""
     L, px = cfg["limits"], float(px)
     val = min(w * nav, cash)
     q = val / px
@@ -202,8 +222,21 @@ def entry_qty(cfg, w, nav, cash, px, stop, inst):
 
 # ---------- the wake ----------
 
+def parse_overlay(kvs, notes, kind):
+    """'SLICE:SYM=why' targets one slice; 'SYM=why' every slice where it applies. Returns {(slice, sym): why}."""
+    out = {}
+    for kv in kvs:
+        k, why = kv.split("=", 1)
+        sl, _, s = k.rpartition(":")
+        if sl and sl not in engine.SLICES:
+            notes.append(f"Overlay {kind} {k} ignored: unknown slice {sl!r}"); continue
+        for x in ([sl] if sl else engine.SLICES):
+            out[(x, s)] = why
+    return out
+
+
 def wake(cfg, st, a):
-    U, L, X = cfg["universe"], cfg["limits"], cfg["execution"]
+    U, L, X, SL = cfg["universe"], cfg["limits"], cfg["execution"], list(engine.SLICES)
     now = time.time()
     bar = int(now // engine.BAR * engine.BAR) - engine.BAR
     close_t = bar + engine.BAR
@@ -213,7 +246,7 @@ def wake(cfg, st, a):
     out, notes, fail, orders = [], [], [], []
     late = now - close_t > MAX_WAKE_DELAY
 
-    # 1. data: closed 8h candles from the same feed as bt.py, the touch from Demo
+    # 1. data: closed 8h candles from the same feed as the backtest, the touch from Demo
     H, lv, tch, inst = {}, {}, {}, {}
     for s in U:
         try:
@@ -226,55 +259,67 @@ def wake(cfg, st, a):
             fail.append(f"{s}: {e}")
     data_ok = not fail
 
-    real, sh = st["real"], st["shadow"]
+    real, sh = st["real"], st["shadow"]  # {slice: book}
     marks = {s: lv[s]["close"] for s in lv if lv[s]}
-    for b in (real, sh):  # a coin we hold but couldn't price this wake keeps its last mark
-        for s, p in b["pos"].items():
-            marks.setdefault(s, p.get("mark", p["entry_px"]))
-    nav_r, nav_s = book_nav(real, marks), book_nav(sh, marks)
+    for B in (real, sh):  # a coin we hold but couldn't price this wake keeps its last mark
+        for b in B.values():
+            for s, p in b["pos"].items():
+                marks.setdefault(s, p.get("mark", p["entry_px"]))
+    nav_r = books_nav(real, marks)
     day = dt.datetime.fromtimestamp(close_t, dt.timezone.utc).strftime("%Y-%m-%d")
     day_nav = st["day"]["nav"] if st["day"] and st["day"]["date"] == day else nav_r
     day_loss = 1 - nav_r / day_nav if day_nav else 0
 
-    # 2. gates (risk policy; the runner refuses, Ingrid halts)
+    # 2. gates (risk policy; the runner refuses, Ingrid halts). Sleeve-wide, so they apply to every slice.
     gates_all, gates_in = [], []
     if st["halted"]:
         (gates_in if L["halt_allows_exits"] else gates_all).append(f"halted by {st['halted']['by']} ({st['halted']['ref']})")
     if not data_ok: gates_all.append("data check failed")
     if late: gates_all.append(f"late wake ({(now - close_t) / 60:.0f} min after the close)")
     if st["failed_wakes"] >= L["halt_failed_wakes"]: gates_in.append(f"{st['failed_wakes']} failed wakes in a row: halt condition, Ingrid to review")
-    if nav_r <= L["halt_nav_usdt"]: gates_in.append(f"NAV ${nav_r:.2f} ≤ ${L['halt_nav_usdt']}: halt condition, Ingrid to review")
-    if day_loss >= L["daily_loss_nav"]: gates_in.append(f"day loss {day_loss * 100:.1f}% ≥ {L['daily_loss_nav'] * 100:.0f}%: no entries until next UTC day")
+    if nav_r <= L["halt_nav_usdt"]: gates_in.append(f"sleeve NAV ${nav_r:.2f} ≤ ${L['halt_nav_usdt']}: halt condition, Ingrid to review")
+    if day_loss >= L["daily_loss_nav"]: gates_in.append(f"sleeve day loss {day_loss * 100:.1f}% ≥ {L['daily_loss_nav'] * 100:.0f}%: no entries until next UTC day")
 
-    # 3. decisions: rules for both books, overlay on the real book only
-    ex_r, en_r = engine.decide(lv, {s: p["stop"] for s, p in real["pos"].items()}) if data_ok else ({}, [])
-    ex_s, en_s = engine.decide(lv, {s: p["stop"] for s, p in sh["pos"].items()}) if data_ok else ({}, [])
-    rules_exit, rules_entry, held_before = set(ex_r), {e[0] for e in en_r}, set(real["pos"])
-    for s, p in real["pos"].items():
-        if p.get("exit_pending") and s not in ex_r and data_ok:
-            ex_r[s] = f"retry of unfilled exit ({p['exit_pending']})"
-    skip = dict(kv.split("=", 1) for kv in a.skip)
-    early = dict(kv.split("=", 1) for kv in a.exit_early)
+    # 3. decisions per slice: rules for both books, overlay on the real book only
+    ex_r, en_r, ex_s, en_s = {}, {}, {}, {}
+    for sl in SL:
+        ex_r[sl], en_r[sl] = engine.decide(lv, {s: p["stop"] for s, p in real[sl]["pos"].items()}, sl) if data_ok else ({}, [])
+        ex_s[sl], en_s[sl] = engine.decide(lv, {s: p["stop"] for s, p in sh[sl]["pos"].items()}, sl) if data_ok else ({}, [])
+    rules_exit = {(sl, s) for sl in SL for s in ex_r[sl]}
+    rules_entry = {(sl, e[0]) for sl in SL for e in en_r[sl]}
+    held_before = {(sl, s) for sl in SL for s in real[sl]["pos"]}
+    for sl in SL:
+        for s, p in real[sl]["pos"].items():
+            if p.get("exit_pending") and s not in ex_r[sl] and data_ok:
+                ex_r[sl][s] = f"retry of unfilled exit ({p['exit_pending']})"
+    skip = parse_overlay(a.skip, notes, "skip")
+    early = parse_overlay(a.exit_early, notes, "early exit")
     overlay = []
-    for s, why in early.items():
-        if s in real["pos"] and s not in ex_r:
-            ex_r[s] = f"OVERLAY early exit: {why}"; overlay.append(("exit_early", s, why))
-        else:
-            notes.append(f"Overlay early exit {s} ignored: {'not held' if s not in real['pos'] else 'rules already exit'}")
-    kept = []
-    for e in en_r:
-        if e[0] in skip:
-            overlay.append(("skip", e[0], skip[e[0]]))
-        else:
-            kept.append(e)
-    for s in set(skip) - {e[0] for e in en_r}:
-        notes.append(f"Overlay skip {s} ignored: no rules entry to skip")
-    en_r = kept
+    used = set()
+    for (sl, s), why in early.items():
+        if s in real[sl]["pos"] and s not in ex_r[sl]:
+            ex_r[sl][s] = f"OVERLAY early exit: {why}"; overlay.append((sl, "exit_early", s, why)); used.add(s)
+    for k in {k.split("=", 1)[0] for k in a.exit_early}:
+        if k.rpartition(":")[2] not in used:
+            notes.append(f"Overlay early exit {k} ignored: not held, or the rules already exit")
+    used = set()
+    for sl in SL:
+        kept = []
+        for e in en_r[sl]:
+            if (sl, e[0]) in skip:
+                overlay.append((sl, "skip", e[0], skip[(sl, e[0])])); used.add((sl, e[0]))
+            else:
+                kept.append(e)
+        en_r[sl] = kept
+    for k in {k.split("=", 1)[0] for k in a.skip}:
+        sl, _, s = k.rpartition(":")
+        if not any((x, s) in used for x in ([sl] if sl else SL)):
+            notes.append(f"Overlay skip {k} ignored: no rules entry to skip")
 
-    # 4. execution
+    # 4. execution: exits of every slice first, then entries
     can_trade = not dry and not gates_all
     demo = bal = None
-    if can_trade and (ex_r or en_r):
+    if can_trade and (any(ex_r.values()) or any(en_r.values())):
         missing = merged_on_master()
         k = creds(cfg)
         if missing:
@@ -287,141 +332,166 @@ def wake(cfg, st, a):
                 bal = demo.balances()
             except Exception as e:
                 fail.append(f"balances: {e}"); gates_all.append("could not read demo balances"); can_trade = False
+    if bal is not None:  # the demo account must hold at least the sum of the slices' coins (strategy.md §3, §8)
+        short = []
+        for s in U:
+            q = sum(b["pos"].get(s, {}).get("qty", 0) + b["dust"].get(s, 0) for b in real.values())
+            if q and bal.get(inst[s]["base"], 0) < q * (1 - 1e-6):
+                short.append(f"{s[:-4]} demo {bal.get(inst[s]['base'], 0):g} < slices {q:g}")
+        notes.append("Demo balances vs slice ledgers: " + ("; ".join(short) + ": reconcile" if short else "every coin covered"))
     order_fail = False
-    real_px = {}  # (sym, side) -> avg fill, for the shadow book
-    for s, why in ex_r.items():
-        p = real["pos"][s]
-        rec = dict(sym=s, side="sell", why=why, filled=0.0, cost=0.0, fee_usdt=0.0, attempts=0)
-        if not can_trade:
-            rec["result"] = "not placed: " + "; ".join(gates_all or ["dry run"]); orders.append(rec); continue
-        base = inst[s]["base"]
-        for i in range(X["exit_attempts"]):
+    real_px = {}  # (slice, sym, side) -> avg fill, for the shadow books
+    for sl in SL:
+        rb = real[sl]
+        for s, why in ex_r[sl].items():
+            p = rb["pos"][s]
+            rec = dict(slice=sl, sym=s, side="sell", why=why, filled=0.0, cost=0.0, fee_usdt=0.0, attempts=0)
+            if not can_trade:
+                rec["result"] = "not placed: " + "; ".join(gates_all or ["dry run"]); orders.append(rec); continue
+            base = inst[s]["base"]
+            for i in range(X["exit_attempts"]):
+                try:
+                    bid, ask = bybit.touch(s)
+                    q = rnd(min(p["qty"], bal.get(base, 0)), inst[s]["step"], ROUND_DOWN)
+                    if q <= 0 or float(q) < inst[s]["min_qty"]:
+                        if i == 0:
+                            rec["result"] = f"nothing sellable (ledger {p['qty']:g}, demo {bal.get(base, 0):g}): reconcile"; order_fail = True
+                        break
+                    px = limit_px("Sell", bid, ask, inst[s], X["touch_offset"])
+                    f = place(demo, s, "Sell", q, px, f"mb-{bar}-{sl}-{s}-x{i}")
+                except Exception as e:
+                    rec["result"] = f"order error: {e}"; order_fail = True; break
+                rec["attempts"] += 1; rec.update(bid=bid, ask=ask, limit=float(px), qty=float(q), status=f["status"], ms=f["ms"])
+                p["qty"] -= f["filled"]; bal[base] = bal.get(base, 0) - f["filled"]
+                rb["cash"] += f["cost"] - f["fee_quote"] - f["fee_base"] * f["avg"]
+                rec["filled"] += f["filled"]; rec["cost"] += f["cost"]; rec["fee_usdt"] += f["fee_usdt"]
+                if f["filled"]:
+                    p.setdefault("exit_fills", []).append([f["filled"], f["avg"], f["fee_usdt"]])
+                if p["qty"] * bid < inst[s]["min_amt"] or p["qty"] < inst[s]["min_qty"]:
+                    break
+            rec["avg"] = rec["cost"] / rec["filled"] if rec["filled"] else 0.0
+            orders.append(rec)
+            if p.get("exit_fills") and 0 < p["qty"] and (p["qty"] * rec["bid"] < inst[s]["min_amt"] or p["qty"] < inst[s]["min_qty"]):
+                rb["dust"][s] = rb["dust"].get(s, 0) + p["qty"]; p["qty"] = 0  # unsellable remainder, still marked in NAV
+            if p["qty"] <= 0:
+                xf = p.pop("exit_fills"); q = sum(x[0] for x in xf)
+                p.pop("exit_pending", None)
+                p.update(sym=s, slice=sl, exit_px=sum(x[0] * x[1] for x in xf) / q, exit_t=utc(time.time()), exit_why=why,
+                         exit_fee_usdt=sum(x[2] for x in xf))
+                rb["closed"].append(p); del rb["pos"][s]; real_px[(sl, s, "sell")] = p["exit_px"]
+                st["cb_pending"].append({"entry_link": p["link_id"], "slice": sl, "body": {
+                    "side": "exit", "book": cfg["strategy"], "token_symbol": s.replace("USDT", ""), "trader": cfg["trader"],
+                    "trade_date": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+                    "exit_price": f"{p['exit_px']:.10g}", "reason": f"[{sl}] {why}"}})
+            else:
+                p["exit_pending"] = why
+                rec.setdefault("result", f"{'partial; ' if rec['filled'] else 'IOC not filled; '}{p['qty']:g} left, retried next wake")
+
+    bidmark = lambda b: b["cash"] + sum(p["qty"] * tch[s][0] for s, p in b["pos"].items() if s in tch)  # NAV at the bid, for sizing
+    sleeve_x = sum(bidmark(b) for b in real.values())
+    for sl in SL:
+        rb = real[sl]
+        navx, n_held = bidmark(rb), len(rb["pos"])
+        n_in, n_out = engine.SLICES[sl]
+        for s, w, stop, strength in en_r[sl]:
+            rec = dict(slice=sl, sym=s, side="buy", stop=stop, weight=w,
+                       why=f"close {lv[s]['close']:g} > hi{n_in} {lv[s]['hi'][sl]:g} and > sma90 {lv[s]['sma90']:.6g}; strength {strength:.2f} ATR")
+            if not can_trade or gates_in:
+                rec["result"] = "not placed: " + "; ".join(gates_all + gates_in or ["dry run"]); orders.append(rec); continue
             try:
                 bid, ask = bybit.touch(s)
-                q = rnd(min(p["qty"], bal.get(base, 0)), inst[s]["step"], ROUND_DOWN)
-                if q <= 0 or float(q) < inst[s]["min_qty"]:
-                    if i == 0:
-                        rec["result"] = f"nothing sellable (ledger {p['qty']:g}, demo {bal.get(base, 0):g}): reconcile"; order_fail = True
-                    break
-                px = limit_px("Sell", bid, ask, inst[s], X["touch_offset"])
-                f = place(demo, s, "Sell", q, px, f"mb-{bar}-{s}-x{i}")
+                px = limit_px("Buy", bid, ask, inst[s], X["touch_offset"])
+                q = entry_qty(cfg, w, navx, rb["cash"], px, stop, inst[s])
+                other = sum(b["pos"][s]["qty"] * bid for x, b in real.items() if x != sl and s in b["pos"])
+                bad = check_entry(cfg, rb, s, q, px, stop, navx, n_held + 1, bal.get("USDT"), inst[s], [], other, sleeve_x)
+                rec.update(bid=bid, ask=ask, limit=float(px), qty=float(q))
+                if bad:
+                    rec["result"] = "REFUSED: " + "; ".join(bad); orders.append(rec); continue
+                link = f"mb-{bar}-{sl}-{s}-e"
+                f = place(demo, s, "Buy", q, px, link)
             except Exception as e:
-                rec["result"] = f"order error: {e}"; order_fail = True; break
-            rec["attempts"] += 1; rec.update(bid=bid, ask=ask, limit=float(px), qty=float(q), status=f["status"], ms=f["ms"])
-            p["qty"] -= f["filled"]; bal[base] = bal.get(base, 0) - f["filled"]
-            real["cash"] += f["cost"] - f["fee_quote"] - f["fee_base"] * f["avg"]
-            rec["filled"] += f["filled"]; rec["cost"] += f["cost"]; rec["fee_usdt"] += f["fee_usdt"]
-            if f["filled"]:
-                p.setdefault("exit_fills", []).append([f["filled"], f["avg"], f["fee_usdt"]])
-            if p["qty"] * bid < inst[s]["min_amt"] or p["qty"] < inst[s]["min_qty"]:
-                break
-        rec["avg"] = rec["cost"] / rec["filled"] if rec["filled"] else 0.0
-        orders.append(rec)
-        if p.get("exit_fills") and 0 < p["qty"] and (p["qty"] * rec["bid"] < inst[s]["min_amt"] or p["qty"] < inst[s]["min_qty"]):
-            real["dust"][s] = real["dust"].get(s, 0) + p["qty"]; p["qty"] = 0  # unsellable remainder, still marked in NAV
-        if p["qty"] <= 0:
-            xf = p.pop("exit_fills"); q = sum(x[0] for x in xf)
-            p.pop("exit_pending", None)
-            p.update(sym=s, exit_px=sum(x[0] * x[1] for x in xf) / q, exit_t=utc(time.time()), exit_why=why,
-                     exit_fee_usdt=sum(x[2] for x in xf))
-            real["closed"].append(p); del real["pos"][s]; real_px[(s, "sell")] = p["exit_px"]
-            st["cb_pending"].append({"entry_link": p["link_id"], "body": {
-                "side": "exit", "book": cfg["strategy"], "token_symbol": s.replace("USDT", ""), "trader": cfg["trader"],
+                rec["result"] = f"order error: {e}"; order_fail = True; orders.append(rec); continue
+            rec.update(**f); orders.append(rec)
+            if f["filled"] <= 0:
+                rec["result"] = "IOC not filled; dropped (strategy.md §8)"; continue
+            net = f["filled"] - f["fee_base"]
+            rb["cash"] -= f["cost"] + f["fee_quote"]; bal["USDT"] = bal.get("USDT", 0) - f["cost"]
+            rb["pos"][s] = dict(qty=net, entry_px=f["avg"], stop=stop, entry_t=utc(time.time()), bar=bar, link_id=link,
+                                order_id=f["order_id"], entry_fee_usdt=f["fee_usdt"], cb_id=None, mark=lv[s]["close"])
+            n_held += 1; real_px[(sl, s, "buy")] = f["avg"]
+            st["cb_pending"].append({"link": link, "slice": sl, "body": {
+                "side": "entry", "book": cfg["strategy"], "token_symbol": s.replace("USDT", ""), "trader": cfg["trader"],
                 "trade_date": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-                "exit_price": f"{p['exit_px']:.10g}", "reason": why}})
-        else:
-            p["exit_pending"] = why
-            rec.setdefault("result", f"{'partial; ' if rec['filled'] else 'IOC not filled; '}{p['qty']:g} left, retried next wake")
+                "entry_price": f"{f['avg']:.10g}", "position_size": f"{net:.10g}",
+                "reason": f"[{sl}] Majors Breakout {sl} {n_in}/{n_out} (paper, Bybit Demo): {rec['why']}",
+                "planned_exit": f"[{sl}] 8h close < lo{n_out} (now {lv[s]['lo'][sl]:g}) or < stop {stop:.6g}"}})
 
-    navx = real["cash"] + sum(p["qty"] * tch[s][0] for s, p in real["pos"].items() if s in tch)  # NAV at the bid, for sizing
-    n_held = len(real["pos"])
-    for s, w, stop, strength in en_r:
-        rec = dict(sym=s, side="buy", why=f"close {lv[s]['close']:g} > hi20 {lv[s]['hi20']:g} and > sma90 {lv[s]['sma90']:.6g}; strength {strength:.2f} ATR",
-                   stop=stop, weight=w)
-        if not can_trade or gates_in:
-            rec["result"] = "not placed: " + "; ".join(gates_all + gates_in or ["dry run"]); orders.append(rec); continue
-        try:
-            bid, ask = bybit.touch(s)
-            px = limit_px("Buy", bid, ask, inst[s], X["touch_offset"])
-            q = entry_qty(cfg, w, navx, real["cash"], px, stop, inst[s])
-            bad = check_entry(cfg, real, s, q, px, stop, navx, n_held + 1, bal.get("USDT"), inst[s], [])
-            rec.update(bid=bid, ask=ask, limit=float(px), qty=float(q))
-            if bad:
-                rec["result"] = "REFUSED: " + "; ".join(bad); orders.append(rec); continue
-            link = f"mb-{bar}-{s}-e"
-            f = place(demo, s, "Buy", q, px, link)
-        except Exception as e:
-            rec["result"] = f"order error: {e}"; order_fail = True; orders.append(rec); continue
-        rec.update(**f); orders.append(rec)
-        if f["filled"] <= 0:
-            rec["result"] = "IOC not filled; dropped (strategy.md §7)"; continue
-        net = f["filled"] - f["fee_base"]
-        real["cash"] -= f["cost"] + f["fee_quote"]; bal["USDT"] = bal.get("USDT", 0) - f["cost"]
-        real["pos"][s] = dict(qty=net, entry_px=f["avg"], stop=stop, entry_t=utc(time.time()), bar=bar, link_id=link,
-                              order_id=f["order_id"], entry_fee_usdt=f["fee_usdt"], cb_id=None, mark=lv[s]["close"])
-        n_held += 1; real_px[(s, "buy")] = f["avg"]
-        st["cb_pending"].append({"link": link, "body": {
-            "side": "entry", "book": cfg["strategy"], "token_symbol": s.replace("USDT", ""), "trader": cfg["trader"],
-            "trade_date": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-            "entry_price": f"{f['avg']:.10g}", "position_size": f"{net:.10g}",
-            "reason": f"Majors Breakout (paper, Bybit Demo): {rec['why']}",
-            "planned_exit": f"8h close < lo10 (now {lv[s]['lo10']:g}) or < stop {stop:.6g}"}})
-
-    # 5. shadow book (rules only, same gates and data as the real book; strategy.md §6)
+    # 5. shadow books (rules only, one per slice, same gates and data as the real book; strategy.md §7)
     shadow_moves = []
     if data_ok and not gates_all and not dry:
         fee = X["shadow_fee"]
-        for s in ex_s:
-            p = sh["pos"].pop(s); px = real_px.get((s, "sell"), tch[s][0])
-            sh["cash"] += p["qty"] * px * (1 - fee); p.update(exit_px=px, exit_t=utc(time.time()), exit_why=ex_s[s])
-            sh["closed"].append(p); shadow_moves.append(f"sell {s} @ {px:g}")
-        if not gates_in:
-            nv = sh["cash"] + sum(p["qty"] * tch[s][0] for s, p in sh["pos"].items() if s in tch)
-            for s, w, stop, _ in en_s:
-                px = real_px.get((s, "buy"), tch[s][1])
-                q = float(entry_qty(cfg, w, nv, sh["cash"], px, stop, inst[s]))
-                if q * px < inst[s]["min_amt"]:
-                    continue
-                sh["cash"] -= q * px
-                sh["pos"][s] = dict(qty=q * (1 - fee), entry_px=px, stop=stop, entry_t=utc(time.time()), bar=bar, mark=lv[s]["close"])
-                shadow_moves.append(f"buy {s} @ {px:g}")
+        for sl in SL:
+            sb = sh[sl]
+            for s in ex_s[sl]:
+                p = sb["pos"].pop(s); px = real_px.get((sl, s, "sell"), tch[s][0])
+                sb["cash"] += p["qty"] * px * (1 - fee); p.update(sym=s, exit_px=px, exit_t=utc(time.time()), exit_why=ex_s[sl][s])
+                sb["closed"].append(p); shadow_moves.append(f"{sl} sell {s[:-4]} @ {px:g}")
+            if not gates_in:
+                nv = bidmark(sb)
+                for s, w, stop, _ in en_s[sl]:
+                    px = real_px.get((sl, s, "buy"), tch[s][1])
+                    q = float(entry_qty(cfg, w, nv, sb["cash"], px, stop, inst[s]))
+                    if q * px < inst[s]["min_amt"]:
+                        continue
+                    sb["cash"] -= q * px
+                    sb["pos"][s] = dict(qty=q * (1 - fee), entry_px=px, stop=stop, entry_t=utc(time.time()), bar=bar, mark=lv[s]["close"])
+                    shadow_moves.append(f"{sl} buy {s[:-4]} @ {px:g}")
 
     # 6. benchmark, marks, NAV, counters
     if not dry and data_ok and st["bh"] is None:
         st["bh"] = dict(qty=cfg["sleeve_usdt"] / tch["BTCUSDT"][1] * (1 - X["shadow_fee"]), px=tch["BTCUSDT"][1], t=utc(time.time()))
         st["started"] = utc(time.time())
-    for b in (real, sh):
-        for s, p in b["pos"].items():
-            if s in marks: p["mark"] = marks[s]
-    nav_r, nav_s = book_nav(real, marks), book_nav(sh, marks)
+    for B in (real, sh):
+        for b in B.values():
+            for s, p in b["pos"].items():
+                if s in marks: p["mark"] = marks[s]
+    nav_r, nav_s = books_nav(real, marks), books_nav(sh, marks)
     nav_b = st["bh"]["qty"] * marks.get("BTCUSDT", st["bh"]["px"]) if st["bh"] else None
     wake_failed = bool(fail) or order_fail
 
     # 7. decision log
     phase = "paper (Bybit Demo)"
-    out.append(f"**Majors Breakout · wake for the 8h candle closing {utc(close_t)}** · run {utc(now)} · phase: {phase}" + (" · **DRY RUN, nothing placed or saved**" if dry else ""))
+    out.append(f"**Majors Breakout (3-speed) · wake for the 8h candle closing {utc(close_t)}** · run {utc(now)} · phase: {phase}" + (" · **DRY RUN, nothing placed or saved**" if dry else ""))
     out.append("")
-    out.append("| Coin | Close | hi20 | lo10 | sma90 | ATR14 | Held: entry / stop | Rules say | Action |")
-    out.append("|---|---|---|---|---|---|---|---|---|")
-    acted = {o["sym"]: o for o in orders}
-    skipped = {o[1] for o in overlay if o[0] == "skip"}
+    out.append("| Coin | Close | sma90 | ATR14 | " + " | ".join(f"{sl} {n}/{m}: hi / lo · state" for sl, (n, m) in engine.SLICES.items()) + " |")
+    out.append("|---|---|---|---|" + "---|" * len(SL))
+    acted = {(o["slice"], o["sym"]): o for o in orders}
+    skipped = {(o[0], o[2]) for o in overlay if o[1] == "skip"}
     for s in U:
         l = lv.get(s)
-        held = f"{fmt(real['pos'][s]['entry_px'])} / {fmt(real['pos'][s]['stop'])}" if s in real["pos"] else "—"
         if not l:
-            out.append(f"| {s[:-4]} | — | — | — | — | — | {held} | no data | none |"); continue
-        rule = "exit" if s in rules_exit else "entry" if s in rules_entry else "hold" if s in held_before else "no signal"
-        if s in acted:
-            o = acted[s]
-            act = f"{o['side']}: {o['result']}" if "result" in o and not o.get("filled") else f"{o['side']} {o['filled']:g} @ {fmt(o['avg'])}"
-        else:
-            act = "SKIPPED (overlay)" if s in skipped else "none"
-        out.append(f"| {s[:-4]} | {fmt(l['close'])} | {fmt(l['hi20'])} | {fmt(l['lo10'])} | {fmt(l['sma90'])} | {fmt(l['atr14'], 4)} | {held} | {rule} | {act} |")
+            out.append(f"| {s[:-4]} | — | — | — | " + " | ".join("no data" for _ in SL) + " |"); continue
+        cells = []
+        for sl in SL:
+            k = (sl, s); p = real[sl]["pos"].get(s)
+            if k in acted:
+                o = acted[k]
+                act = f"**{o['side']}**: {o['result']}" if "result" in o and not o.get("filled") else f"**{o['side']}** {o['filled']:g} @ {fmt(o['avg'])}"
+            elif k in skipped:
+                act = "**entry SKIPPED (overlay)**"
+            elif p:
+                act = f"hold (entry {fmt(p['entry_px'])}, stop {fmt(p['stop'])})"
+            else:
+                act = "—"
+            cells.append(f"{fmt(l['hi'][sl])} / {fmt(l['lo'][sl])} · {act}")
+        out.append(f"| {s[:-4]} | {fmt(l['close'])} | {fmt(l['sma90'])} | {fmt(l['atr14'], 4)} | " + " | ".join(cells) + " |")
     out.append("")
     if orders:
         out.append("**Orders**")
         for o in orders:
-            line = f"- {o['side'].upper()} {o['sym']}: {o['why']}."
+            k = (o["slice"], o["sym"])
+            rule = "rules exit" if k in rules_exit else "rules entry" if k in rules_entry else "overlay/retry"
+            line = f"- [{o['slice']}] {o['side'].upper()} {o['sym']} ({rule}): {o['why']}."
             if "limit" in o:
                 line += f" Touch {fmt(o['bid'])}/{fmt(o['ask'])}, IOC limit {fmt(o['limit'])}, qty {o['qty']:g}."
             if "status" in o:
@@ -429,24 +499,28 @@ def wake(cfg, st, a):
             if "result" in o:
                 line += f" {o['result']}."
             if o["side"] == "buy" and o.get("filled"):
-                line += f" Invalidated by an 8h close < lo10 or < stop {fmt(o['stop'])}."
+                line += f" Invalidated by an 8h close < lo{engine.SLICES[o['slice']][1]} or < stop {fmt(o['stop'])}."
             out.append(line)
     else:
-        out.append("**No trade:** " + ("no data." if not data_ok else "no coin closed above its 20-candle high and 30-day average, and no held coin hit its exit."))
-    for kind, s, why in overlay:
-        out.append(f"- **Overlay {kind.replace('_', ' ')} {s}:** {why}")
+        out.append("**No trade:** " + ("no data." if not data_ok else "in no slice did a coin close above its channel high and 30-day average, and no held position hit its exit."))
+    for sl, kind, s, why in overlay:
+        out.append(f"- **Overlay [{sl}] {kind.replace('_', ' ')} {s}:** {why}")
     if gates_all or gates_in:
         out.append("**Gates:** " + "; ".join(gates_all + gates_in))
     if fail:
         out.append("**Failures:** " + "; ".join(fail))
-    pos_txt = ", ".join(f"{s[:-4]} {p['qty']:g}" for s, p in real["pos"].items()) or "none"
     out.append("")
-    out.append(f"**Books** (marked at closes) · Real ${nav_r:,.2f} (cash ${real['cash']:,.2f}; {pos_txt}) · Rules-only shadow ${nav_s:,.2f}"
-               + (f" ({'; '.join(shadow_moves)})" if shadow_moves else "")
-               + (f" · BTC buy-and-hold ${nav_b:,.2f} (from {st['bh']['t']} @ {fmt(st['bh']['px'])})" if nav_b else "")
+    out.append(f"**Books** (marked at closes) · Sleeve ${nav_r:,.2f}, shadow ${nav_s:,.2f}"
+               + (f", BTC buy-and-hold ${nav_b:,.2f} (from {st['bh']['t']} @ {fmt(st['bh']['px'])})" if nav_b else "")
                + f" · Day {day}: {-day_loss * 100:+.2f}% · failed wakes in a row: {st['failed_wakes'] + 1 if wake_failed else 0}")
+    for sl in SL:
+        b = real[sl]
+        pos_txt = ", ".join(f"{s[:-4]} {p['qty']:g}" for s, p in b["pos"].items()) or "no positions"
+        out.append(f"- {sl}: ${book_nav(b, marks):,.2f} (cash ${b['cash']:,.2f}; {pos_txt}) · shadow ${book_nav(sh[sl], marks):,.2f}")
+    if shadow_moves:
+        out.append(f"- shadow moves: {'; '.join(shadow_moves)}")
     out.append("")
-    out.append("Inputs: Bybit public spot 4h klines (mainnet, same feed as `bt.py`), Demo touch and fills; rules per `strategy.md`; limits per `" + cfg["limits_source"].split(".")[0] + "`.")
+    out.append("Inputs: Bybit public spot 4h klines (mainnet, same feed as the backtest), Demo touch and fills; rules per `strategy.md`; limits per `" + cfg["limits_source"].split(".")[0] + "`.")
 
     if not dry:
         cb_flush(cfg, st, notes)
@@ -461,7 +535,7 @@ def wake(cfg, st, a):
     st["failed_wakes"] = st["failed_wakes"] + 1 if wake_failed else 0
     st["day"] = {"date": day, "nav": day_nav}
     st["wakes"] += 1
-    st["overlay"].extend({"bar": bar, "kind": k, "sym": s, "why": w} for k, s, w in overlay)
+    st["overlay"].extend({"bar": bar, "slice": sl, "kind": k, "sym": s, "why": w} for sl, k, s, w in overlay)
     if data_ok and not late:
         st["last_bar"] = bar
     save_state(st)
@@ -477,7 +551,7 @@ def wake(cfg, st, a):
     return 1 if wake_failed else 0
 
 
-# ---------- test order (strategy.md §7; THE-321 step 8) ----------
+# ---------- test order (strategy.md §8; THE-321 step 8) ----------
 
 def test_order(cfg, st, a):
     if a.usdt > cfg["execution"]["max_test_order_usdt"]:
@@ -511,16 +585,16 @@ def test_order(cfg, st, a):
 def status(cfg, st, a):
     print(json.dumps({k: st[k] for k in ("started", "last_bar", "day", "failed_wakes", "halted", "log_issue", "wakes", "bh", "cb_pending")}, indent=1, default=str))
     for name in ("real", "shadow"):
-        b = st[name]
-        print(f"{name}: cash {b['cash']:.2f}, open {list(b['pos'])}, closed {len(b['closed'])}, dust {b['dust']}")
+        for sl, b in st[name].items():
+            print(f"{name} {sl}: cash {b['cash']:.2f}, open {list(b['pos'])}, closed {len(b['closed'])}, dust {b['dust']}")
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     w = sub.add_parser("wake"); w.add_argument("--dry-run", action="store_true")
-    w.add_argument("--skip", action="append", default=[], metavar="SYM=REASON")
-    w.add_argument("--exit-early", action="append", default=[], metavar="SYM=REASON")
+    w.add_argument("--skip", action="append", default=[], metavar="[SLICE:]SYM=REASON")
+    w.add_argument("--exit-early", action="append", default=[], metavar="[SLICE:]SYM=REASON")
     t = sub.add_parser("test-order"); t.add_argument("--symbol", default="DOGEUSDT"); t.add_argument("--usdt", type=float, default=10)
     sub.add_parser("status")
     for c in ("halt", "resume"):
@@ -529,7 +603,7 @@ def main():
     a = ap.parse_args()
     for kv in getattr(a, "skip", []) + getattr(a, "exit_early", []):
         if "=" not in kv or not kv.split("=", 1)[1].strip():
-            sys.exit(f"overlay needs a written reason: {kv!r} (use SYM=REASON)")
+            sys.exit(f"overlay needs a written reason: {kv!r} (use [SLICE:]SYM=REASON)")
     cfg = load_cfg()
     _l = lock()
     st = load_state(cfg)
