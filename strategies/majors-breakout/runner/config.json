@@ -1,0 +1,31 @@
+{
+  "strategy": "majors-breakout",
+  "phase": "paper",
+  "universe": ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT", "ADAUSDT"],
+  "sleeve_usdt": 2000,
+  "limits_source": "THE-319 proposal section 4 (Nadia's draft). Replace with risk-policy.md numbers once Ingrid's PR merges.",
+  "limits": {
+    "risk_per_trade_nav": 0.01,
+    "max_position_nav": 0.25,
+    "max_positions": 4,
+    "daily_loss_nav": 0.04,
+    "halt_nav_usdt": 1600,
+    "halt_failed_wakes": 2,
+    "halt_allows_exits": false
+  },
+  "execution": {
+    "touch_offset": 0.001,
+    "exit_attempts": 3,
+    "shadow_fee": 0.001,
+    "max_test_order_usdt": 20
+  },
+  "log_issue": null,
+  "crypto_book_url": "http://asset-management.asset-management.svc.cluster.local",
+  "trader": "agent:leo",
+  "credentials": {
+    "env_key": "BYBIT_DEMO_API_KEY",
+    "env_secret": "BYBIT_DEMO_API_SECRET",
+    "paperclip_secret_key": "bybit_demo_api_key",
+    "paperclip_secret_secret": "bybit_demo_api_secret"
+  }
+}
