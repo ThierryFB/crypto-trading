@@ -3,17 +3,21 @@
   "phase": "paper",
   "universe": ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT", "ADAUSDT"],
   "sleeve_usdt": 2000,
-  "limits_source": "THE-319 proposal section 4 (Nadia's draft) and the 3-speed revision. Replace with risk-policy.md numbers once Ingrid's PR merges.",
-  "limits_note": "risk_per_trade_nav, max_position_nav, max_positions are per slice, of slice NAV; daily_loss_nav and halt_nav_usdt are sleeve-wide; max_coin_sleeve_nav (null = none) caps one coin across slices as a share of sleeve NAV",
+  "limits_source": "THE-320 Ingrid's 3-speed review (comment 5c07ffdf, proposed). Replace with risk-policy.md numbers once Ingrid's PR merges.",
+  "limits_note": "risk_per_trade_nav, max_position_nav, max_positions are per slice, of slice NAV; max_coin_sleeve_nav, min_entry_sleeve_nav, daily_loss_nav, day_halt_nav and halt_nav_usdt use total sleeve NAV; a buy that would take one coin above max_coin_sleeve_nav across slices is shrunk to fit, or skipped if what is left is under min_entry_sleeve_nav; catastrophe_atr places a resting venue stop-sell per slice-lot at entry − N×ATR14",
   "limits": {
-    "risk_per_trade_nav": 0.01,
+    "risk_per_trade_nav": 0.0075,
     "max_position_nav": 0.25,
     "max_positions": 4,
-    "max_coin_sleeve_nav": null,
+    "max_coin_sleeve_nav": 0.25,
+    "min_entry_sleeve_nav": 0.02,
     "daily_loss_nav": 0.04,
+    "day_halt_nav": 0.10,
     "halt_nav_usdt": 1600,
     "halt_failed_wakes": 2,
-    "halt_allows_exits": false
+    "halt_allows_exits": false,
+    "catastrophe_atr": 4.0,
+    "halt_issue_titles": ["HALT — majors-breakout", "HALT — desk"]
   },
   "execution": {
     "touch_offset": 0.001,

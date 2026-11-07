@@ -57,14 +57,36 @@ class Demo:
              "X-BAPI-SIGN": sign, "Content-Type": "application/json"}
         return _req(url, data, h)
 
-    def balances(self):
-        """{coin: walletBalance} of the unified demo account."""
+    def balances(self, detail=False):
+        """{coin: walletBalance} of the unified demo account; detail=True gives {coin: {wallet, locked}}."""
         r = self._signed("GET", "/v5/account/wallet-balance", {"accountType": "UNIFIED"})
         out = {}
         for a in r.get("list", []):
             for c in a.get("coin", []):
-                out[c["coin"]] = float(c.get("walletBalance") or 0)
+                w = float(c.get("walletBalance") or 0)
+                out[c["coin"]] = dict(wallet=w, locked=float(c.get("locked") or 0)) if detail else w
         return out
+
+    def stop_sell(self, sym, qty, trigger, link_id):
+        """Resting spot conditional order: market sell of qty (base coin) once the price trades at or below trigger."""
+        r = self._signed("POST", "/v5/order/create", {
+            "category": "spot", "symbol": sym, "side": "Sell", "orderType": "Market", "qty": qty,
+            "marketUnit": "baseCoin", "triggerPrice": trigger, "orderFilter": "StopOrder", "orderLinkId": link_id})
+        return r["orderId"]
+
+    def cancel(self, sym, order_id, stop=False):
+        p = {"category": "spot", "symbol": sym, "orderId": order_id}
+        if stop:
+            p["orderFilter"] = "StopOrder"
+        return self._signed("POST", "/v5/order/cancel", p)
+
+    def stop_status(self, sym, order_id):
+        """Current record of a conditional order (untriggered, triggered or done), or None if Bybit has no record."""
+        for path, extra in (("/v5/order/realtime", {"orderFilter": "StopOrder"}), ("/v5/order/realtime", {}), ("/v5/order/history", {})):
+            L = self._signed("GET", path, {"category": "spot", "symbol": sym, "orderId": order_id, **extra}).get("list", [])
+            if L:
+                return L[0]
+        return None
 
     def ioc_limit(self, sym, side, qty, price, link_id):
         r = self._signed("POST", "/v5/order/create", {
