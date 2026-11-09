@@ -773,6 +773,16 @@ def test_order(cfg, st, a):
     pq = rnd(max(inst["min_amt"] * 1.2 / bid, inst["min_qty"]), inst["step"], ROUND_UP)
     pr = place(demo, s, "Buy", pq, rnd(bid, inst["tick"], ROUND_DOWN), f"mb-test-{int(time.time())}-p")
     rep["probe_at_bid"] = dict(bid=bid, ask=ask, qty=float(pq), **pr)
+    # flatten: sell back anything above the pre-test coin balance (a partial sell-back, a probe fill), so the test leaves none
+    rep["flatten"] = []
+    before = Decimal(str((rep["balances_before"].get(c) or {}).get("wallet", 0)))
+    for _ in range(3):
+        bid, ask = bybit.touch(s)
+        extra = rnd(Decimal(str((bals().get(c) or {}).get("wallet", 0))) - before, inst["step"], ROUND_DOWN)
+        if extra <= 0 or float(extra) < inst["min_qty"] or float(extra) * bid < inst["min_amt"]:
+            break
+        x = place(demo, s, "Sell", extra, limit_px("Sell", bid, ask, inst, cfg["execution"]["touch_offset"]), f"mb-test-{int(time.time())}-f")
+        rep["flatten"].append(dict(bid=bid, qty=float(extra), **x))
     rep["balances_after"] = bals()
     st["test_orders"].append(rep)
     st["venue_base"] = None  # the next wake re-reads what the account holds outside the sleeve
