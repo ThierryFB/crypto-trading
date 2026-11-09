@@ -42,7 +42,7 @@ At each routine wake (00:05, 08:05, 16:05 UTC) Leo runs `wake --dry-run`, decide
 ## State and secrets
 
 - State (`state.json`, `logs/<bar>.md`) lives in `$MB_STATE_DIR`, default Leo's persistent workspace, not this repo.
-- The Bybit Demo key is read from the env (`BYBIT_DEMO_API_KEY` / `BYBIT_DEMO_API_SECRET`) or from the Paperclip secrets `bybit_demo_api_key` / `bybit_demo_api_secret`. It is never printed, logged or written to disk. The key should be spot trading only, no withdrawals.
+- The Bybit Demo key is read from the env (`BYBIT_API_KEY` / `BYBIT_API_SECRET`) or from the Paperclip secrets `bybit_api_key` / `bybit_api_secret` (created in Bybit Demo Trading mode, so they only work on `api-demo.bybit.com`). It is never printed, logged or written to disk. The key should be spot trading only, no withdrawals.
 
 ## Tests
 
