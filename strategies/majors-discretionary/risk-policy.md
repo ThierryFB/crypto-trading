@@ -6,7 +6,7 @@ Owner: Ingrid, with capital and promotion criteria from Nadia. Merges only with 
 
 ## Limits and halt levels
 
-*Drafted by Ingrid.* Written against Nadia's revised THE-319 proposal (9 Nov 16:26Z, §3). Leo decides every trade from his own analysis at three wakes a day (00:05, 08:05 and 14:35 UTC). A rules-only 3-speed breakout runs beside him as a shadow book that places no orders. `strategy.md` for this folder doesn't exist yet. Where a limit depends on it, the limit says so.
+*Drafted by Ingrid.* Written against Nadia's revised THE-319 proposal (9 Nov 16:26Z, §3). Leo decides every trade from his own analysis at three wakes a day (00:05, 08:05 and 14:35 UTC). A rules-only 3-speed breakout runs beside him as a shadow book that places no orders. `strategy.md` for this folder is merged (PR #15).
 
 **There is no backtest of the trader.** The limits are calibrated on a **zero-skill null model** instead: a trader who enters at random under these limits on Bybit 8h data, Oct 2021 → Nov 2026. It uses random stops of 1.5–3× ATR, exits at the stop or at a random 1–7 day time limit, pays 0.15% per side, and is measured over every 13-week window (the 3-month review). Script: [`risk/null_model.py`](risk/null_model.py). A trader with skill should do better than this. Anything much worse is what the halts are for.
 
@@ -108,4 +108,66 @@ Leo trades the book and also writes the runner that limits him. So:
 
 ## Capital and promotion criteria
 
-*To be drafted by Nadia* (paper capital is $2,000, from THE-319; scoring and stop criteria are in THE-319 §4). I'll review them on this PR.
+*Drafted by Nadia.*
+
+### Why the test looks like this
+
+Majors Trend is tested on its backtest, and its paper period only checks that the rules are followed. This strategy is the opposite. **There is no backtest of Leo's judgement**, so the paper record is the only evidence of an edge. The question paper has to answer is Thierry's: does the agent's analysis add value over an algorithm that code could run? So the main test is **Leo's book against the rules-only shadow book**, net of fees, plus his forecast skill. Both are read with the small effective sample in mind (`strategy.md` §10: about one independent call a day, not 18).
+
+### 1. Paper capital
+
+- **$2,000 virtual sleeve** on Bybit Demo (THE-319), tracked by the runner whatever the demo balance is. For paper it sits **outside desk NAV**, as Ingrid assumes above. Desk operational halts and the kill switch still apply. David confirms this when he merges.
+- **No top-ups, no refills.** Gains and losses stay in the sleeve. A halt resets nothing. A book that draws down trades smaller, as it would live.
+- **Cash in USDT** is accepted for paper only (desk C4).
+- **Capital doesn't change during paper.** Any change is a PR to this file.
+
+### 2. Pre-registration (fixed before the first strategy order)
+
+Changing any of these after the first order needs a PR, and the change is reported with the results.
+
+- **Clock:** paper starts at the first strategy order (not a forecast-only wake or the Demo test order). A **material change to `strategy.md`** (universe, ticket rules, the wake procedure) restarts the clock for P1.
+- **Benchmarks:** the rules-only 3-speed shadow book (`strategy.md` §6), buy-and-hold BTC, and cash, all from the same $2,000 at the same start.
+- **Forecast scoring:** the Brier score on every logged 24 h forecast, with a **block bootstrap by UTC day** (10,000 resamples) for the interval, against 0.25 (coin flip) and the 90-day base rate (`strategy.md` §7).
+- **The tests in §3**, with their thresholds.
+
+### 3. Promotion test (paper → live recommendation)
+
+Every item must pass. Ingrid confirms them in writing; only then do I write the recommendation to David.
+
+| # | Test | Threshold | Why |
+|---|---|---|---|
+| P1 | Duration and sample | ≥ **13 weeks** of paper **and** ≥ **40 closed round trips** | 13 weeks is the 3-month review. 40 trades is the minimum to read the thesis audit and the P&L at all. |
+| P2 | AI vs algorithm | Net P&L over the period **≥ the shadow book's**, and **≥ 0** (cash) | This is Thierry's question. A book that trails the algorithm, or loses money while doing better than it, has not shown the AI adds value. |
+| P3 | Not one lucky trade | P2 still holds after **removing the single best trade** | With ~40 trades and one BTC bet behind them, one good call can carry a quarter. |
+| P4 | Forecast skill | Brier **< 0.25 and < the base rate**, with the bootstrap 80% upper bound **< 0.25** | The forecasts are the fastest skill read. The interval accounts for the six coins moving as one. |
+| P5 | Thesis audit | ≥ **half** of the winning trades worked **for the reason given** in the ticket | A win for the wrong reason is luck (`strategy.md` §7.3). |
+| P6 | Drawdown | No D3 halt. Max drawdown from HWM **≤ 15%** (D4) | The zero-skill null model's median quarterly drawdown is −11%. A skilled book should not need the floor. |
+| P7 | Discipline | **Zero** O3, O4 or O6 events. ≥ **98%** of wakes logged on time with all 6 forecasts. Every O2 reconciliation clean over the last 4 weeks. No drift trigger left open | Live has no supervision on each trade. Ticket-before-order is what makes the record trustworthy. |
+| P8 | Costs | Average slippage ≤ **0.15% per side** (O8). L8 not binding **3 weeks running** in the last 6 | Above 0.15%, the fee budget and the scoring are wrong. A budget that keeps binding means trading for its own sake. |
+| P9 | Halts | Every halt in the period has Ingrid's written review and was resumed by me. None was caused by the strategy breaking its own rules | Market halts are expected. Self-inflicted ones fail P7. |
+| P10 | Fill check | One comparison of Demo fills with the real Bybit book over the same minutes, on at least 10 fills | Demo depth may not match mainnet ([THE-319](/THE/issues/THE-319) §3). |
+
+**Reported but not pass/fail:** P&L against buy-and-hold BTC. Spot long-or-cash will trail BTC in a strong rally. That is reported with the sample size, labelled paper.
+
+### 4. Stop, extend or redesign during paper
+
+- **4-week review (about 11 Dec):** machinery only. If wakes fail more than 5% of the time, or any O3/O4 happens, or the ledger doesn't reconcile, the fix comes first. A second O3 or any O4 means I recommend stopping.
+- **3-month review (about mid-Feb):** if the book **trails the shadow book and** the Brier score is **not below 0.25**, I recommend **stopping** (THE-319 §4). If only one of the two fails, paper is **extended once by 13 weeks**. If P2–P5 still don't pass at 6 months, I recommend stopping or sending it back to definition, never promoting.
+- **Fees eat the book:** if L8 binds in most weeks of a quarter and P2 fails, the strategy is trading too much for its size. I send it back to definition.
+
+Each case goes to David with the numbers, the sample size and the phase.
+
+### 5. Live capital and scaling
+
+- **Live cap: proposed in the promotion recommendation, not here.** Thierry's figure is **€1–2k for the whole live desk sleeve** (THE-270), and the desk policy already splits $1,000 across three strategies. Taking this one live means re-splitting that sleeve. That decision goes to David and Thierry in the mandate. My planning number is **$1,000**.
+- **At $1,000** the limits scale (they are % of NAV): about $7.50 at risk per trade and **$2 a week** of fee budget. That budget is too tight to trade at all, so L8 is re-checked at promotion with the real Bybit fee tier.
+- **Live stage 1 lasts ≥ 13 weeks** on the mandated cap. P2–P9 continue live, and live fills are compared with the paper record.
+- **Any increase** (capital, a second venue, a loosened limit) is a **new mandate confirmation** from Thierry, through David. A mandate never expands itself.
+- **Gains** stay in the sleeve until the quarterly review (desk S3). Anything above the mandated cap is swept out each quarter.
+
+### Assumptions and review triggers
+
+- **Phase:** definition. No paper record exists; nothing above is a result.
+- **Assumes** about 3–6 round trips a week under L8 (Ingrid's null model: about 6). If the book trades much less, P1's 40 trades takes longer than 13 weeks, and paper runs until it is met.
+- **What would show this test is wrong:** a book that passes P2 and P4 on a strong one-way market and fails as soon as the market turns. The 6-month extension and live stage 1 are there to catch that.
+- **Review:** after the first 10 fills, at the 4-week review (about 11 Dec), at 3 months, and before the live recommendation.
