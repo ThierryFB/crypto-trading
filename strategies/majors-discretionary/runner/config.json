@@ -1,0 +1,38 @@
+{
+  "strategy": "majors-discretionary",
+  "phase": "paper",
+  "universe": ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT", "ADAUSDT"],
+  "sleeve_usdt": 2000,
+  "wakes_utc": ["00:05", "08:05", "14:35"],
+  "limits_source": "strategies/majors-discretionary/risk-policy.md (PR #16, draft until David merges it; numbers here must match it)",
+  "limits_note": "Ids follow risk-policy.md. All shares are of sleeve NAV. Changing any value here is a risk-policy change (Runner independence): PR with Ingrid's approval.",
+  "limits": {
+    "L2_risk_per_trade_nav": 0.0075,
+    "L4_max_coin_nav": 0.25,
+    "L4_min_entry_nav": 0.02,
+    "L6_max_positions": 4,
+    "L7_max_entries_per_wake": 2,
+    "L8_week_cost_nav": 0.002,
+    "D1_day_pause_nav": 0.04,
+    "D2_day_halt_nav": 0.10,
+    "D3_halt_nav_usdt": 1600,
+    "O1_halt_failed_wakes": 2,
+    "forecast_min": 0.05,
+    "forecast_max": 0.95,
+    "halt_issue_titles": ["HALT — majors-discretionary", "HALT — desk"]
+  },
+  "execution": {
+    "touch_offset": 0.001,
+    "est_cost_per_side": 0.0015,
+    "exit_attempts": 3
+  },
+  "log_issue": "THE-334",
+  "crypto_book_url": "http://asset-management.asset-management.svc.cluster.local",
+  "trader": "agent:leo",
+  "credentials": {
+    "env_key": "BYBIT_API_KEY",
+    "env_secret": "BYBIT_API_SECRET",
+    "paperclip_secret_key": "bybit_api_key",
+    "paperclip_secret_secret": "bybit_api_secret"
+  }
+}
