@@ -1,0 +1,175 @@
+{
+ "sym": "SKL",
+ "name": "SKALE",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0x00c83aecc790e8a4453e5dd3b0b4b3680501a7a7",
+   "share_of_supply_pct": 100.0,
+   "note": "totalSupply 6,434,377,183 (canonical)"
+  },
+  {
+   "chain": "base",
+   "address": "0xb9caa63e09c646c1ec79acb2158d173e64a5fed3",
+   "share_of_supply_pct": 0.05,
+   "note": "3,362,758 bridged"
+  },
+  {
+   "chain": "skale-europa",
+   "address": "0xe0595a049d02b7674572b0d59cd4880db60edc50",
+   "share_of_supply_pct": null,
+   "note": "not read"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Staking/payment ERC-20 of SKALE Network, mainnet 2020; not wrapped/staked/stable; listed >90 days. ERC-20 on Ethereum, so F1-F9 apply (not native-coin N tests).",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "E1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "Binance SKLUSDT tags ['Layer1_Layer2'], no Monitoring tag (partial). Delisting notices on Coinbase/Kraken/OKX/Bybit not re-checked today (prior: KuCoin/Binance delisted secondary pairs/margin only).",
+   "source": "https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products?includeEtf=true",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G2": {
+   "result": "fail",
+   "value": "2026-08-27 ~21:00 UTC: infrastructure providers running SKALE validator nodes were compromised and used to exploit the SKALE IMA Bridge (Ethereum <> SKALE). That is 81 days ago (< 90) and hits the core protocol (the network's own validator set and native bridge). The bridge itself holds only 402 SKL now (DepositBoxERC20 0x8fB1...7669), so the >=10%-bridge prong doesn't apply; the failure rests on the core-protocol prong. No full post-mortem with root cause found.",
+   "source": "skale.space/blog/security-incident-update-skale-ima-bridge (via web search; direct fetch 429); ethereum-rpc.publicnode.com balanceOf",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail G2",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  }
+ },
+ "top10": [],
+ "next_unlock": "No scheduled insider unlocks (vesting complete; last Tokenomist unlock 2026-08-01, per prior). Emissions: up to 565.6M SKL unminted to 7B max (9.3% of circulating) as validator/delegator rewards, rate not verified.",
+ "not_checked": [
+  "D1-D5 holders, E1-E4, F1-F9 (stopped after hard fail G2)",
+  "G3, G4 (FAIR is a separate token + airdrop per prior, not an announced SKL migration; not re-verified)",
+  "Reimbursement / bridge reopening status"
+ ],
+ "verdict": "reject",
+ "reason": "G2 fails: the 2026-08-27 compromise of SKALE validator nodes and exploit of the native IMA bridge is 81 days old (< 90) with no full post-mortem found. Other tests not run after the hard fail; G1 partly checked (no Binance Monitoring tag).",
+ "sources": [
+  "https://skale.space/blog/security-incident-update-skale-ima-bridge (via web search, read 2026-11-16 16:03 UTC)",
+  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=opengradient,sahara-ai,skale (read 2026-11-16 16:02 UTC)",
+  "https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products?includeEtf=true (read 2026-11-16 16:03 UTC)",
+  "ethereum/base-rpc.publicnode.com eth_call totalSupply, balanceOf (read 2026-11-16 16:03 UTC)"
+ ]
+}

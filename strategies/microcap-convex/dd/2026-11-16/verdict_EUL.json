@@ -1,0 +1,226 @@
+{
+ "sym": "EUL",
+ "name": "Euler",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0xd9Fcd98c322942075A5C3860693e9f4f03AAE07b",
+   "share_of_supply_pct": "~98 (OFT Adapter escrow 441,991 EUL = 1.6% bridged out to 11 other chains)"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Governance token of the Euler lending protocol; not stablecoin/wrapped/staked/RWA/leveraged. Trading on Binance spot well over 90 days.",
+ "tests": {
+  "D1": {
+   "result": "fail",
+   "value": "Top-10 non-excluded Ethereum holders (excluding Blockscout-labelled Binance 28 0x5a52, Binance 8 0xF977 and the Euler OFT Adapter bridge escrow 0x4d7e) = 66.18% of circulating 24,034,753 (limit 35%).",
+   "source": "eth.blockscout.com/api/v2/tokens/0xd9Fc.../holders; api.coingecko.com/api/v3/coins/euler circulating 24,034,753.02",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "D2": {
+   "result": "fail",
+   "value": "Largest non-excluded holder: Safe 0xC7C5aFDB61e08BE3e2FB09098412b5706EB5c550 (4-of-7, unlabelled, not a vesting/timelock contract) holds 4,085,140 EUL = 17.00% of circulating (>10%). Also Safe 0x0e33 (3-of-5) 11.69% and EOA 0xc282 (eth_getCode 0x, unlabelled) 10.61%, each >10%.",
+   "source": "eth.blockscout.com/api/v2/tokens/0xd9Fc.../holders; api.coingecko.com/api/v3/coins/euler circulating 24,034,753.02; ethereum-rpc.publicnode.com getThreshold/getOwners/eth_getCode",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "Safes 0xC7C5 17.00% + 0x0e33 11.69% + 0xE130 2.54% (treasury-type multisigs sharing owners 0x410d, 0xf57f, 0xd59f, 0x0ae7) plus unidentified >=2% EOAs (0xc282 10.61, 0x1e96 5.81, 0xFB91 5.57, 0xfDE9 3.76, 0x7c8f 3.14, 0x7700 2.92, 0x05D2 2.85, 0x7BA1 2.83) = ~68.7% liquid insider under D5 (limit 20%). Even the two large Safes alone are 28.7%.",
+   "source": "eth.blockscout.com/api/v2/tokens/0xd9Fc.../holders; api.coingecko.com/api/v3/coins/euler circulating 24,034,753.02",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "Eight unlabelled EOAs >=2% (0xc282 10.61%, 0x1e96 5.81%, 0xFB91 5.57%, 0xfDE9 3.76%, 0x7c8f 3.14%, 0x7700 2.92%, 0x05D2 2.85%, 0x7BA1 2.83%) and three unlabelled Safes are not identified.",
+   "source": "eth.blockscout.com/api/v2/tokens/0xd9Fc.../holders; api.coingecko.com/api/v3/coins/euler circulating 24,034,753.02",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "E1": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "G1": {
+   "result": "pass",
+   "value": "Binance tags ['Seed','HODLer','defi'], no Monitoring; EULUSDT/USDC/TRY TRADING. Delisting notices on other venues not checked (stopped early).",
+   "source": "binance.com bapi get-products",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "Not run: stopped after the D2 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:06"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0xC7C5aFDB61e08BE3e2FB09098412b5706EB5c550",
+   "pct": 17.0,
+   "label": "insider",
+   "how": "Gnosis Safe 4-of-7 (getThreshold/getOwners), no explorer label; treasury-type multisig, owners overlap 0x0e33"
+  },
+  {
+   "addr": "0x0e33089449606CDE00Ad767d66C28Cf4cfCF0bF5",
+   "pct": 11.69,
+   "label": "insider",
+   "how": "Gnosis Safe 3-of-5 sharing 4 owners with 0xC7C5; Blockscout tag only 'Smart Account by Safe'"
+  },
+  {
+   "addr": "0xc282D5D1b91901492ffD0d04B64d9d2FCDe16Aa0",
+   "pct": 10.61,
+   "label": "unidentified",
+   "how": "EOA (eth_getCode 0x), no Blockscout tag"
+  },
+  {
+   "addr": "0x1e96D49DC8E951d63f0Fa5512FC711C89831A68E",
+   "pct": 5.81,
+   "label": "unidentified",
+   "how": "EOA (eth_getCode 0x), no tag"
+  },
+  {
+   "addr": "0xFB91483184cafac0cC152BBE7BE2693029444bD5",
+   "pct": 5.57,
+   "label": "unidentified",
+   "how": "EOA per Blockscout, no tag"
+  },
+  {
+   "addr": "0xfDE910EaFe32359d99e71B799383A7d7cb59DD41",
+   "pct": 3.76,
+   "label": "unidentified",
+   "how": "EOA per Blockscout, no tag"
+  },
+  {
+   "addr": "0x5a52E96BAcdaBb82fd05763E25335261B270Efcb",
+   "pct": 3.24,
+   "label": "exchange",
+   "how": "Blockscout tag 'Binance 28' hot wallet (excluded)"
+  },
+  {
+   "addr": "0x7c8f0c13E890d5281569F5Ba5f7247bFc40E2901",
+   "pct": 3.14,
+   "label": "unidentified",
+   "how": "EOA per Blockscout, no tag"
+  },
+  {
+   "addr": "0x7700A1A2025dFA4520c811a492e976Ae8f147772",
+   "pct": 2.92,
+   "label": "unidentified",
+   "how": "EOA per Blockscout, no tag"
+  },
+  {
+   "addr": "0x05D2528A9AE093A20e379f27927Ff421CAA47A32",
+   "pct": 2.85,
+   "label": "unidentified",
+   "how": "EOA per Blockscout, no tag"
+  }
+ ],
+ "next_unlock": "Not re-verified (stopped early); prior says insider vesting ended 2025-11-26 with no scheduled unlocks remaining.",
+ "not_checked": [
+  "D4 flows",
+  "E1-E4 (not re-verified today)",
+  "F1-F9 contract roles",
+  "G2-G4",
+  "Identity of the three Safes (likely Euler DAO/treasury) and the 10.61% EOA",
+  "Other 11 chains (each <10% of supply)"
+ ],
+ "verdict": "reject",
+ "reason": "D2 hard fail: unlabelled 4-of-7 Safe 0xC7C5 holds 17.0% of circulating, and Safe 0x0e33 (11.7%) and EOA 0xc282 (10.6%) also exceed 10%; D1 (66.2%), D3 (~68.7%) and D5 fail. E, F and G2-G4 were not run under the early-stop rule.",
+ "sources": [
+  "https://eth.blockscout.com/api/v2/tokens/0xd9Fcd98c322942075A5C3860693e9f4f03AAE07b/holders (read 2026-11-16 16:06 UTC)",
+  "https://api.coingecko.com/api/v3/coins/euler (read 2026-11-16 16:06 UTC)",
+  "https://ethereum-rpc.publicnode.com getThreshold/getOwners/eth_getCode (read 2026-11-16 16:06 UTC)",
+  "https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products (read 2026-11-16 16:03 UTC)"
+ ]
+}

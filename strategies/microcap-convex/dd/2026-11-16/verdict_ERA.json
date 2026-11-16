@@ -1,0 +1,241 @@
+{
+ "sym": "ERA",
+ "name": "Caldera",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0xE2AD0BF751834f2fbdC62A41014f84d67cA1de2A",
+   "share_of_supply_pct": ">=98 (canonical; bridge hub holds 16.45M = 1.6%)"
+  },
+  {
+   "chain": "bsc/base/arbitrum",
+   "address": "0x00312400303d02c323295f6e8b7309bc30fb6bce",
+   "share_of_supply_pct": "bridged; supply not checked"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Native ERC-20 governance/gas token, not wrapped or stable. First credible listing (Binance, Coinbase) was 2025-07-17, more than 90 days ago",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "schedule appears published (tokenomics.com, 49 events to 2029-07-17); not fully verified because I stopped after E1",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "-",
+   "read_utc": "-"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "2026-11-17 unlock of 26,406,625 ERA = 15.1% of CoinGecko circulating (174.75M) or 8.4% of on-chain unlocked (~314.9M). Both are well above 2%. Monthly tranches continue to 2029",
+   "source": "app.tokenomics.com/tokenomics/caldera/unlocks; api.coingecko.com coins/caldera",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "E2": {
+   "result": "fail",
+   "value": "~6 monthly tranches of ~26.4M = ~158M in 180d, ~50% of the ~314.9M unlocked (90% of the CoinGecko figure). Estimate from the monthly cadence; I did not sum the full schedule",
+   "source": "app.tokenomics.com (cadence); prior_ERA.json",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "CoinGecko 174.75M/1B = 17.5% (fail); on-chain unlocked ~314.9M/1B = 31.5% (would pass). Not resolved, because I stopped early",
+   "source": "api.coingecko.com; app.tokenomics.com",
+   "read_utc": "2026-11-16 15:14 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0xB92Dc00a1A270C0010E602b73E93b81c7D59F983",
+   "balance": 257832124.5,
+   "pct": 81.88,
+   "label": "vesting-timelock",
+   "how": "Blockscout name SafeProxy; prior on-chain cliff (2026-07-17) then monthly 6.733M releases; balance today = 306.45M-28.42M-3x6.733M, consistent. Safe multisig, not a vesting contract, so release is not contract-enforced"
+  },
+  {
+   "addr": "0xf214C0F44FDf1f91df88573616d85BB265d499cd",
+   "balance": 250400000.12,
+   "pct": 79.52,
+   "label": "insider",
+   "how": "EOA, no explorer label; funded 250.9M from deployer at TGE (prior analysis); treasury/foundation"
+  },
+  {
+   "addr": "0x03065965E825D26435327E7cbB914eB65d516551",
+   "balance": 196878986.2,
+   "pct": 62.52,
+   "label": "vesting-timelock",
+   "how": "SafeProxy; cliff+monthly 9.321M release pattern (prior); Safe multisig, not a vesting contract"
+  },
+  {
+   "addr": "0x16692B37838a7C94A21f797FEBfE1560529f7cF3",
+   "balance": 122305133.06,
+   "pct": 38.84,
+   "label": "unidentified",
+   "how": "EOA, no label; many small inbound transfers (prior), so presumed exchange hot wallet. Unverified, counts as insider under D5"
+  },
+  {
+   "addr": "0x5227f603C1eE34CE3C06eFe6477003BDfCCB2f8c",
+   "balance": 38603848.94,
+   "pct": 12.26,
+   "label": "unidentified",
+   "how": "EOA; Etherscan label 'Binance Hot Wallet Exploiter 2' (prior), ambiguous"
+  },
+  {
+   "addr": "0xf177b52DF5bAf0FF075750d9119863f140f9D2C2",
+   "balance": 21501332.15,
+   "pct": 6.83,
+   "label": "unidentified",
+   "how": "EOA, no label; high churn (prior), presumed exchange/MM"
+  },
+  {
+   "addr": "0x1eC941e963f2eb272024690467BBBC7CC8Cb1eF8",
+   "balance": 16452131.12,
+   "pct": 5.22,
+   "label": "bridge escrow",
+   "how": "TransparentUpgradeableProxy, implementation MetaERC20Hub (lock-and-mint bridge)"
+  },
+  {
+   "addr": "0xDdb736f48438c7B342f7D30c2aFc79f7AF524909",
+   "balance": 13252061.21,
+   "pct": 4.21,
+   "label": "insider",
+   "how": "contract receiving the monthly releases from Safe 0xB92D (prior)"
+  },
+  {
+   "addr": "0xc8213bD180854bafBcfA8DED912Dd0dBc5B42714",
+   "balance": 9767461.15,
+   "pct": 3.1,
+   "label": "insider",
+   "how": "contract receiving the monthly releases from Safe 0x0306 (prior)"
+  },
+  {
+   "addr": "0x76eC5A0D3632b2133d9f1980903305B62678Fbd3",
+   "balance": 9592027.79,
+   "pct": 3.05,
+   "label": "exchange",
+   "how": "Etherscan/Blockscout tag BtcTurk (prior); Blockscout has tags today"
+  }
+ ],
+ "top10_note": "Ethereum, eth.blockscout.com holders API, read 2026-11-16 15:14 UTC. pct is of ~314.9M on-chain unlocked (tokenomics.com), because CoinGecko's 174.75M is stale. Labels are from the prior analysis and were not re-verified, except Safe balances matching the release pattern",
+ "next_unlock": "2026-11-17, 26,406,625 ERA, 15.1% of CG circulating / 8.4% of on-chain unlocked (2.6% of total), app.tokenomics.com read 2026-11-16 15:14 UTC",
+ "not_checked": [
+  "D1-D5 computed tests",
+  "F1-F9 contract review and GoPlus",
+  "G1-G4 incident/venue flags",
+  "BSC/Base/Arbitrum supplies",
+  "E3 basis resolution",
+  "full 180d schedule sum"
+ ],
+ "verdict": "reject",
+ "reason": "E1 hard fail: the 2026-11-17 unlock of 26.4M ERA is 8.4-15.1% of circulating, against a 2% limit, and E2 fails too (~158M of monthly tranches in 180 days, ~50% of circulating). I stopped after the hard fail, so D, F and G are unknown.",
+ "sources": [
+  "https://app.tokenomics.com/tokenomics/caldera/unlocks (read 2026-11-16 15:14 UTC)",
+  "https://api.coingecko.com/api/v3/coins/caldera (read 2026-11-16 15:13 UTC)",
+  "https://eth.blockscout.com/api/v2/tokens/0xE2AD0BF751834f2fbdC62A41014f84d67cA1de2A/holders (read 2026-11-16 15:13 UTC)"
+ ]
+}

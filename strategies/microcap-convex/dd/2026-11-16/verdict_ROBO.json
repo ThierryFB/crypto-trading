@@ -1,0 +1,257 @@
+{
+ "sym": "ROBO",
+ "name": "Fabric Protocol",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0x32b4d049fE4c888D2b92eEcaf729F44DF6B1F36E",
+   "share_of_supply_pct": 97.37
+  },
+  {
+   "chain": "base",
+   "address": "0x407a...6d6f (OFT mirror, per prior; not re-read)",
+   "share_of_supply_pct": "~0.6 (bridged, inside the 2.63% OFT adapter)"
+  },
+  {
+   "chain": "bsc",
+   "address": "0x475c...e6e2 (OFT mirror, per prior; not re-read)",
+   "share_of_supply_pct": "~2.0 (bridged, inside the 2.63% OFT adapter)"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Native utility ERC-20, not wrapped/bridged/stable/RWA; first credible-venue listing 2026-02-27 (>90 days).",
+ "tests": {
+  "D1": {
+   "result": "fail",
+   "value": "Top-10 non-excluded (Ethereum) incl. 0x5223, 0xeAc8, 0x9E1A, 0x34A1, 0x61bE, 0xE8cf, 0x8FD7 alone = 7,913M = 79.1% of total supply (>350% of CoinGecko circulating). Recorded from the same holder read; remaining slots not needed to exceed 35%.",
+   "source": "eth.blockscout.com/api/v2/tokens/0x32b4d049fE4c888D2b92eEcaf729F44DF6B1F36E/holders",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "Under D5 the six large unlabelled EOAs (7,709.5M, none a vesting/timelock contract per eth_getCode) count as liquid insider holdings: far above 20% of circulating.",
+   "source": "eth.blockscout.com/api/v2/tokens/0x32b4d049fE4c888D2b92eEcaf729F44DF6B1F36E/holders; eth_getCode publicnode",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "D5": {
+   "result": "fail",
+   "value": "Seven non-excluded wallets each >=2% of circulating are unidentified (no Blockscout label; Etherscan blocked by Cloudflare). They count as insiders.",
+   "source": "eth.blockscout.com/api/v2/tokens/0x32b4d049fE4c888D2b92eEcaf729F44DF6B1F36E/holders",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "E1": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2 (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "D2": {
+   "result": "fail",
+   "value": "Largest non-excluded holder 0x52238A99fd985929C329FE9aF83E4C47a2adf73E holds 2,285.5M ROBO = 22.86% of total supply, 102.4% of CoinGecko circulating (2.231B). EOA (eth_getCode 0x), no explorer label, not a vesting contract. Next three unlabelled EOAs: 0xeAc8...F30f 22.78%, 0x9E1A...2bff 11.75%, 0x34A1...5924 9.76% of total supply. Fails at either denominator.",
+   "source": "eth.blockscout.com/api/v2/tokens/0x32b4d049fE4c888D2b92eEcaf729F44DF6B1F36E/holders; ethereum-rpc.publicnode.com eth_getCode",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "E3": {
+   "result": "fail",
+   "value": "Circulating 2,231,000,000 / max 10,000,000,000 = 22.31% < 30%; remainder sits in EOAs, not provably burned or locked.",
+   "source": "eth.blockscout.com/api/v2/tokens/0x32b4...F36E (CoinGecko circulating_supply field, total_supply on-chain)",
+   "read_utc": "2026-11-16 15:13 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0x52238A99fd985929C329FE9aF83E4C47a2adf73E",
+   "balance_M": 2285.5,
+   "pct": 102.44,
+   "pct_of_total_supply": 22.86,
+   "label": "unidentified",
+   "how": "EOA (eth_getCode 0x), no Blockscout label; prior: funded 2,500M on 2026-05-07 in a round tranche"
+  },
+  {
+   "addr": "0xeAc8470478b7F080D111aC749F0c5c1D00d4F30f",
+   "balance_M": 2277.99,
+   "pct": 102.11,
+   "pct_of_total_supply": 22.78,
+   "label": "unidentified",
+   "how": "EOA, no label; prior: funded 2,329.7M on 2026-05-07; balance down ~50M since 10-28"
+  },
+  {
+   "addr": "0x9E1A8c5351f4D508B538F6493CFDE9E2148D2bff",
+   "balance_M": 1175.0,
+   "pct": 52.67,
+   "pct_of_total_supply": 11.75,
+   "label": "unidentified",
+   "how": "EOA, no label; prior: zero outgoing txs"
+  },
+  {
+   "addr": "0x34A1c4787C368209d50aAECe740799EE3C2A5924",
+   "balance_M": 976.0,
+   "pct": 43.75,
+   "pct_of_total_supply": 9.76,
+   "label": "unidentified",
+   "how": "EOA, no label; prior: active distributor"
+  },
+  {
+   "addr": "0x61bEc66bc3Ed87bf4fde2590C6B48c6240822932",
+   "balance_M": 825.0,
+   "pct": 36.98,
+   "pct_of_total_supply": 8.25,
+   "label": "unidentified",
+   "how": "EOA, no label; prior: zero txs"
+  },
+  {
+   "addr": "0xF977814e90dA44bFA03b6295A0616a897441aceC",
+   "balance_M": 768.15,
+   "pct": 34.43,
+   "pct_of_total_supply": 7.68,
+   "label": "exchange",
+   "how": "widely published Binance 8 address (Etherscan label not re-read: Cloudflare block)"
+  },
+  {
+   "addr": "0x407A5fb66CB1b3d50004f7091c08A27B42ba6d6F",
+   "balance_M": 262.99,
+   "pct": 11.79,
+   "pct_of_total_supply": 2.63,
+   "label": "bridge escrow",
+   "how": "verified contract named RoboOFTAdapter on Blockscout; LayerZero OFT escrow for Base/BSC copies"
+  },
+  {
+   "addr": "0x5a52E96BAcdaBb82fd05763E25335261B270Efcb",
+   "balance_M": 230.63,
+   "pct": 10.34,
+   "pct_of_total_supply": 2.31,
+   "label": "exchange",
+   "how": "Binance 28 per prior analysis/public labels (not re-read on Etherscan today)"
+  },
+  {
+   "addr": "0x8FD7b93319d39175788A16Eb42EA5AC8Ff327907",
+   "balance_M": 213.6,
+   "pct": 9.57,
+   "pct_of_total_supply": 2.14,
+   "label": "unidentified",
+   "how": "EOA, no label; prior: hot-wallet-like activity but unlabelled, so not excluded"
+  },
+  {
+   "addr": "0xE8cf94354d068Bf6dD2f735E3c769993C34173d8",
+   "balance_M": 160.0,
+   "pct": 7.17,
+   "pct_of_total_supply": 1.6,
+   "label": "unidentified",
+   "how": "EOA, no label; prior: funded 160M from 0x5223 (linked to that wallet)"
+  }
+ ],
+ "next_unlock": "~2027-02-27: investor+team 12-month cliff ends, ~4.43B (44.3% of supply, ~199% of circulating) starts 36-month linear; source prior analysis (Binance Research summary), not re-verified today. Not in E1 window; E2 not run.",
+ "not_checked": [
+  "F1-F9 contract source, roles, proxy, GoPlus/honeypot.is (stopped at hard fail)",
+  "G1-G4 venue/incident/legal flags",
+  "D4 insider-to-exchange flows",
+  "E1/E2/E4 unlock schedule re-verification",
+  "Etherscan labels (Cloudflare challenge)",
+  "Base/BSC holder maps (each <10% of supply)"
+ ],
+ "verdict": "reject",
+ "reason": "Hard fail D2: the largest non-excluded holder, unlabelled EOA 0x5223...f73E, holds 22.86% of total supply (102% of CoinGecko circulating), with D1, D3, D5 and E3 (22.31% circulating/max) also failing; F and G tests were not run.",
+ "sources": [
+  "https://eth.blockscout.com/api/v2/tokens/0x32b4d049fE4c888D2b92eEcaf729F44DF6B1F36E (read 2026-11-16 15:13 UTC)",
+  "https://eth.blockscout.com/api/v2/tokens/0x32b4d049fE4c888D2b92eEcaf729F44DF6B1F36E/holders (read 2026-11-16 15:13 UTC)",
+  "https://ethereum-rpc.publicnode.com eth_getCode on six top EOAs (read 2026-11-16 15:14 UTC)",
+  "https://eth.blockscout.com/api/v2/addresses/<addr> label lookups (read 2026-11-16 15:14 UTC)",
+  "prior_ROBO.json (Crypto Book analysis 2026-10-28, leads only)"
+ ]
+}

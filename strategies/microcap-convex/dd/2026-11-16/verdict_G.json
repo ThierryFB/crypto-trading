@@ -1,0 +1,243 @@
+{
+ "sym": "G",
+ "name": "Gravity (by Galxe)",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0x9c7beba8f6ef6643abd725e45a4e8387ef260649",
+   "share_of_supply_pct": "~96 (11.535B of 12B, prior 2026-10-24)"
+  },
+  {
+   "chain": "bsc",
+   "address": "0x9c7beba8f6ef6643abd725e45a4e8387ef260649",
+   "share_of_supply_pct": "~3.8 (<10%, not reviewed)"
+  },
+  {
+   "chain": "base",
+   "address": "0x9c7beba8f6ef6643abd725e45a4e8387ef260649",
+   "share_of_supply_pct": "~0.1"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "G replaced GAL in 2024 (migration complete); listed >90 days on Binance/Coinbase/Kraken. Gravity Alpha chain sunset 2026-11-01 is a chain change, not an ERC-20 migration (G4 not checked today).",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "D2": {
+   "result": "fail",
+   "value": "0x1a70f49fe0be87345e7074f73a81ea6f671e8800 holds 3,113.83M G = 43.05% of CoinGecko circulating 7,232,700,000 (> 10%). It is an EOA (eth_getCode 0x), so not a vesting/timelock contract; no exchange label on Blockscout. Unidentified (prior inferred foundation). Even against the full 12B supply it is 25.9%, still > 10%.",
+   "source": "https://api.ethplorer.io/getTopTokenHolders/0x9c7beba8f6ef6643abd725e45a4e8387ef260649; ethereum-rpc.publicnode.com eth_getCode; eth.blockscout.com/api/v2/addresses; cg_markets.json (CoinGecko /coins/markets snapshot 2026-11-16 15:06 UTC)",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "E1": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  }
+ },
+ "top10": [
+  {
+   "addr": "0x1a70f49fe0be87345e7074f73a81ea6f671e8800",
+   "balance": "3113.83M G",
+   "pct": 43.05,
+   "label": "unidentified",
+   "how": "EOA, no Blockscout label; prior inferred Galxe/Gravity foundation (unverified). >=2% -> insider (D5) (ethplorer top holders, 2026-11-16 16:04 UTC)"
+  },
+  {
+   "addr": "0x7983403dda368aa7d67145a9b81c5c517f364c42",
+   "balance": "1435.78M G",
+   "pct": 19.85,
+   "label": "bridge escrow",
+   "how": "TransparentUpgradeableProxy, implementation ERC20Bridge (Gravity chain lockbox, per prior + Blockscout name); balance down from 2,565.3M on 2026-10-24 (ethplorer top holders, 2026-11-16 16:04 UTC)"
+  },
+  {
+   "addr": "0x8c09cb519452169e84321d163b7d9df7f1e5c34f",
+   "balance": "1095.92M G",
+   "pct": 15.15,
+   "label": "unidentified",
+   "how": "EIP-7702 delegated EOA (code 0xef0100..., Blockscout proxy_type eip7702), no label; not in prior top10 (new since 10-24). >=2% -> insider (D5) (ethplorer top holders, 2026-11-16 16:04 UTC)"
+  },
+  {
+   "addr": "0x5a52e96bacdabb82fd05763e25335261b270efcb",
+   "balance": "534.63M G",
+   "pct": 7.39,
+   "label": "unidentified",
+   "how": "EOA, no label; seen funded by Binance 8 in F analysis, probably Binance, not confirmed (ethplorer top holders, 2026-11-16 16:04 UTC)"
+  },
+  {
+   "addr": "0xf977814e90da44bfa03b6295a0616a897441acec",
+   "balance": "500.00M G",
+   "pct": 6.91,
+   "label": "exchange",
+   "how": "Binance 8, widely published label (ethplorer top holders, 2026-11-16 16:04 UTC)"
+  },
+  {
+   "addr": "0x01fafa4c90d988e4430406361ef9b941dd83ff7a",
+   "balance": "309.34M G",
+   "pct": 4.28,
+   "label": "unidentified",
+   "how": "EOA per prior, no label. >=2% -> insider (D5) (ethplorer top holders, 2026-11-16 16:04 UTC)"
+  },
+  {
+   "addr": "0xab56dffcc3a53a57f0d5b1064d45032c0b9c5a1b",
+   "balance": "300.00M G",
+   "pct": 4.15,
+   "label": "unidentified",
+   "how": "EOA per prior, no label; round balance. >=2% -> insider (D5) (ethplorer top holders, 2026-11-16 16:04 UTC)"
+  },
+  {
+   "addr": "0xae061bd1017f9d5ccd2d166d0775b17bfee6b8d0",
+   "balance": "250.18M G",
+   "pct": 3.46,
+   "label": "unidentified",
+   "how": "no label, not checked further (ethplorer top holders, 2026-11-16 16:04 UTC)"
+  },
+  {
+   "addr": "0xdd746022d5e835955461e4c5e6da2d55c8b01e1f",
+   "balance": "240.50M G",
+   "pct": 3.33,
+   "label": "unidentified",
+   "how": "no label, not checked further (ethplorer top holders, 2026-11-16 16:04 UTC)"
+  },
+  {
+   "addr": "0x79a89c7dffe119d440082cdd6c60d80528c9edb0",
+   "balance": "233.04M G",
+   "pct": 3.22,
+   "label": "unidentified",
+   "how": "EOA per prior, no label (ethplorer top holders, 2026-11-16 16:04 UTC)"
+  }
+ ],
+ "next_unlock": "Not re-verified today. Prior (tokenomics.com, 2026-10-24): monthly ~61.8M G (~0.85% of circulating) on the 9th; next 2026-12-09.",
+ "not_checked": [
+  "D1, D3-D5, E1-E4, F1-F9, G1-G4 (stopped at D2)",
+  "BSC/Base holders (<10% of supply)",
+  "Why ~1.13B left the ERC20Bridge since 10-24 and whether it went to 0x8c09..."
+ ],
+ "verdict": "reject",
+ "reason": "D2 fails: unidentified EOA 0x1a70...8800 holds 43.05% of circulating (limit 10%); a second unlabelled EIP-7702 EOA holds 15.15%. Other tests not run (stopped early per brief).",
+ "sources": [
+  "https://api.ethplorer.io/getTopTokenHolders/0x9c7beba8f6ef6643abd725e45a4e8387ef260649 (read 2026-11-16 16:04 UTC)",
+  "https://ethereum-rpc.publicnode.com eth_getCode (read 2026-11-16 16:04 UTC)",
+  "https://eth.blockscout.com/api/v2/addresses/0x8c09cb519452169e84321d163b7d9df7f1e5c34f (read 2026-11-16 16:04 UTC)",
+  "cg_markets.json CoinGecko markets snapshot (last_updated 2026-11-16 15:06 UTC)"
+ ]
+}

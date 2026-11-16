@@ -1,0 +1,167 @@
+{
+ "sym": "MARSCOIN",
+ "name": "MarsCoin (CoinGecko marscoin-4)",
+ "chains": [
+  {
+   "chain": "bsc",
+   "address": "0xfe189e97832da1573e4e4ff034f4ffc3a15c7777",
+   "share_of_supply_pct": 100
+  }
+ ],
+ "scope_ok": false,
+ "scope_note": "\u00a72 fail: first listed on a credible venue fewer than 90 days ago. Earliest Binance USDT-M perp daily candle 2026-09-01 (76 days), earliest Binance spot MARSCOINUSDT daily candle 2026-09-04 (73 days). Not listed on Coinbase, Kraken, OKX or Bybit spot. Binance Alpha (on-chain aggregator, listed 2026-07-30 per prior) is not counted as a credible-venue listing; if the desk did count it, age would be 109 days and a full review would be needed.",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "E1": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: token out of scope under \u00a72 (first credible-venue listing 76 days ago < 90); rejected without full review",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "Binance spot tags ['Meme','Seed'], no Monitoring tag; status TRADING. Not listed on Coinbase/Kraken/OKX/Bybit. Delisting announcement pages not read (stopped at scope fail)",
+   "source": "binance.com bapi get-products; api.binance.com exchangeInfo; OKX/Bybit/Coinbase/Kraken public instrument APIs",
+   "read_utc": "2026-11-16 16:02 UTC"
+  }
+ },
+ "top10": [],
+ "next_unlock": "not checked (scope fail); prior says fully circulating 1B, no vesting, not re-verified",
+ "not_checked": [
+  "All D, E, F tests and G2-G4: stopped at \u00a72 scope fail",
+  "GoPlus token_security returned code 5000 system error at 16:02 UTC",
+  "CoinGecko coin endpoint rate-limited (429)",
+  "Binance/other venue delisting announcement pages"
+ ],
+ "verdict": "reject",
+ "reason": "Out of scope under \u00a72: first credible-venue listing (Binance perp 2026-09-01, spot 2026-09-04) is 73-76 days ago, under the 90-day minimum. D-G not run; resubmit after 2026-11-30.",
+ "sources": [
+  "https://api.binance.com/api/v3/klines?symbol=MARSCOINUSDT&interval=1d&startTime=0&limit=1 (read 2026-11-16 16:02 UTC)",
+  "https://fapi.binance.com/fapi/v1/klines?symbol=MARSCOINUSDT&interval=1d&startTime=0&limit=1 (read 2026-11-16 16:02 UTC)",
+  "https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products (read 2026-11-16 16:02 UTC)",
+  "https://www.okx.com/api/v5/public/instruments?instType=SPOT&instId=MARSCOIN-USDT (read 2026-11-16 16:02 UTC)",
+  "https://api.bybit.com/v5/market/instruments-info?category=spot&symbol=MARSCOINUSDT (read 2026-11-16 16:02 UTC)",
+  "https://api.exchange.coinbase.com/products/MARSCOIN-USD (read 2026-11-16 16:02 UTC)",
+  "https://api.kraken.com/0/public/AssetPairs?pair=MARSCOINUSD (read 2026-11-16 16:02 UTC)",
+  "https://api.geckoterminal.com/api/v2/search/pools?query=marscoin&network=bsc (read 2026-11-16 16:02 UTC)"
+ ]
+}

@@ -1,0 +1,169 @@
+{
+ "sym": "CT",
+ "name": "Concrete",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0x0a09...7f46 (full address per prior_CT.json lead; not re-read)",
+   "share_of_supply_pct": 96.55
+  },
+  {
+   "chain": "bsc",
+   "address": "LayerZero OFT (address not re-read)",
+   "share_of_supply_pct": 3.45
+  }
+ ],
+ "scope_ok": false,
+ "scope_note": "\u00a72 excludes tokens first listed on any credible venue fewer than 90 days ago. CT first listed 2026-09-30 (Kraken CTUSD first daily candle 2026-09-30; OKX CT-USDT listTime 2026-09-30 09:00 UTC; Coinbase CT-USD first daily candle 2026-09-30; Binance USDT-M perp CTUSDT onboardDate 2026-10-01 07:45 UTC). Age on 2026-11-16 = 47 days. Earliest date it could re-enter scope: 2026-12-29.",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "E1": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: token out of scope under criteria \u00a72 (first credible listing 47 days ago < 90); rejected without full review",
+   "source": "criteria.md \u00a72",
+   "read_utc": "2026-11-16 15:13 UTC"
+  }
+ },
+ "top10": [],
+ "next_unlock": "Not re-verified. Prior analysis lead: team+investor cliff ~2027-09-30 (500M CT, tranche size unpublished); ecosystem emission schedule unpublished (DropsTab via prior_CT.json, 2026-11-11).",
+ "not_checked": [
+  "All D, E, F, G tests: not run because the token fails \u00a72 scope (listed <90 days)",
+  "Top-10 holder labelling",
+  "Contract source / roles / GoPlus",
+  "Unlock schedule re-verification"
+ ],
+ "verdict": "reject",
+ "reason": "Out of scope under \u00a72: first listed on credible venues 2026-09-30 (Kraken, OKX, Coinbase), 47 days before 2026-11-16, under the 90-day minimum; D-G tests not run. Resubmit no earlier than 2026-12-29, when E4 (unpublished ecosystem emissions) and D5 (unidentified 5.16% EOA, BitGo custody wallets) will need resolving.",
+ "sources": [
+  "https://api.kraken.com/0/public/OHLC?pair=CTUSD&interval=1440 (read 2026-11-16 15:13 UTC)",
+  "https://www.okx.com/api/v5/public/instruments?instType=SPOT&instId=CT-USDT (read 2026-11-16 15:13 UTC)",
+  "https://api.exchange.coinbase.com/products/CT-USD/candles?granularity=86400 (read 2026-11-16 15:13 UTC)",
+  "https://fapi.binance.com/fapi/v1/exchangeInfo (read 2026-11-16 15:13 UTC)",
+  "prior_CT.json (Crypto Book analysis 2026-11-11, leads only)"
+ ]
+}

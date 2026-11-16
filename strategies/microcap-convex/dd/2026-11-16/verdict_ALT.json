@@ -1,0 +1,247 @@
+{
+ "sym": "ALT",
+ "name": "AltLayer",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0x8457CA5040ad67fdebbCC8EdCE889A335Bc0fbFB",
+   "share_of_supply_pct": 55.28
+  },
+  {
+   "chain": "bsc",
+   "address": "0x8457CA5040ad67fdebbCC8EdCE889A335Bc0fbFB",
+   "share_of_supply_pct": 44.72
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "ERC-20 governance/staking token, native to Ethereum, CCIP lock-and-mint on BSC (BSC share = lockbox balance 44.72%). Not wrapped/staked; listed on Binance since Jan 2024. Circulating = CoinGecko 7,607,986,107 (= 10B minus vesting Safe balance, consistent on-chain).",
+ "tests": {
+  "D1": {
+   "result": "fail",
+   "value": "Ethereum top-9 non-excluded (lockbox excluded) = 55.8% of circulating, incl. owner Safe 31.44%. Even without the Safe ~24.4% from 8 wallets plus unseen #11+; BSC top-10 (69.4% per prior GeckoTerminal) not labelled.",
+   "source": "Ethplorer getTopTokenHolders freekey",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "D2": {
+   "result": "fail",
+   "value": "Owner Gnosis Safe 0x12a6...b1c0 holds 2,392,013,893 ALT = 31.44% of circulating; it's a 2-of-3 Safe, not a vesting/timelock contract with on-chain schedule, so not excluded. Largest other: 0xf721 EOA 7.21%.",
+   "source": "Ethplorer getTopTokenHolders freekey; publicnode eth_call getOwners/getThreshold",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "Liquid insider: owner Safe 31.44% + D5 unidentified >=2% wallets (0xf721 7.21, 0xeb79 4.72, 0x21d9 4.10, 0x5240 2.14, 0xa312 2.09) = 51.7% > 20%. Without the Safe still 20.26%.",
+   "source": "Ethplorer getTopTokenHolders freekey",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Insider-to-exchange flows over 90 days not traced",
+   "source": "-",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "Five unidentified wallets >=2% of circulating (0xf721, 0xeb79, 0x21d9, 0x5240, 0xa312); counted as insiders, changes D3 result",
+   "source": "Ethplorer getTopTokenHolders freekey; eth_getCode",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "2026-11-25 unlock 240.8M ALT = 3.17% of circulating (>= 2%). Vesting Safe still holds 2,392,013,893 (unchanged since prior), consistent with monthly 240.8M releases on the 25th.",
+   "source": "app.tokenomics.com/tokenomics/altlayer/unlocks; Ethplorer holder balance",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "E2": {
+   "result": "pass",
+   "value": "Next 180 days: ~6 monthly unlocks x 240.8M = ~1.445B = 19.0% of circulating (<=20%, close to the limit; staking rewards not added, could push over). Treat as borderline.",
+   "source": "app.tokenomics.com (prior 14 events to 2028-01-25)",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "E3": {
+   "result": "pass",
+   "value": "7,607,986,107 / 10,000,000,000 = 76.1%",
+   "source": "CoinGecko /coins/markets",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "Monthly schedule to 2028-01-25 published (tokenomics.com) and matches on-chain Safe outflows",
+   "source": "app.tokenomics.com; prior on-chain check",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "F1": {
+   "result": "pass",
+   "value": "Verified AltLayerToken, solc 0.8.23; GoPlus is_open_source=1",
+   "source": "eth.blockscout.com smart-contracts API; GoPlus",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "mint(to,amount) onlyOwner, ERC20Capped(1e28) and totalSupply already = cap, so no mint now; but ERC20Burnable burns reopen headroom mintable by a 2-of-3 Safe without timelock. GoPlus is_mintable=1.",
+   "source": "Blockscout source; GoPlus",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "F3": {
+   "result": "fail",
+   "value": "Owner = Gnosis Safe 0x12a6...b1c0, 3 owners threshold 2 (0x834f..f216, 0x065a..a81c, 0x5f17..8df7), no modules, guard slot 0, no timelock; holds pause() over all transfers and capped mint. Not an EOA, but no >=48h timelock. GoPlus owner_address=Safe, can_take_back_ownership=0.",
+   "source": "publicnode eth_call getOwners/getThreshold/getModulesPaginated, eth_getStorageAt guard slot; GoPlus",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "F4": {
+   "result": "pass",
+   "value": "is_proxy=0; plain constructor contract",
+   "source": "GoPlus; Blockscout",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "F5": {
+   "result": "fail",
+   "value": "ERC20Pausable: owner can pause() all transfers (currently paused()=false). Held by 2-of-3 Safe without timelock: not F3-grade (at minimum need-more-info). GoPlus transfer_pausable=0 and is_blacklisted=0 understate this.",
+   "source": "Blockscout source; eth_call paused(); GoPlus",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "F6": {
+   "result": "pass",
+   "value": "No tax/limit code; GoPlus buy_tax=0 sell_tax=0 slippage_modifiable=0",
+   "source": "Blockscout source; GoPlus",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "F7": {
+   "result": "pass",
+   "value": "GoPlus is_honeypot=0, cannot_sell_all=0 (honeypot.is not checked)",
+   "source": "GoPlus",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "DEX pools / LP locks not checked",
+   "source": "-",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "F9": {
+   "result": "pass",
+   "value": "Unmodified OpenZeppelin 5.x ERC20Burnable/Permit/Capped/Pausable/Ownable composition (no audit checked)",
+   "source": "Blockscout source",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "Not re-checked today; prior 2026-11-05: no Monitoring tag, no token delisting",
+   "source": "-",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "Not re-checked today; prior: no exploit found",
+   "source": "-",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "Not checked",
+   "source": "-",
+   "read_utc": "2026-11-16 15:25"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "Not re-checked; prior: no migration",
+   "source": "-",
+   "read_utc": "2026-11-16 15:25"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0x31fcc8844bfd03b8378e2c0f2352afe3c18afbdb",
+   "balance": 4471982585,
+   "pct": 58.78,
+   "label": "bridge escrow",
+   "how": "Chainlink CCIP ERC20LockBox; balance equals BSC totalSupply (prior, eth.blockscout verified source); excluded, BSC side not labelled"
+  },
+  {
+   "addr": "0x12a6bfb2f81267b847743c87767b3a45b897b1c0",
+   "balance": 2392013893,
+   "pct": 31.44,
+   "label": "insider",
+   "how": "Token owner; Gnosis Safe 2-of-3 (getOwners/getThreshold), no modules, no guard; monthly unlock distributor. Not a vesting contract with on-chain readable schedule, so NOT excluded"
+  },
+  {
+   "addr": "0xf721788cda3f54792c8377ba90ee11806672def7",
+   "balance": 548174946,
+   "pct": 7.21,
+   "label": "unidentified",
+   "how": "EOA (eth_getCode 0x), no label; >=2% so insider per D5"
+  },
+  {
+   "addr": "0xeb79b78eed448210eb1c74a4b50a9c2f2ba1d52d",
+   "balance": 359423217,
+   "pct": 4.72,
+   "label": "unidentified",
+   "how": "EOA (eth_getCode 0x), no label; >=2% so insider per D5"
+  },
+  {
+   "addr": "0x21d9c5cba53098c2d4353dcaceb34c9b3da4e586",
+   "balance": 312013853,
+   "pct": 4.1,
+   "label": "unidentified",
+   "how": "EOA (eth_getCode 0x); prior: received ~236M from 0xa9d1 on 2026-10-27; >=2% so insider per D5"
+  },
+  {
+   "addr": "0x524049e4a64dd53a8c504328fa8e44007e5497d8",
+   "balance": 162552479,
+   "pct": 2.14,
+   "label": "unidentified",
+   "how": "No label; >=2% so insider per D5"
+  },
+  {
+   "addr": "0xa31231e727ca53ff95f0d00a06c645110c4ab647",
+   "balance": 159269010,
+   "pct": 2.09,
+   "label": "unidentified",
+   "how": "Prior: high nonce, probable exchange hot wallet (heuristic, not labelled); >=2%"
+  },
+  {
+   "addr": "0xb6d149c8dda37aaaa2f8ad0934f2e5682c35890b",
+   "balance": 120588922,
+   "pct": 1.59,
+   "label": "other",
+   "how": "StakedALT contract (verified on Blockscout per prior); not an exclusion category"
+  },
+  {
+   "addr": "0x2f0b200aceaf0c307d8db05964ed63ac1366ca9c",
+   "balance": 107354822,
+   "pct": 1.41,
+   "label": "unidentified",
+   "how": "Prior: nonce 1, dormant"
+  },
+  {
+   "addr": "0xc80afd311c9626528de66d86814770361fe92416",
+   "balance": 85870558,
+   "pct": 1.13,
+   "label": "unidentified",
+   "how": "Prior: high nonce, probable exchange hot wallet (heuristic)"
+  }
+ ],
+ "next_unlock": "2026-11-25, 240.8M ALT, 3.17% of circulating (7,607,986,107), split Private Investors 27% / Insiders 22% / Foundation / Community; source app.tokenomics.com/tokenomics/altlayer/unlocks read 2026-11-16 15:24 UTC",
+ "not_checked": [
+  "BSC top-10 holders and labels (BSC holds 44.7%)",
+  "BSC token contract / CCIP pool admin",
+  "D4 insider-to-exchange flows",
+  "Etherscan labels (Cloudflare)",
+  "F8 DEX LP locks",
+  "honeypot.is",
+  "G1-G4 re-check today",
+  "staking reward emissions for E2",
+  "CMC cross-check"
+ ],
+ "verdict": "reject",
+ "reason": "E1 fails: the 2026-11-25 unlock of 240.8M ALT is 3.17% of circulating (>=2%). D1/D2/D3/D5 fail on the owner Safe (31.4%) and five unidentified >=2% wallets, and F3/F5 fail: a 2-of-3 Safe with no timelock controls pause() over all transfers.",
+ "sources": [
+  "https://api.ethplorer.io/getTopTokenHolders/0x8457...fbfb?apiKey=freekey (read 2026-11-16 15:24 UTC)",
+  "https://api.ethplorer.io/getTokenInfo/0x8457...fbfb?apiKey=freekey (read 2026-11-16 15:24 UTC)",
+  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=altlayer (read 2026-11-16 15:24 UTC)",
+  "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0x8457...fbfb (read 2026-11-16 15:24 UTC)",
+  "https://ethereum-rpc.publicnode.com eth_call/eth_getCode/eth_getStorageAt (read 2026-11-16 15:25 UTC)",
+  "https://eth.blockscout.com/api/v2/smart-contracts/0x8457CA5040ad67fdebbCC8EdCE889A335Bc0fbFB (read 2026-11-16 15:25 UTC)",
+  "https://app.tokenomics.com/tokenomics/altlayer/unlocks (read 2026-11-16 15:24 UTC)"
+ ]
+}

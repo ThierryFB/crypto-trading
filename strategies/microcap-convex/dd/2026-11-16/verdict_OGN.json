@@ -1,0 +1,163 @@
+{
+ "sym": "OGN",
+ "name": "Origin Token",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0x8207c1ffc5b6804f6024322ccf34f29c3541ae26",
+   "share_of_supply_pct": ">=90 (Base/Sonic bridged copies not re-read; OP bridge held 8.15M per prior)"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Governance/value-accrual token of Origin Protocol, not itself staked/wrapped (xOGN is the staked form, not this token); listed on Binance/Coinbase/Kraken for years.",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not run (stopped at E1); lead: further treasury expiries 2026-12-19 brave 24.41M, 2026-12-22 limitless_alpha 98.94M alone take 180-day total above 300M (>40% of circulating), i.e. would also fail",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "Treasury xOGN lockups expiring in next 30 days (to 2026-12-16): foundation_reserve 138.11M (2026-12-15 19:36), research_development 29.45M, incentives 23.17M, community_reserves 19.87M (all 2026-12-11 06:33) = 210.6M = 28.1% of circulating 748.67M (>= 2%). Already withdrawable: brave_endeavors 54.82M (expired 2026-10-15), ecosystem_development 14.86M (expired 2026-11-09). These wallets are excluded from CoinGecko/Origin circulating, so expiry = new liquid supply",
+   "source": "ethereum-rpc.publicnode.com eth_call xOGN 0x63898b3b6ef3d39332082178656e9862bee45c57 lockupsCount/lockups(address,uint256) for Origin's excluded treasury wallets (list from OriginProtocol/origin-squid src/utils/circulating-supply.ts)",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "E3": {
+   "result": "pass",
+   "value": "Circulating 748,670,496 / total=max 1,409,664,846 = 53.1%",
+   "source": "CoinGecko /coins/markets; OGN totalSupply eth_call",
+   "read_utc": "2026-11-16 16:07 UTC"
+  }
+ },
+ "top10": [],
+ "next_unlock": "2026-12-11: 72.5M (R&D 29.45M + incentives 23.17M + community 19.87M), 9.7% of circulating; 2026-12-15: foundation_reserve 138.11M, 18.4%; 2026-12-22: limitless_alpha 98.94M, 13.2% (xOGN lockups on-chain, read 2026-11-16 16:07 UTC)",
+ "not_checked": [
+  "All D tests (top-10 holders not re-read; stopped at E1)",
+  "F1-F9 contract review",
+  "G1-G4",
+  "Whether Origin has publicly committed to re-stake the expiring treasury locks (would not change E1: the expiry is scheduled and releases withdrawable supply)",
+  "Base/Sonic supply split"
+ ],
+ "verdict": "reject",
+ "reason": "E1 hard fail: 210.6M OGN (28.1% of circulating) of Origin treasury xOGN lockups expire within 30 days (2026-12-11 and 2026-12-15), plus 69.7M already expired and withdrawable. Other tests not run.",
+ "sources": [
+  "https://ethereum-rpc.publicnode.com eth_call xOGN lockups/lockupsCount and OGN balanceOf/totalSupply (read 2026-11-16 16:07 UTC)",
+  "https://raw.githubusercontent.com/OriginProtocol/origin-squid/main/src/utils/circulating-supply.ts (read 2026-11-16 16:06 UTC)",
+  "https://api.coingecko.com/api/v3/coins/markets?ids=origin-protocol (read 2026-11-16 16:05 UTC)"
+ ]
+}

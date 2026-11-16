@@ -1,0 +1,196 @@
+{
+ "sym": "BAND",
+ "name": "Band (Band Protocol)",
+ "chains": [
+  {
+   "chain": "bandchain (native, Cosmos SDK)",
+   "address": "denom uband",
+   "share_of_supply_pct": "100 of native supply 185,731,813 BAND (LCD bank supply)"
+  },
+  {
+   "chain": "ethereum (legacy ERC-20)",
+   "address": "0xba11d00c5f74255f56a5e366f4f77f5a186d7f55",
+   "share_of_supply_pct": "separate 100M ERC-20 supply, relation to native supply unconfirmed; not checked"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Native staking/gas coin of BandChain (native-coin N1-N3 replace F). Listed on Binance/Coinbase/Kraken/OKX for years. Not stable/wrapped/RWA.",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "D2": {
+   "result": "fail",
+   "value": "Largest non-excluded holder band1l8acrcpg4cdmwp893e0zpn2l28h3e5474d7d0s (plain BaseAccount, not vesting; account #25, genesis-era) = 1.12M liquid + 19.35M delegated (to Dijkstra, Forbole, B-Harvest, Bro_n_Bro, ...) = 20,465,496 BAND = 11.02% of CoinGecko circulating 185,696,069 (> 10%); band10q08...teky is also over at 10.15%. Unlabelled. If band1p3uc (21.86M, 11.77%) is not Binance, it is larger still",
+   "source": "Band GraphQL https://graphql-lm.bandchain.org/v1/graphql (accounts.balance for all 146,876 accounts + delegations_view top 4,000 delegations); https://laozi1.bandchain.org/api (cosmos/auth accounts, bank balances, bank supply, staking pool); CoinGecko markets (cg_markets.json 15:06 UTC)",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "Unidentified >=2% accounts counted as insiders (D5): band1l8ac 11.02 + band10q08 10.15 + band106q2 9.48 + band1ygqj 8.50 + band17jx7 8.31 + band1s95d 2.11 = 49.57% (> 20%), none in vesting accounts; band1p3uc (11.77%, delegates only to 'Binance validator') treated as exchange-inferred, not counted",
+   "source": "Band GraphQL https://graphql-lm.bandchain.org/v1/graphql (accounts.balance for all 146,876 accounts + delegations_view top 4,000 delegations); https://laozi1.bandchain.org/api (cosmos/auth accounts, bank balances, bank supply, staking pool)",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "6 non-excluded accounts >=2% unidentified (no public labels; prior inferred team/foundation funders of the 100%-commission validators); band1p3uc exchange label is only inferred",
+   "source": "Band GraphQL https://graphql-lm.bandchain.org/v1/graphql (accounts.balance for all 146,876 accounts + delegations_view top 4,000 delegations); https://laozi1.bandchain.org/api (cosmos/auth accounts, bank balances, bank supply, staking pool)",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "E1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "N1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "N2": {
+   "result": "unknown",
+   "value": "not run: stopped early after D2. Lead: prior found five anonymous 100%-commission validators (Hamming, Knuth, Tarjan, Dijkstra, Kruskal) with ~60% voting power, which would point to one entity able to push a fork (need-more-info at minimum)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "N3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:04 UTC"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:04 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "band1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3v5fdpl",
+   "pct": 49.1,
+   "label": "other",
+   "how": "ModuleAccount bonded_tokens_pool (LCD); double-counts delegations, excluded from holder counts"
+  },
+  {
+   "addr": "band1jv65s3grqf6v6jl3dp4t6c9t9rk99cd87sy73h",
+   "pct": 18.83,
+   "label": "other",
+   "how": "ModuleAccount distribution (LCD): unclaimed rewards/commission + community pool; excluded"
+  },
+  {
+   "addr": "band1p3ucd3ptpw902fluyjzhq3ffgq4ntddap2slfc",
+   "pct": 11.77,
+   "label": "exchange",
+   "how": "inferred only: delegates solely to 'Binance validator', 191 txs; not an explorer label"
+  },
+  {
+   "addr": "band1l8acrcpg4cdmwp893e0zpn2l28h3e5474d7d0s",
+   "pct": 11.02,
+   "label": "unidentified",
+   "how": "BaseAccount, no public label; liquid 1115666 + delegated 19349830 (validators: B-Harvest, Bro_n_Bro, Dijkstra, Forbole, Hamming); counted insider under D5 if >=2%"
+  },
+  {
+   "addr": "band10q08ce640xxkt05yn8lyqkqtdm6c2k4n2dteky",
+   "pct": 10.15,
+   "label": "unidentified",
+   "how": "BaseAccount, no public label; liquid 283946 + delegated 18571367 (validators: Active Nodes, Atlas Staking (Autocompound Rewards), ContributionDAO, Dijkstra, Hamming); counted insider under D5 if >=2%"
+  },
+  {
+   "addr": "band106q2j6mhjwk2gwh78yums8mvn7nv7hzyjrpdsr",
+   "pct": 9.48,
+   "label": "unidentified",
+   "how": "BaseAccount, no public label; liquid 3563167 + delegated 14033902 (validators: Active Nodes, Atlas Staking (Autocompound Rewards), Dijkstra, Enigma, Hamming); counted insider under D5 if >=2%"
+  },
+  {
+   "addr": "band1ygqjghlf5n7ncqwc2zw9pc64a2efsldm55yfye",
+   "pct": 8.5,
+   "label": "unidentified",
+   "how": "BaseAccount, no public label; liquid 410346 + delegated 15382427 (validators:  AutoStake 🛡️ Slash Protected, 0base.vc, Active Nodes, Antrix Validators, Atlas Staking (Autocompound Rewards)); counted insider under D5 if >=2%"
+  },
+  {
+   "addr": "band17jx7vlcxss4h0p52jh6kfgpmu9hchr4kmtqrer",
+   "pct": 8.31,
+   "label": "unidentified",
+   "how": "BaseAccount, no public label; liquid 15437345 + delegated 0 (validators: none); counted insider under D5 if >=2%"
+  },
+  {
+   "addr": "band1s95dmlxx5dpdwrtrw6azjvjtvqd4etprdchkcg",
+   "pct": 2.11,
+   "label": "unidentified",
+   "how": "BaseAccount, no public label; liquid 216566 + delegated 3700000 (validators: BitNordic, Dijkstra, Hamming, Knuth, Kruskal); counted insider under D5 if >=2%"
+  },
+  {
+   "addr": "band1e69pynx54xhxx8prjpxe3cdfq4an4smlf0duh8",
+   "pct": 1.79,
+   "label": "unidentified",
+   "how": "BaseAccount, no public label; liquid 0 + delegated 3325000 (validators: Knuth, Kruskal); counted insider under D5 if >=2%"
+  }
+ ],
+ "next_unlock": "unknown (not re-verified). Prior: no vesting left; continuous inflation ~12.8% (~23.5M BAND/yr, ~1.05%/month of circulating)",
+ "not_checked": [
+  "D1 full computation",
+  "D4 flows",
+  "E1-E4 (inflation ~12.8%/yr implies E2 ~6.3% per 180d; not verified today)",
+  "N1-N3 (validator centralisation lead)",
+  "G1-G4",
+  "Ethereum ERC-20 holders and minters (0x7a62 multisig holds ~60.75M per prior)",
+  "delegations below top 4,000 (min 30 BAND, immaterial)"
+ ],
+ "verdict": "reject",
+ "reason": "D2 hard fail: unlabelled account band1l8ac holds 11.02% of circulating (>10%); D3 (~49.6% liquid insider under D5) and D5 also fail. Rest not run per early-stop rule.",
+ "sources": [
+  "Band GraphQL https://graphql-lm.bandchain.org/v1/graphql (accounts.balance for all 146,876 accounts + delegations_view top 4,000 delegations) (read 2026-11-16 16:04 UTC)",
+  "https://laozi1.bandchain.org/api (cosmos/auth accounts, bank balances, bank supply, staking pool) (read 2026-11-16 16:04 UTC)",
+  "CoinGecko /coins/markets via cg_markets.json (last_updated 2026-11-16 15:06 UTC)",
+  "prior_BAND.json (Crypto Book 2026-10-19, leads only)"
+ ]
+}

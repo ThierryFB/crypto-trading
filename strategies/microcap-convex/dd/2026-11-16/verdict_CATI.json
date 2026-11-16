@@ -1,0 +1,235 @@
+{
+ "sym": "CATI",
+ "name": "Catizen",
+ "chains": [
+  {
+   "chain": "ton",
+   "address": "EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7",
+   "share_of_supply_pct": 100.0
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "TON jetton utility token of the Catizen game platform; not stable/wrapped/staked/RWA; TGE 2024-09-20 via Binance Launchpool (>90 days). Single chain. Circulating = CoinGecko 669,338,249 (16:08 UTC); total_supply 999,999,995.93 (tonapi).",
+ "tests": {
+  "D1": {
+   "result": "fail",
+   "value": "Even on the most generous basis (treating unlabelled 0:f8b8/0:aff8 as Binance and code contracts 0:59fc/0:9088/0:58e6 as vesting, i.e. excluded), top 10 non-excluded = 21.17+14.29+10.05+6.65+5.79+5.06+4.81+4.09+2.62+2.28 = 76.8% of CG circ 669.34M (>35%). Strict basis (no explorer labels, so nothing excluded): raw top 10 = 756.7M = 113.1% of circ",
+   "source": "https://tonapi.io/v2/jettons/EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7/holders; tonapi.io/v2/accounts/<addr> (interfaces)",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "D2": {
+   "result": "fail",
+   "value": "Largest non-excluded: multisig_v2 0:35043320a5f317b73df932516ab6342cab7972856e79feeb41c6d293e5e513cc = 141.667M = 21.17% of circulating (>10%). It is a custodial multisig (prior: team vesting stream, 4.167M/month), not a code-locked vesting contract, so not excluded",
+   "source": "https://tonapi.io/v2/jettons/EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7/holders; tonapi.io/v2/accounts/<addr> (interfaces)",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "Liquid insider (project multisigs, not vesting contracts): 0:3504 21.17 + 0:0317 14.29 + 0:6865 10.05 + 0:6884 6.65 + 0:6d1c 5.79 = 57.95% of circulating (>20%), before counting other unidentified >=2% wallets",
+   "source": "https://tonapi.io/v2/jettons/EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7/holders; tonapi.io/v2/accounts/<addr> (interfaces); prior_CATI.json flow labels",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "No top-15 holder has a tonapi name/label; >=2% wallets 0:f8b8 (14.14%), 0:aff8 (11.52%), 0:92d2 (5.06%), 0:149f (4.81%), 0:d8e3 (4.09%), 0:9ee8 (2.62%), 0:64e4 (2.28%) unidentified (0:f8b8/0:aff8 only inferred Binance-linked from flows)",
+   "source": "https://tonapi.io/v2/jettons/EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7/holders; tonapi.io/v2/accounts/<addr> (interfaces)",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "E1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); prior: next on-chain release ~2026-11-20/22, ~10.5M = 1.57% of circ (insider 7.71M + 0:0317 stream 2.81M), not re-verified",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); side read: CG circ 669.34M / 1,000M = 66.9% (16:08 UTC)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); side read: jetton admin = zero address (tonapi 16:08 UTC), mintable flag true but no admin",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); side read: Binance CATIUSDT/USDC/TRY TRADING, tags ['Gaming','Seed','Launchpool'], no Monitoring (bapi get-products 16:05 UTC)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:08 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0:35043320a5f317b73df932516ab6342cab7972856e79feeb41c6d293e5e513cc",
+   "balance": "141.667M",
+   "pct": 21.17,
+   "label": "insider",
+   "how": "multisig_v2 (tonapi interface); prior flow trace: monthly 4.167M team stream to 0:6884"
+  },
+  {
+   "addr": "0:03175530aee49b6b3a28e584bc908cde3ebde524fc6cfc97766e1a3eaba10cb4",
+   "balance": "95.625M",
+   "pct": 14.29,
+   "label": "insider",
+   "how": "multisig_v2; prior: monthly 2.81M project stream"
+  },
+  {
+   "addr": "0:f8b8635d0786b77f9da660e65fd31d670a675dd4302facba692f46b571eb5360",
+   "balance": "94.632M",
+   "pct": 14.14,
+   "label": "unidentified",
+   "how": "wallet_v4r2, no label; prior inferred Binance cold (deposits from Binance hot), not explorer-labelled"
+  },
+  {
+   "addr": "0:aff83b4b03bdc45352cee2e228d24155071a9409c2d8bdeb1f6a7f7383dfa2a3",
+   "balance": "77.083M",
+   "pct": 11.52,
+   "label": "unidentified",
+   "how": "wallet_v3r2, no label; prior inferred Binance-linked"
+  },
+  {
+   "addr": "0:59fc07ba1a3710a79c60441a378d31b5d905e4e5ee328ce33e77702973d7b9ec",
+   "balance": "76.785M",
+   "pct": 11.47,
+   "label": "unidentified",
+   "how": "custom contract (no interface), prior: funded 96M 2026-06-23, feeds 0:6865; schedule not verified on-chain"
+  },
+  {
+   "addr": "0:9088220df8ef860db2ebaf6a1f889aad2530c4acb9fd4b8327035f21dbb9ab01",
+   "balance": "70.833M",
+   "pct": 10.58,
+   "label": "vesting-timelock",
+   "how": "custom contract; prior: investor release 2.083M/month. Code-lock not verified"
+  },
+  {
+   "addr": "0:6865862d4fec3fc84660500c3bfbdefaec475a20cf04e1dfb57a9bc802ec46c5",
+   "balance": "67.269M",
+   "pct": 10.05,
+   "label": "insider",
+   "how": "multisig_v2; prior: project multisig fed by 0:59fc"
+  },
+  {
+   "addr": "0:58e6a5030306b17ec38db421f152f03327291e6cde4f6b179cc7ba6b3ef417c8",
+   "balance": "49.583M",
+   "pct": 7.41,
+   "label": "vesting-timelock",
+   "how": "custom contract; prior: advisor release 1.458M/month. Code-lock not verified"
+  },
+  {
+   "addr": "0:68843e1565b797436c277c8681ae43434c40b52005629f9aaca610eb3e5b1514",
+   "balance": "44.512M",
+   "pct": 6.65,
+   "label": "insider",
+   "how": "multisig_v2; prior: team distributor"
+  },
+  {
+   "addr": "0:6d1c8aabf0aa9742cac58b4cd4c335c12efd834ccc372513ffe5a7de38e4ff2f",
+   "balance": "38.745M",
+   "pct": 5.79,
+   "label": "insider",
+   "how": "multisig_v2; prior: possibly MM/treasury"
+  }
+ ],
+ "next_unlock": "Not re-verified (stopped). Prior: ~2026-11-20/22, ~10.5M CATI, ~1.57% of circulating (on-chain cadence via tonapi, read 2026-11-07)",
+ "not_checked": [
+  "D4 flows",
+  "All E, F and G tests (stopped after D2 hard fail)",
+  "Multisig signer sets",
+  "Whether 0:59fc/0:9088/0:58e6 are code-locked vesting"
+ ],
+ "verdict": "reject",
+ "reason": "Hard fail D2: project multisig 0:3504 holds 21.2% of circulating; D1 (>=76.8%), D3 (58.0%) and D5 also fail. E/F/G not run (stopped per brief).",
+ "sources": [
+  "https://tonapi.io/v2/jettons/EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7/holders (read 2026-11-16 16:08 UTC)",
+  "https://tonapi.io/v2/jettons/EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7 (read 2026-11-16 16:08 UTC)",
+  "https://tonapi.io/v2/accounts/<addr> x10 (read 2026-11-16 16:08 UTC)",
+  "https://api.coingecko.com/api/v3/coins/catizen (read 2026-11-16 16:08 UTC)",
+  "https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products (read 2026-11-16 16:05 UTC)"
+ ]
+}

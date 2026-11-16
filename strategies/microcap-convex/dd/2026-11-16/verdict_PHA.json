@@ -1,0 +1,58 @@
+{
+ "sym": "PHA",
+ "name": "Phala Network",
+ "chains": [
+  {"chain": "ethereum", "address": "0x6c5ba91642f10282b576d91922ae6448c9d52f4e", "share_of_supply_pct": 99.89, "note": "canonical ERC-20, totalSupply 1,000,000,000; Base copy is bridged via portalBridge (1,127,390 PHA, 0.11%), below 10%; Phala/Khala parachains at 0"}
+ ],
+ "scope_ok": true,
+ "scope_note": "Native utility/staking token, ERC-20 on Ethereum since the 2025 parachain sunset; not wrapped/stable/RWA; listed on Binance/OKX/Kraken for years (>90 days). F tests apply (not native-coin N tests).",
+ "circulating_supply_used": "868,856,569 PHA (CoinGecko 2026-11-16 15:20 UTC); Phala circulation API 868,857,243 agrees. Market cap $26.48M (CoinGecko, same read)",
+ "tests": {
+  "D1": {"result": "fail", "value": "~45.5% of circ: top-10 non-excluded = Phala Vault (vPHA staking contract) 14.84, treasury SafeProxy 0x4A39 14.82, 0xA948 2.33, 0x999E 1.94, 0x289a 1.52, 0xb9fA 1.25, plus further unlabelled holders below #14 not enumerated (top-6 alone = 36.70%, already > 35%)", "source": "eth.blockscout.com /api/v2/tokens/0x6c5b.../holders with public tags", "read_utc": "2026-11-16 15:20 UTC"},
+  "D2": {"result": "fail", "value": "14.84% (Phala Vault 0x21d6...0ec0, 128.95M PHA; staking contract, not an excluded vesting/timelock) and 14.82% (treasury Gnosis Safe 0x4A39...EBEF, 128.79M PHA, 3-of-6, no timelock). Both > 10%", "source": "eth.blockscout.com holders; Safe getOwners/getThreshold via ethereum-rpc.publicnode.com", "read_utc": "2026-11-16 15:20 UTC"},
+  "D3": {"result": "unknown", "value": "not completed after hard fail; treasury Safe alone 14.82% liquid insider; with D5 unidentified >=2% wallet 0xA948 (2.33%) = 17.15%, under 20% on known wallets but 0x999E (1.94%) etc. not identified", "source": "Blockscout holders", "read_utc": "2026-11-16 15:20 UTC"},
+  "D4": {"result": "unknown", "value": "not checked (stopped at hard fail)", "source": "-", "read_utc": "2026-11-16 15:20 UTC"},
+  "D5": {"result": "fail", "value": "0xA94828b16acE4F58dc4233a031C0D745839a1676 (2.33%, EOA, no label) unidentified; treasury Safe 0x4A39 labelled treasury only by inference (circulation API reconciliation)", "source": "Blockscout holders tags", "read_utc": "2026-11-16 15:20 UTC"},
+  "E1": {"result": "unknown", "value": "not checked (stopped at hard fail); no vesting cliffs known (2020 launch); vault rewards 2.35M from treasury", "source": "pha-circulation-server.vercel.app/api/all", "read_utc": "2026-11-16 15:20 UTC"},
+  "E2": {"result": "unknown", "value": "not checked; treasury Safe (14.8%) release schedule unpublished", "source": "-", "read_utc": "2026-11-16 15:20 UTC"},
+  "E3": {"result": "pass", "value": "868.86M / 1,000M = 86.9%", "source": "CoinGecko coins/pha; Blockscout totalSupply", "read_utc": "2026-11-16 15:20 UTC"},
+  "E4": {"result": "unknown", "value": "treasury Safe release schedule not published/found", "source": "-", "read_utc": "2026-11-16 15:20 UTC"},
+  "F1": {"result": "pass", "value": "verified: PHAToken, solc 0.5.16", "source": "eth.blockscout.com /api/v2/smart-contracts/0x6c5b...", "read_utc": "2026-11-16 15:20 UTC"},
+  "F2": {"result": "pass", "value": "no mint function in source; GoPlus is_mintable=0; fixed 1B supply", "source": "Blockscout source; GoPlus token_security/1", "read_utc": "2026-11-16 15:20 UTC"},
+  "F3": {"result": "fail", "value": "owner() = 0xb7687a5a3e7b49522705833bf7d5baf18aabdd2d, eth_getCode = 0x (EOA); isPauser(owner) = true. PHAToken (OwnedPausalbe) lets a pauser pause transfer/approve for everyone except the owner (onlyOwnerOrNotPaused). EOA holds transfer power: hard fail. GoPlus owner_address=0xb768..., can_take_back_ownership=0", "source": "Blockscout verified source; eth_call owner()/isPauser()/paused() and eth_getCode on ethereum-rpc.publicnode.com; GoPlus", "read_utc": "2026-11-16 15:20 UTC"},
+  "F4": {"result": "pass", "value": "not a proxy (GoPlus is_proxy=0; plain contract source)", "source": "GoPlus; Blockscout", "read_utc": "2026-11-16 15:20 UTC"},
+  "F5": {"result": "fail", "value": "global pause present (GoPlus transfer_pausable=1), held by EOA pauser, no timelock; currently paused()=false. is_blacklisted=0", "source": "GoPlus; eth_call paused()", "read_utc": "2026-11-16 15:20 UTC"},
+  "F6": {"result": "pass", "value": "no tax/limits in source; GoPlus slippage_modifiable=0, buy_tax=0, sell_tax=0 (pause toggle counted under F5)", "source": "GoPlus; Blockscout source", "read_utc": "2026-11-16 15:20 UTC"},
+  "F7": {"result": "pass", "value": "GoPlus is_honeypot=0, cannot_sell_all=0 (honeypot.is not checked)", "source": "GoPlus token_security/1", "read_utc": "2026-11-16 15:20 UTC"},
+  "F8": {"result": "unknown", "value": "DEX pools/LP locks not checked", "source": "-", "read_utc": "2026-11-16 15:20 UTC"},
+  "F9": {"result": "unknown", "value": "modified OpenZeppelin 2.x ERC20 with custom OwnedPausalbe owner-bypass; no audit checked", "source": "Blockscout source", "read_utc": "2026-11-16 15:20 UTC"},
+  "G1": {"result": "unknown", "value": "not re-checked today; prior 2026-10-24: no Monitoring tag (tags Seed, innovation-zone), no delisting", "source": "prior_PHA.json", "read_utc": "2026-11-16 15:20 UTC"},
+  "G2": {"result": "unknown", "value": "dstack/Phala Cloud guest-agent exploit 2026-10-08 to 10-12 (core product infra, within 90 days); fixed 2026-10-15, not a token exploit; whether it counts as 'core protocol' and whether a full post-mortem exists not verified today", "source": "prior_PHA.json (KuCoin News flash)", "read_utc": "2026-11-16 15:20 UTC"},
+  "G3": {"result": "unknown", "value": "not checked", "source": "-", "read_utc": "2026-11-16 15:20 UTC"},
+  "G4": {"result": "unknown", "value": "parachain-to-Ethereum migration reported complete (parachain supply 0 in circulation API); legacy claim window still open, not re-verified", "source": "pha-circulation-server.vercel.app/api/all", "read_utc": "2026-11-16 15:20 UTC"}
+ },
+ "top10": [
+  {"addr": "0xF977814e90dA44bFA03b6295A0616a897441aceC", "pct": 32.82, "label": "exchange", "how": "Blockscout tag Binance 8 / Hot Wallet 20"},
+  {"addr": "0x21d6eC8fc14CaAcc55aFA23cBa66798DAB3a0ec0", "pct": 14.84, "label": "other", "how": "Blockscout tag 'Phala Network: vPHA Token' (staking vault contract; not an excluded category)"},
+  {"addr": "0x4A396b5C9a6fBc1Bc0525f24Ac0A246766F3EBEF", "pct": 14.82, "label": "insider", "how": "unlabelled Gnosis SafeProxy, 3-of-6 (getThreshold); treasury by reconciliation with Phala circulation API non-circulating amount"},
+  {"addr": "0x073F564419b625A45D8aEa3bb0dE4d5647113AD7", "pct": 3.03, "label": "exchange", "how": "Blockscout tag OKX 219"},
+  {"addr": "0xC882b111A75C0c657fC507C04FbFcD2cC984F071", "pct": 2.79, "label": "exchange", "how": "Blockscout tag Gate.io 5"},
+  {"addr": "0x5a52E96BAcdaBb82fd05763E25335261B270Efcb", "pct": 2.78, "label": "exchange", "how": "Blockscout tag Binance 28"},
+  {"addr": "0xA94828b16acE4F58dc4233a031C0D745839a1676", "pct": 2.33, "label": "unidentified", "how": "EOA, no Blockscout tag; >=2% so insider under D5"},
+  {"addr": "0xd2DD7b597Fd2435b6dB61ddf48544fd931e6869F", "pct": 2.12, "label": "exchange", "how": "Blockscout tag Kraken 246"},
+  {"addr": "0x999E77c988C4C1451d3B1c104a6cca7813A9946E", "pct": 1.94, "label": "unidentified", "how": "EOA, no Blockscout tag"},
+  {"addr": "0x289aABDa9717E8693Bd162B0f9B0bFED9B9ea16F", "pct": 1.52, "label": "unidentified", "how": "EOA, no Blockscout tag"}
+ ],
+ "next_unlock": "none scheduled found (2020 launch, vesting finished); treasury Safe 128.79M PHA (14.8% of circ) has no published release schedule; source prior_PHA.json + Phala circulation API, not re-verified on Tokenomist today",
+ "not_checked": ["D4 insider-to-exchange flows", "E1/E2 treasury release plans", "F8 DEX LP locks", "F9 audit", "honeypot.is", "G1 Binance tags today", "G2 post-mortem", "G3 enforcement/sanctions", "G4 claim window", "holders ranked #15+"],
+ "verdict": "reject",
+ "reason": "Hard fails: F3/F5, the token owner and pauser is an EOA (0xb768...dd2d) that can pause all transfers with no timelock; D2, vPHA vault 14.84% and treasury Safe 14.82% each exceed 10%; D1 ~45% > 35%; D5 has an unidentified 2.33% wallet. Other tests left unknown after the hard fail.",
+ "sources": [
+  "https://eth.blockscout.com/api/v2/tokens/0x6c5ba91642f10282b576d91922ae6448c9d52f4e/holders (read 2026-11-16 15:20 UTC)",
+  "https://eth.blockscout.com/api/v2/smart-contracts/0x6c5ba91642f10282b576d91922ae6448c9d52f4e (read 2026-11-16 15:20 UTC)",
+  "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0x6c5ba91642f10282b576d91922ae6448c9d52f4e (read 2026-11-16 15:20 UTC)",
+  "https://ethereum-rpc.publicnode.com eth_call owner/isPauser/paused, Safe getOwners/getThreshold, eth_getCode (read 2026-11-16 15:20 UTC)",
+  "https://pha-circulation-server.vercel.app/api/all (read 2026-11-16 15:20 UTC)",
+  "https://api.coingecko.com/api/v3/coins/pha (read 2026-11-16 15:20 UTC)"
+ ]
+}

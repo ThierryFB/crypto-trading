@@ -1,0 +1,236 @@
+{
+ "sym": "F",
+ "name": "SynFutures",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0x6e15a54b5ecac17e58dadeddbe8506a7560252f9",
+   "share_of_supply_pct": "100 canonical (incl. 2.76% in Base bridge, 1.88% in BSC OFT adapter)"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Governance ERC-20 of SynFutures; TGE/Binance listing 2024-12-06, >90 days. Not a stablecoin/wrapped/RWA.",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail E1 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "E1": {
+   "result": "fail",
+   "value": "Linear vesting 44.804M F/week (Treasury 11.74M + Protocol Dev 2.156M + Ecosystem 9.822M from 2024-12-06; Backers 12.87M + Core 8.216M from 2025-06-07, to 2028-12-06). Next 30 days = 192.0M F = 3.64% of circulating 5,272,340,433 (>= 2%). Tokenomist (prior lead) models it as ~194.8M monthly on 2026-12-06 = 3.69%; either way fails.",
+   "source": "defillama-datasets.llama.fi/emissions/synfutures (metadata.events linear rates); CoinGecko /coins/synfutures circulating_supply",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "E2": {
+   "result": "fail",
+   "value": "Next 180 days: 180/7 x 44.804M = 1,152.1M F = 21.85% of circulating (> 20%)",
+   "source": "defillama-datasets.llama.fi/emissions/synfutures (metadata.events linear rates)",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "E3": {
+   "result": "pass",
+   "value": "5,272,340,433 / 10,000,000,000 max = 52.7% (>= 30%)",
+   "source": "CoinGecko /coins/synfutures market_data",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "Schedule published (DefiLlama emissions dataset; Tokenomist 49 monthly events to 2028-12-06 per prior). Caveat: locked supply sits in a 3-of-5 Safe (0x8919...da56, 4,727.66M F), not an on-chain vesting contract, so releases are discretionary in practice",
+   "source": "defillama-datasets.llama.fi/emissions/synfutures (metadata.events linear rates); api.ethplorer.io getTopTokenHolders",
+   "read_utc": "2026-11-16 16:02 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0x8919c6e732cb656d79096ebd3b09ae6d07a1da56",
+   "balance": "4727.66M F",
+   "pct": 89.67,
+   "label": "vesting-timelock (de facto treasury/vesting multisig; NOT a readable vesting contract)",
+   "how": "eth_getCode=SafeProxy (blockscout name SafeProxy); prior: 3-of-5 Safe paying out tranches; CG circulating = 10B minus this balance, so it is outside circulating"
+  },
+  {
+   "addr": "0x807a6deb37eda0c1c97bc0ca5c0f3dcad0de8850",
+   "balance": "1776.52M F",
+   "pct": 33.7,
+   "label": "unidentified",
+   "how": "EOA (eth_getCode 0x), no blockscout label; prior: consolidates from other top holders. >=2% -> insider under D5"
+  },
+  {
+   "addr": "0x85c86b472e945c64f9cbe314000e7acea3eef08e",
+   "balance": "894.51M F",
+   "pct": 16.97,
+   "label": "unidentified",
+   "how": "EOA, no label; prior: deposit-style inflows, probably exchange hot wallet, not confirmed. >=2% -> insider under D5"
+  },
+  {
+   "addr": "0x3154cf16ccdb4c6d922629664174b904d80f2c35",
+   "balance": "276.10M F",
+   "pct": 5.24,
+   "label": "bridge escrow",
+   "how": "L1ChugSplashProxy = Base L1StandardBridge (blockscout name)"
+  },
+  {
+   "addr": "0xf42aac93ab142090db9fdc0bc86aab73cb36f173",
+   "balance": "266.60M F",
+   "pct": 5.06,
+   "label": "unidentified",
+   "how": "EOA, no label; prior: high-frequency in/out, probably exchange. >=2% -> insider under D5"
+  },
+  {
+   "addr": "0x5a52e96bacdabb82fd05763e25335261b270efcb",
+   "balance": "252.05M F",
+   "pct": 4.78,
+   "label": "unidentified",
+   "how": "EOA, no label; prior: funded 252.05M from 0xf977 (Binance) 2026-11-05, probably Binance, not confirmed"
+  },
+  {
+   "addr": "0xf977814e90da44bfa03b6295a0616a897441acec",
+   "balance": "200.00M F",
+   "pct": 3.79,
+   "label": "exchange",
+   "how": "EOA; widely published Binance 8 hot wallet label (not on blockscout response)"
+  },
+  {
+   "addr": "0xc9ccbd76c2353e593cc975f13295e8289d04d3bb",
+   "balance": "188.44M F",
+   "pct": 3.57,
+   "label": "bridge escrow",
+   "how": "contract, blockscout name SynFuturesTokenOFTAdapter (LayerZero lockbox to BSC)"
+  },
+  {
+   "addr": "0x690c3eebf6ee237f00fc96f9766282f096c191cc",
+   "balance": "128.29M F",
+   "pct": 2.43,
+   "label": "unidentified",
+   "how": "EOA, no label"
+  },
+  {
+   "addr": "0xc97e993b775ae6c816bc6f42f5fbc2d3a337a2f1",
+   "balance": "104.26M F",
+   "pct": 1.98,
+   "label": "insider",
+   "how": "SafeProxy contract; prior: second project-like 3-of-5 Safe (not re-verified)"
+  }
+ ],
+ "next_unlock": "Continuous linear vesting ~44.8M F/week (DefiLlama); Tokenomist models monthly ~194.8M F on 2026-12-06 = 3.69% of circulating 5.272B. Source: defillama-datasets.llama.fi/emissions/synfutures, prior_F.json (Tokenomist)",
+ "not_checked": [
+  "D1-D5 (stopped at E1); raw top10 recorded only",
+  "F1-F9 contract review (stopped at E1)",
+  "G1-G4 (stopped at E1)",
+  "Tokenomist page directly (403 in prior)",
+  "Base/BSC holder maps"
+ ],
+ "verdict": "reject",
+ "reason": "E1 fails: ~192M F (3.64% of circulating) vests in the next 30 days, over the 2% limit; E2 also fails at 21.85% over 180 days. D, F and G not run (stopped early per brief).",
+ "sources": [
+  "https://defillama-datasets.llama.fi/emissions/synfutures (read 2026-11-16 16:02 UTC)",
+  "https://api.coingecko.com/api/v3/coins/synfutures (read 2026-11-16 16:02 UTC)",
+  "https://api.ethplorer.io/getTopTokenHolders/0x6e15a54b5ecac17e58dadeddbe8506a7560252f9 (read 2026-11-16 16:02 UTC)",
+  "https://ethereum-rpc.publicnode.com eth_getCode (read 2026-11-16 16:02 UTC)",
+  "https://eth.blockscout.com/api/v2/addresses/<addr> (read 2026-11-16 16:02 UTC)"
+ ]
+}

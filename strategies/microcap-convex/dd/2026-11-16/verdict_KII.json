@@ -1,0 +1,140 @@
+{
+ "sym": "KII",
+ "name": "KiiChain",
+ "chains": [
+  {
+   "chain": "KiiChain L1 (Cosmos SDK + Cosmos EVM, chain-id kiichain_1783-1)",
+   "address": "native coin (denom akii)",
+   "share_of_supply_pct": 100
+  },
+  {
+   "chain": "BNB Smart Chain (Hyperlane warp BEP-20, traded form)",
+   "address": "0xeec6...7886 (full address in prior; not re-read)",
+   "share_of_supply_pct": 14.7
+  },
+  {
+   "chain": "Mantle (Hyperlane warp)",
+   "address": "0xeec6...7886",
+   "share_of_supply_pct": 0.2
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Native L1 gas/staking coin, so N1-N3 replace F1-F9. First listed on Kraken/Bybit at TGE 2026-08-14 = 94 days ago (just over 90). The exchange-traded form is a Hyperlane-bridged BEP-20 on BSC (264.74M of 1,799.76M = ~14.7% of supply per prior 2026-10-29, not re-read), which holds >=10% so F1-F9 would also apply to that deployment (prior: upgradeable proxy, owner 0xb0c2...88b0); not run after the G2 hard fail. Treated as the native coin's canonical bridge representation, not a separate wrapped token.",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "not run: stopped after G2 hard fail; lead (prior 2026-10-29, GeckoTerminal): BSC top 10 = 85.25% incl. Bybit hot wallet 25.9% of BSC supply; native top 10 mostly project vesting/staking/bridge collateral",
+   "source": "",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "not run: stopped after G2 hard fail; lead (prior): unlabelled BSC EOA 0x1370...5a46 34.20M KII (12.9% of BSC supply, ~9.7% of CG circ 353.2M) not re-verified",
+   "source": "",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "not run: stopped after G2 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped after G2 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "not run: stopped after G2 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "E1": {
+   "result": "unknown",
+   "value": "not run: stopped after G2 hard fail; lead (prior, Tokenomist): monthly unlock ~17.0M KII on the 14th (next ~2026-12-14), ~4.8% of CG circ 353.2M if repeated, would also fail E1 (<2%); not re-verified",
+   "source": "",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not run: stopped after G2 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "not run: stopped after G2 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: stopped after G2 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "N1": {
+   "result": "unknown",
+   "value": "not run: stopped after G2 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "N2": {
+   "result": "unknown",
+   "value": "not run: stopped after G2 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "N3": {
+   "result": "fail",
+   "value": "Unplanned chain halt: KiiChain halted at block 9,355,723 at 22:50:58 UTC on 2026-08-22 during the exploit and resumed 2026-08-28 (86 days ago, inside the 12-month window). Cosmos Labs also told all Cosmos EVM chains below v0.6.2/v0.7.2 to halt.",
+   "source": "https://rekt.news/kiichain-rekt ; https://forklog.com/en/cosmos-labs-urges-evm-networks-to-halt-operations-following-attacks-on-three-blockchains/",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped after G2 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "G2": {
+   "result": "fail",
+   "value": "Exploit of the core protocol on 2026-08-22 (86 days before 2026-11-16, inside the 90-day window): attacker chained shared Cosmos EVM staking-precompile/vesting underflow bugs to drain 148,326,583.15 KII (~$9.7M nominal) from 18 accounts; 80.7M frozen on-chain at halt, 67.6M bridged to BSC via Hyperlane, 64.6M sold for ~$1.6M and 3M sent to KuCoin. Post-mortems exist (KiiChain by 2026-08-23, Cosmos Labs 2026-08-28) and patch v7.4.0 shipped, but G2 requires none in the last 90 days.",
+   "source": "https://rekt.news/kiichain-rekt ; https://crypto.news/cosmos-evm-chains-told-to-halt-after-security-incident/ ; web search 'KiiChain exploit 148 million KII chain halt'",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped after G2 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped after G2 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 16:02"
+  }
+ },
+ "top10": [],
+ "next_unlock": "Not re-verified. Lead (prior, Tokenomist read 2026-10-29): monthly community/public unlocks of ~17.0M KII on the 14th (2026-11-14 just passed; next ~2026-12-14, ~4.8% of CG circ 353.2M); 2027-08-14 private-investor cliff 254.7M plus ~816.6M of vesting contracts starting linear release.",
+ "not_checked": [
+  "D1-D5 holder map (native and BSC)",
+  "E1-E4 unlock tests",
+  "N1-N2 emission schedule and governance/hard-fork control",
+  "F1-F9 on the BSC BEP-20 deployment (~14.7% of supply; upgradeable proxy per prior)",
+  "G1, G3, G4",
+  "Hyperlane bridge security / ISM config",
+  "Fate of the 80.7M frozen KII"
+ ],
+ "verdict": "reject",
+ "reason": "G2 fails: core-protocol (Cosmos EVM) exploit on 2026-08-22 drained 148.3M KII, 86 days ago, inside the 90-day window. N3 also fails: unplanned chain halt 2026-08-22 to 2026-08-28. Other tests not run after the hard fail.",
+ "sources": [
+  "https://rekt.news/kiichain-rekt (read 2026-11-16 16:00 UTC)",
+  "https://forklog.com/en/cosmos-labs-urges-evm-networks-to-halt-operations-following-attacks-on-three-blockchains/ (search result, read 2026-11-16 16:00 UTC)",
+  "https://crypto.news/cosmos-evm-chains-told-to-halt-after-security-incident/ (search result, read 2026-11-16 16:00 UTC)",
+  "prior_KII.json (Crypto Book analysis 2026-10-29, leads only)"
+ ]
+}

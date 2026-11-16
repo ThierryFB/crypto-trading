@@ -1,0 +1,247 @@
+{
+ "sym": "SIGN",
+ "name": "Sign",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0x868FCEd65edBF0056c4163515dD840e9f287A4c3",
+   "share_of_supply_pct": 82.61
+  },
+  {
+   "chain": "base",
+   "address": "see prior (OFT, bridged mirror)",
+   "share_of_supply_pct": "~12.5 (prior 2026-10-24, not re-read)"
+  },
+  {
+   "chain": "bsc",
+   "address": "see prior (OFT, bridged mirror)",
+   "share_of_supply_pct": "~4.6 (prior 2026-10-24, not re-read)"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Native ERC-20 utility/governance token on Ethereum (10B), LayerZero OFT mirrors on Base/BSC; not wrapped/stable; TGE and Binance listing 2025-04-28 (>90 days).",
+ "tests": {
+  "D1": {
+   "result": "fail",
+   "value": "Top 8 non-excluded (bridge lockbox and Binance 8 excluded) hold 7,647.4M = 269.0% of CoinGecko circulating 2,843,333,332 (>35%)",
+   "source": "Ethplorer getTopTokenHolders freekey; CoinGecko /coins/markets",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "D2": {
+   "result": "fail",
+   "value": "Largest non-excluded holder 0xd4b0...3755 (EOA) 2,250,000,000 = 79.13% of circulating (>10%). Hard fail.",
+   "source": "Ethplorer getTopTokenHolders freekey; publicnode eth_getCode",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "All 8 non-excluded top holders are unidentified EOAs >=2% of circulating => insiders per D5, none in an on-chain vesting/timelock contract: 269.0% of circulating (>20%)",
+   "source": "Ethplorer getTopTokenHolders freekey; eth_getCode; eth.blockscout.com address API",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fails D2/E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "8 wallets >=2% of circulating are unidentified EOAs (0xd4b0, 0x77ed, 0x1888, 0xccc0, 0x01d6, 0x5a52, 0x5156, 0x6bf7); counted as insiders, D3 fails either way",
+   "source": "Ethplorer getTopTokenHolders freekey; eth.blockscout.com",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "2026-11-28 unlock 301,111,111 SIGN (3% of total) = 10.59% of circulating (>=2%). Hard fail.",
+   "source": "app.tokenomics.com/tokenomics/sign/unlocks",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "E2": {
+   "result": "fail",
+   "value": "2026-11-28 alone is 10.6% of circ; prior schedule adds 12-28 (~4.1% of mcap) and 2027-01-28 (~3.9%) plus monthly backer/team/community tranches through May 2027; 44 remaining unlocks release 6.38B to 2030. Rough 180-day sum well above 20% of circulating (not summed event by event).",
+   "source": "app.tokenomics.com/tokenomics/sign/unlocks; prior_SIGN.json schedule",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "E3": {
+   "result": "fail",
+   "value": "2,843,333,332 / 10,000,000,000 = 28.4% (<30%); remainder is vesting to 2030, not burned/locked without schedule. (Tokenomics.com implies ~36% unlocked; on-chain custody EOAs don't prove a higher float.)",
+   "source": "CoinGecko /coins/markets; app.tokenomics.com",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "Schedule published: 62 events, 44 remaining to 2030, next 2026-11-28",
+   "source": "app.tokenomics.com/tokenomics/sign/unlocks",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "GoPlus is_open_source=1 (Etherscan source not read; Base/BSC not checked)",
+   "source": "GoPlus token_security/1",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fails D2/E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fails D2/E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fails D2/E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fails D2/E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fails D2/E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "GoPlus Ethereum: is_honeypot=0, cannot_sell_all=null; also is_mintable=0, owner_address=null, can_take_back_ownership=0, is_proxy=0, is_blacklisted=0, transfer_pausable=0, slippage_modifiable=0. honeypot.is and Base/BSC deployments not checked",
+   "source": "GoPlus token_security/1",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fails D2/E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fails D2/E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fails D2/E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fails D2/E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fails D2/E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fails D2/E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0xd4b0847319e896e7c12b6c9c5df277158b1f3755",
+   "balance": 2250000000,
+   "pct": 79.13,
+   "label": "insider",
+   "how": "EOA (eth_getCode 0x), no explorer label, >=2% so insider per D5; prior history shows tranche releases (150M to 0x6bf7), consistent with Foundation/vesting custody"
+  },
+  {
+   "addr": "0x77ed76feeead7bd6939f9336728db785dbbaf52e",
+   "balance": 1750000001,
+   "pct": 61.55,
+   "label": "insider",
+   "how": "EOA, no label; >=2% unidentified = insider; prior saw monthly 83.33M (=2B backers/24) outflows"
+  },
+  {
+   "addr": "0x3a0e6b220897d3bf7e015c1973510e0f4bb576a9",
+   "balance": 1739462766,
+   "pct": 61.18,
+   "label": "bridge escrow",
+   "how": "Contract (bytecode present); SignOFTAdapter LayerZero lockbox per prior blockscout label; excluded"
+  },
+  {
+   "addr": "0x1888886a640d29a46453ae949c46a4689a66c58f",
+   "balance": 1520000000,
+   "pct": 53.46,
+   "label": "insider",
+   "how": "EOA, no label; >=2% unidentified = insider"
+  },
+  {
+   "addr": "0xccc0a03e31d05c54d3d5cf7deeb3557a6562bc84",
+   "balance": 916666667,
+   "pct": 32.24,
+   "label": "insider",
+   "how": "EOA, no label; >=2% unidentified = insider; monthly 83.33M outflows per prior"
+  },
+  {
+   "addr": "0x01d648c675be4548cae982668b6aab9f878f6746",
+   "balance": 720000000,
+   "pct": 25.32,
+   "label": "insider",
+   "how": "EOA, no label; >=2% unidentified = insider"
+  },
+  {
+   "addr": "0xf977814e90da44bfa03b6295a0616a897441acec",
+   "balance": 300000000,
+   "pct": 10.55,
+   "label": "exchange",
+   "how": "Binance 8 (well-known Binance hot/cold wallet); excluded"
+  },
+  {
+   "addr": "0x5a52e96bacdabb82fd05763e25335261b270efcb",
+   "balance": 189021621,
+   "pct": 6.65,
+   "label": "insider",
+   "how": "EOA, no blockscout name/tag; 6.65% of circ >=2% unidentified = insider"
+  },
+  {
+   "addr": "0x5156e8ceffd4787d80a20895b937bcea864d31a4",
+   "balance": 151705333,
+   "pct": 5.34,
+   "label": "insider",
+   "how": "EOA, no label; 5.34% of circ; funded by 0x1888 (95M tranche per prior) = insider"
+  },
+  {
+   "addr": "0x6bf7c6fc09d6fa49a1a8ad0c88cca767ee7268e6",
+   "balance": 150000340,
+   "pct": 5.28,
+   "label": "insider",
+   "how": "EOA, no label; 5.28% of circ; funded by 0xd4b0 tranches per prior = insider"
+  }
+ ],
+ "next_unlock": "2026-11-28, 301,111,111 SIGN, 3% of total = 10.59% of CoinGecko circulating, app.tokenomics.com (read 2026-11-16 15:30 UTC)",
+ "not_checked": [
+  "D4 insider-to-exchange flows",
+  "F1-F9 beyond GoPlus Ethereum flags (source, roles, OFT adapter owner/DVN, Base/BSC deployments, honeypot.is)",
+  "G1-G4 (stopped at hard fail)",
+  "Base chain holders (~12.5% of supply via bridge, prior figure)",
+  "Exact 180-day unlock sum"
+ ],
+ "verdict": "reject",
+ "reason": "Hard fails: D2 largest non-excluded holder (EOA 0xd4b0) holds 79.1% of circulating, and E1 the 2026-11-28 unlock is 10.6% of circulating; D1, D3, D5, E2, E3 also fail.",
+ "sources": [
+  "https://api.ethplorer.io/getTopTokenHolders/0x868FCEd65edBF0056c4163515dD840e9f287A4c3?apiKey=freekey (read 2026-11-16 15:30 UTC)",
+  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=sign-global (read 2026-11-16 15:30 UTC)",
+  "https://ethereum-rpc.publicnode.com eth_getCode top-10 (read 2026-11-16 15:30 UTC)",
+  "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0x868FCEd65edBF0056c4163515dD840e9f287A4c3 (read 2026-11-16 15:30 UTC)",
+  "https://eth.blockscout.com/api/v2/addresses/0x5a52e96bacdabb82fd05763e25335261b270efcb (read 2026-11-16 15:30 UTC)",
+  "https://app.tokenomics.com/tokenomics/sign/unlocks (read 2026-11-16 15:30 UTC)"
+ ]
+}

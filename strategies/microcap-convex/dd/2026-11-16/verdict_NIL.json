@@ -1,0 +1,236 @@
+{
+ "sym": "NIL",
+ "name": "Nillion",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0x7Cf9a80db3B29eE8efE3710AadB7b95270572d47",
+   "share_of_supply_pct": 100
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Utility ERC-20, not stable/wrapped/staked; first credible listing Binance 2025-03-24 (>90 days). Cosmos->ERC-20 migration completed Mar 2026 per prior (not re-verified, G4 unknown).",
+ "tests": {
+  "D1": {
+   "result": "fail",
+   "value": "top 10 non-excluded = 496.0M = 88.8% of circulating (only Binance 8 excluded; next is 0x06cE 24.2M)",
+   "source": "https://eth.blockscout.com/api/v2/tokens/0x7Cf9a80db3B29eE8efE3710AadB7b95270572d47/holders",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "D2": {
+   "result": "fail",
+   "value": "0x1310...429A 122.7M = 22.0% of circulating (unidentified EOA)",
+   "source": "https://eth.blockscout.com/api/v2/tokens/0x7Cf9a80db3B29eE8efE3710AadB7b95270572d47/holders",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "unidentified >=2% wallets count as insiders: 9 EOAs (0x1310,0x5a52,0xB91F,0x7137,0x405a,0x19D2,0x690C,0xF309,0x06cE) = ~470.9M = ~84% of circulating",
+   "source": "https://eth.blockscout.com/api/v2/tokens/0x7Cf9a80db3B29eE8efE3710AadB7b95270572d47/holders",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fails (D2, E1) per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "D5": {
+   "result": "fail",
+   "value": "9+ non-excluded wallets >=2% are unidentified (no explorer labels); treated as insiders under D3",
+   "source": "https://eth.blockscout.com/api/v2/tokens/0x7Cf9a80db3B29eE8efE3710AadB7b95270572d47/holders",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "2026-11-24 unlock 24,549,372 NIL = 4.40% of circulating 558.36M (>=2%)",
+   "source": "https://app.tokenomics.com/tokenomics/nillion/unlocks",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not computed exactly; ~monthly unlocks of ~19-25M (28 events, 529.5M left) imply ~113-147M in 180d = ~20-26% of circulating, likely fail",
+   "source": "https://app.tokenomics.com/tokenomics/nillion/unlocks",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "E3": {
+   "result": "pass",
+   "value": "558.36M / 1,011.31M total = 55.2%",
+   "source": "https://eth.blockscout.com/api/v2/tokens/0x7Cf9a80db3B29eE8efE3710AadB7b95270572d47",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "schedule published: 28 upcoming unlocks, 529.46M, to 2029-02",
+   "source": "https://app.tokenomics.com/tokenomics/nillion/unlocks",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fails (D2, E1) per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fails (D2, E1) per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fails (D2, E1) per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fails (D2, E1) per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fails (D2, E1) per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fails (D2, E1) per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fails (D2, E1) per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fails (D2, E1) per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fails (D2, E1) per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fails (D2, E1) per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fails (D2, E1) per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fails (D2, E1) per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fails (D2, E1) per brief",
+   "source": "",
+   "read_utc": ""
+  }
+ },
+ "top10": [
+  {
+   "addr": "0x1310A1df4e5EE923136b394B8FF112DCf2Ff429A",
+   "balance": 122722374,
+   "pct": 21.98,
+   "label": "unidentified",
+   "how": "EOA, no Blockscout name/tag; prior noted batch-distributor pattern (likely foundation/vesting), counts as insider per \u00a71"
+  },
+  {
+   "addr": "0x5a52E96BAcdaBb82fd05763E25335261B270Efcb",
+   "balance": 76696096,
+   "pct": 13.74,
+   "label": "unidentified",
+   "how": "EOA, no Blockscout name/tag; new in top 10 since 10-23"
+  },
+  {
+   "addr": "0xB91F7A1B0cE359D47ff06D3bF1f6e5011770c51a",
+   "balance": 71491667,
+   "pct": 12.8,
+   "label": "unidentified",
+   "how": "EOA, no tag; same-date batch outflows as 0x1310 (prior)"
+  },
+  {
+   "addr": "0x71371A51bce98814F850e1C7E5843b0778BeAC15",
+   "balance": 45595507,
+   "pct": 8.17,
+   "label": "unidentified",
+   "how": "EOA, no tag"
+  },
+  {
+   "addr": "0xF977814e90dA44bFA03b6295A0616a897441aceC",
+   "balance": 40000000,
+   "pct": 7.16,
+   "label": "exchange",
+   "how": "Binance 8, well-known Binance cold wallet (excluded)"
+  },
+  {
+   "addr": "0x405a3D38Dd15309a1d58A8bb9736635e5ca90DF2",
+   "balance": 36418620,
+   "pct": 6.52,
+   "label": "unidentified",
+   "how": "EOA, no tag"
+  },
+  {
+   "addr": "0x19D27094F7F9E5FA4e589D527b730403242CE4ca",
+   "balance": 32058757,
+   "pct": 5.74,
+   "label": "unidentified",
+   "how": "EOA, no tag; batch-outflow cohort with 0x1310 (prior)"
+  },
+  {
+   "addr": "0x690C3Eebf6ee237f00fc96f9766282F096C191cC",
+   "balance": 31945813,
+   "pct": 5.72,
+   "label": "unidentified",
+   "how": "EOA, no tag"
+  },
+  {
+   "addr": "0xF3096b23963960D8f0c9B5e3Ef58cbac1fc1d3c5",
+   "balance": 29783742,
+   "pct": 5.33,
+   "label": "unidentified",
+   "how": "EOA, no tag"
+  },
+  {
+   "addr": "0xAcD5D3d8Eacb9f60CfEb6F26D65FB9CB9b06D21b",
+   "balance": 25106563,
+   "pct": 4.5,
+   "label": "other",
+   "how": "contract named 'Staking' on Blockscout; not a vesting/timelock, not excluded"
+  }
+ ],
+ "next_unlock": "2026-11-24, 24,549,372 NIL, 4.40% of circulating (558.36M), app.tokenomics.com (read 2026-11-16 15:24 UTC)",
+ "not_checked": [
+  "F1-F9 contract review (source, mint/owner roles, proxy, GoPlus, honeypot.is)",
+  "G1-G4 venue/exploit/legal/migration flags",
+  "D4 insider-to-exchange flows",
+  "E2 exact 180-day sum",
+  "Tokenomist/CryptoRank cross-check",
+  "labels for unidentified top EOAs (no Etherscan labels/Arkham)"
+ ],
+ "verdict": "reject",
+ "reason": "Hard fails: D2 (unidentified 0x1310 holds 22.0% of circulating), D1 (~88.8% top-10 non-excluded), D3/D5 (unidentified >=2% wallets), and E1 (2026-11-24 unlock = 4.40% of circulating). F and G not run after hard fails.",
+ "sources": [
+  "https://eth.blockscout.com/api/v2/tokens/0x7Cf9a80db3B29eE8efE3710AadB7b95270572d47 (read 2026-11-16 15:24 UTC)",
+  "https://eth.blockscout.com/api/v2/tokens/0x7Cf9a80db3B29eE8efE3710AadB7b95270572d47/holders (read 2026-11-16 15:24 UTC)",
+  "https://eth.blockscout.com/api/v2/addresses/<top holders> (read 2026-11-16 15:25 UTC)",
+  "https://app.tokenomics.com/tokenomics/nillion/unlocks (read 2026-11-16 15:25 UTC)"
+ ]
+}

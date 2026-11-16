@@ -1,0 +1,176 @@
+{
+ "sym": "OPG",
+ "name": "OpenGradient",
+ "chains": [
+  {
+   "chain": "base",
+   "address": "0xfbc2051ae2265686a469421b2c5a2d5462fbf5eb",
+   "share_of_supply_pct": 100.0,
+   "note": "totalSupply 1,000,000,000 (canonical; BSC/Mantle are bridged subsets)"
+  },
+  {
+   "chain": "bsc",
+   "address": "0x5feccd17c393caf1001d18164236a37e731fcb9d",
+   "share_of_supply_pct": 4.4
+  },
+  {
+   "chain": "mantle",
+   "address": "0x45db70e1c808dae42f9c4dfea74ba5e6a113bdc1",
+   "share_of_supply_pct": 0.03
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "AI-network utility token, not wrapped/staked/stable/RWA. Binance spot listing 2026-05-22 (178 days > 90). Base totalSupply 1B, BSC 43,953,486 (publicnode eth_call, 2026-11-16 16:03 UTC).",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "2026-11-21 unlock 9.12M OPG (Ecosystem 6.0M + Foundation 2.083M + Staking 1.042M monthly) = 3.81% of CoinGecko circulating 239,104,167 (>= 2%). Same size monthly; ~16.1M/month from the 2027-04-21 team/investor cliff.",
+   "source": "web search of unlock trackers (rootdata, yellow.com, coinlaunch.space vesting), matches published allocation arithmetic; CoinGecko /coins/markets",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "E3": {
+   "result": "fail",
+   "value": "239,104,167 / 1,000,000,000 = 23.9% (< 30%); the locked 76% has a release schedule, so the exception does not apply",
+   "source": "CoinGecko /coins/markets",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "Allocation + vesting published (TGE 2026-04-21; monthly unlocks on the 21st; 12-month cliff then 36-month linear for team/investors)",
+   "source": "coinlaunch.space/projects/opengradient/vesting via web search; prior_OPG.json leads",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "Binance OPGUSDT tags ['AI','Seed','Infrastructure'], no Monitoring tag (partial). Delisting notices on the other 4 credible venues not checked.",
+   "source": "https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products?includeEtf=true",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  }
+ },
+ "top10": [],
+ "next_unlock": "2026-11-21, 9.12M OPG, 3.81% of circulating (239.10M), unlock trackers via web search (rootdata/yellow/coinlaunch)",
+ "not_checked": [
+  "D1-D5 holder lists (stopped after hard fail E1). Lead: prior saw unlabelled top-10 = 92.4% on Base, which would likely fail D1/D2",
+  "E2 180-day supply (~6 x 9.12M = 54.7M = 22.9% of circulating by arithmetic, likely fail, not verified)",
+  "F1-F9 contract roles, GoPlus, proxy admin",
+  "G2-G4",
+  "Tokenomist/CryptoRank/tokenomics.com pages blocked (403/404)"
+ ],
+ "verdict": "reject",
+ "reason": "E1 fails: the 2026-11-21 unlock of 9.12M OPG is 3.81% of circulating (limit < 2%); E3 also fails at 23.9% circulating/max. D, F, G tests not run after the hard fail.",
+ "sources": [
+  "https://www.rootdata.com/Projects/detail/OpenGradient?k=MTQzMzc%3D (via web search, read 2026-11-16 16:03 UTC)",
+  "https://coinlaunch.space/projects/opengradient/vesting (via web search, read 2026-11-16 16:03 UTC)",
+  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=opengradient,sahara-ai,skale (read 2026-11-16 16:02 UTC)",
+  "https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products?includeEtf=true (read 2026-11-16 16:03 UTC)",
+  "base/bsc-rpc.publicnode.com eth_call totalSupply (read 2026-11-16 16:03 UTC)"
+ ]
+}

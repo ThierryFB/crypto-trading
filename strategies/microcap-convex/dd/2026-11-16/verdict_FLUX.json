@@ -1,0 +1,199 @@
+{
+ "sym": "FLUX",
+ "name": "Flux",
+ "chains": [
+  {
+   "chain": "flux (native PoUW L1)",
+   "address": "native coin",
+   "share_of_supply_pct": "~100 (wrapped FLUX on EVM/Solana via Fusion bridge not measured)"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Native L1 coin (N1-N3 replace F1-F9). Listed on Binance/Kraken for years, >90 days.",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "D2": {
+   "result": "fail",
+   "value": "t3ThbWogDoAjGuS6DEnmN1GWJBRbVjSUK4T holds 160,000,029 FLUX = 37.72% of circulating 424,148,644 (> 10%). P2SH multisig (t3), no vesting/timelock schedule on-chain (UTXO chain, no script lock); tx history shows discretionary 4M-10M payouts 2022-2024 to t1cjcLaDHk... (the same intermediary the prior traced to exchange hot wallets). Labelled team/foundation reserve, so not excluded. Even if unidentified it is non-excluded and fails.",
+   "source": "https://explorer.runonflux.io/api/statistics/richest-addresses-list; https://explorer.runonflux.io/api/txs?address=t3ThbWogDoAjGuS6DEnmN1GWJBRbVjSUK4T",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "E1": {
+   "result": "pass",
+   "value": "Block reward 12.6 FLUX (getInfo reward 1,260,000,000 sat) x 2,880 blocks/day (30s) x 30 = ~1.09M FLUX = 0.26% of circulating. No announced treasury release checked beyond this (reserve payouts are discretionary, see D2).",
+   "source": "https://explorer.runonflux.io/api/status?q=getInfo",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "N1": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "N2": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "N3": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "Not run: stopped at hard fail D2 per brief",
+   "source": "",
+   "read_utc": ""
+  }
+ },
+ "top10": [
+  {
+   "addr": "t3ThbWogDoAjGuS6DEnmN1GWJBRbVjSUK4T",
+   "balance": "160,000,029 FLUX",
+   "pct": 37.72,
+   "label": "insider",
+   "how": "team/foundation reserve multisig per prior (two reserve multisigs ~197M); t3 P2SH; payouts to t1cjcLa... 2022-2024 (explorer richlist, 2026-11-16 16:03 UTC)"
+  },
+  {
+   "addr": "t3KXyFLuvvdMFVWb65LNiXGFwidrqE2NP9U",
+   "balance": "35,000,000 FLUX",
+   "pct": 8.25,
+   "label": "insider",
+   "how": "second team reserve multisig per prior; sent 2.5M to t1cjcLa... 2026-09-29; balance down to 35.0M today (explorer richlist, 2026-11-16 16:03 UTC)"
+  },
+  {
+   "addr": "t1gorwQHhWsvfgSEE3YzBZFnyewfGaimUbF",
+   "balance": "16,341,805 FLUX",
+   "pct": 3.85,
+   "label": "unidentified",
+   "how": "no label found; >=2% -> insider under D5 (prior inferred exchange, not verified) (explorer richlist, 2026-11-16 16:03 UTC)"
+  },
+  {
+   "addr": "t3c4EfxLoXXSRZCRnPRF3RpjPi9mBzF5yoJ",
+   "balance": "9,655,668 FLUX",
+   "pct": 2.28,
+   "label": "unidentified",
+   "how": "multisig with 112,748 blocks mined (node/mining operator?); >=2% -> insider under D5 (explorer richlist, 2026-11-16 16:03 UTC)"
+  },
+  {
+   "addr": "t3gCppaQdKhCViBA2mtYMphmJmtKY4BbR7d",
+   "balance": "7,146,105 FLUX",
+   "pct": 1.68,
+   "label": "unidentified",
+   "how": "multisig with 113,144 blocks mined; no label (explorer richlist, 2026-11-16 16:03 UTC)"
+  },
+  {
+   "addr": "t1NuCztsAfdTWfuowWCKneUPDys5S4puiBW",
+   "balance": "4,817,414 FLUX",
+   "pct": 1.14,
+   "label": "unidentified",
+   "how": "no label (explorer richlist, 2026-11-16 16:03 UTC)"
+  },
+  {
+   "addr": "t1JMiyeoQ9ZJmkdWEvS8hd9LymWiK5fTt6y",
+   "balance": "4,123,633 FLUX",
+   "pct": 0.97,
+   "label": "unidentified",
+   "how": "8,069 blocks mined; no label (explorer richlist, 2026-11-16 16:03 UTC)"
+  },
+  {
+   "addr": "t3a6HnypgaJf5xHMA8PrnfJBR6PpTithbeC",
+   "balance": "3,924,405 FLUX",
+   "pct": 0.93,
+   "label": "unidentified",
+   "how": "no label (explorer richlist, 2026-11-16 16:03 UTC)"
+  },
+  {
+   "addr": "t3TRUNKvgywghL1vU5bsGQqs9eVC17XcUnV",
+   "balance": "3,334,536 FLUX",
+   "pct": 0.79,
+   "label": "unidentified",
+   "how": "46,312 blocks mined; no label (explorer richlist, 2026-11-16 16:03 UTC)"
+  },
+  {
+   "addr": "t1JSp9NEoQBMv4CbxHdxaU699j5UNHDrgyX",
+   "balance": "3,054,661 FLUX",
+   "pct": 0.72,
+   "label": "unidentified",
+   "how": "29,399 blocks mined; no label (explorer richlist, 2026-11-16 16:03 UTC)"
+  }
+ ],
+ "next_unlock": "No vesting schedule; continuous emission ~36.3k FLUX/day (12.6/block). Reserve multisig payouts are discretionary, unscheduled. Source: explorer.runonflux.io getInfo + richlist",
+ "not_checked": [
+  "D1, D3-D5, E2-E4, N1-N3, G1-G4 (stopped at D2)",
+  "Fusion bridge reserve addresses vs wrapped supply (to rule out t3ThbWo being a bridge escrow)",
+  "CoinMarketCap cross-check of circulating"
+ ],
+ "verdict": "reject",
+ "reason": "D2 fails: the largest non-excluded holder, team reserve multisig t3ThbWo..., holds 37.72% of circulating (limit 10%), with no on-chain vesting or timelock. Other tests not run (stopped early per brief).",
+ "sources": [
+  "https://explorer.runonflux.io/api/statistics/richest-addresses-list (read 2026-11-16 16:03 UTC)",
+  "https://explorer.runonflux.io/api/addr/t3ThbWogDoAjGuS6DEnmN1GWJBRbVjSUK4T (read 2026-11-16 16:03 UTC)",
+  "https://explorer.runonflux.io/api/txs?address=t3ThbWogDoAjGuS6DEnmN1GWJBRbVjSUK4T (read 2026-11-16 16:03 UTC)",
+  "https://explorer.runonflux.io/api/status?q=getInfo (read 2026-11-16 16:03 UTC)",
+  "https://api.coingecko.com/api/v3/coins/zelcash (read 2026-11-16 16:03 UTC)",
+  "https://sspwallet.gitbook.io/docs/ssp-enterprise/case-studies/flux-foundation (search result, 2026-11-16 16:04 UTC)"
+ ]
+}

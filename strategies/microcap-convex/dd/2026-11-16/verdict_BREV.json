@@ -1,0 +1,244 @@
+{
+ "sym": "BREV",
+ "name": "Brevis",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0x086f405146ce90135750bbec9a063a8b20a8bffb",
+   "share_of_supply_pct": 100.0
+  },
+  {
+   "chain": "bsc",
+   "address": "0x086f405146ce90135750bbec9a063a8b20a8bffb",
+   "share_of_supply_pct": 1.7
+  },
+  {
+   "chain": "base",
+   "address": "0x086f405146ce90135750bbec9a063a8b20a8bffb",
+   "share_of_supply_pct": 0.25
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "ZK coprocessor token, not stable/wrapped/staked/RWA; TGE 2025-12-30 (>90 days). Ethereum totalSupply 1,000,000,000 (RPC 16:07 UTC); BSC/Base are Celer-bridged mirrors backed by the 19.91M in the Ethereum Celer vault (prior), so Ethereum only. Circulating = CoinGecko 250,000,000 (16:07 UTC), equal to supply outside the 750M Vesting proxy.",
+ "tests": {
+  "D1": {
+   "result": "fail",
+   "value": "Top 10 non-excluded = 198.99M = 79.6% of CG circ 250M: Safe 0x925e 65.20M, Safe 0x9955 60.00M, EOA 0x9C4A 45.17M, MerkleDistributorWithDeadline 9.06M, 0x6eb0 6.00M, 0x690C 3.68M, 0x3aCC 3.00M, 0x8422 3.00M, 0x7Ce5 2.23M, 0x58c9 1.68M. Excluded: Vesting proxy 750M, Celer vault 19.91M (bridge), Binance x2, OKX x2, Bybit",
+   "source": "eth.blockscout.com/api/v2/tokens/0x086f405146ce90135750bbec9a063a8b20a8bffb/holders",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "D2": {
+   "result": "fail",
+   "value": "Largest non-excluded: Gnosis Safe 0x925ed8E038e112f4A81CD1e093d5019f6E9CE12C (2-of-3, unlabelled) 65.20M = 26.08% of circulating (>10%). Next Safe 0x99557e10...f3E5 (2-of-3) 60.00M = 24.0%",
+   "source": "eth.blockscout.com/api/v2/tokens/0x086f405146ce90135750bbec9a063a8b20a8bffb/holders; ethereum-rpc.publicnode.com getThreshold/getOwners/eth_getCode/eth_getTransactionCount",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "Liquid insiders (two treasury-pattern Safes + D5 unidentified >=2%): 65.20+60.00+45.17+6.00 = 176.37M = 70.5% of circulating (>20%); none in a vesting/timelock contract",
+   "source": "eth.blockscout.com/api/v2/tokens/0x086f405146ce90135750bbec9a063a8b20a8bffb/holders; ethereum-rpc.publicnode.com getThreshold/getOwners/eth_getCode/eth_getTransactionCount",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); prior noted Safe 0x9955 sent 3.0M lots to several addresses (not re-traced)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "Unidentified >=2% (5M): Safes 0x925e (26.08%), 0x9955 (24.0%), EOA 0x9C4A...828b (18.07%, nonce 83), EOA 0x6eb0...60f8 (2.40%, nonce 134); no explorer labels",
+   "source": "eth.blockscout.com/api/v2/tokens/0x086f405146ce90135750bbec9a063a8b20a8bffb/holders; ethereum-rpc.publicnode.com getThreshold/getOwners/eth_getCode/eth_getTransactionCount",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "E1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); prior: next community unlocks monthly on the 6th (~18.2M = 7.3% of circ per tokenomics.com 2026-10-27), team/investor cliff 2027-01-06; not re-verified",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); CG circ 250M / max 1,000M = 25.0% (<30%) read 16:07 UTC, would fail unless the 750M vesting is provably locked with no release schedule (it has one)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); side read: Binance BREVUSDT/BREVTRY TRADING, tags ['Infrastructure','HODLer','Seed'], no Monitoring (bapi get-products 16:05 UTC)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:07 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0xFb3e726F3525F826bBb54aA04817b74b01ff6917",
+   "balance": "750.00M",
+   "pct": 300.0,
+   "label": "vesting-timelock",
+   "how": "ERC1967 proxy, prior/Blockscout identify it as the Vesting contract; upgradeability and admin not checked (stopped). pct is vs 250M circ"
+  },
+  {
+   "addr": "0x925ed8E038e112f4A81CD1e093d5019f6E9CE12C",
+   "balance": "65.20M",
+   "pct": 26.08,
+   "label": "unidentified",
+   "how": "Gnosis Safe 2-of-3, no label; treasury pattern (sent 75M to 0x9955 on 2026-01-06 per prior). Insider under D5"
+  },
+  {
+   "addr": "0x99557e10c75B079eC5bA0f1E5fc081dd12b4f3E5",
+   "balance": "60.00M",
+   "pct": 24.0,
+   "label": "unidentified",
+   "how": "Gnosis Safe 2-of-3, no label; funded by 0x925e. Insider under D5"
+  },
+  {
+   "addr": "0x9C4AF5342323A339D51a914aE5F667457b5B828b",
+   "balance": "45.17M",
+   "pct": 18.07,
+   "label": "unidentified",
+   "how": "EOA (getCode 0x, nonce 83), no label; active, MM/exchange-like. Insider under D5"
+  },
+  {
+   "addr": "0x7510792A3B1969F9307F3845CE88e39578f2bAE1",
+   "balance": "19.91M",
+   "pct": 7.96,
+   "label": "bridge escrow",
+   "how": "Blockscout 'Celer Network: Original Token Vault V2'"
+  },
+  {
+   "addr": "0xa48dcEdb466583045197B8ac80b3d9Cc8fc2c9C7",
+   "balance": "9.06M",
+   "pct": 3.62,
+   "label": "other",
+   "how": "Blockscout name MerkleDistributorWithDeadline (airdrop distributor); not an excluded class, counted"
+  },
+  {
+   "addr": "0x6eb041d5e7B8519bA9F59d7138b76b0211E460f8",
+   "balance": "6.00M",
+   "pct": 2.4,
+   "label": "unidentified",
+   "how": "EOA (nonce 134), no label. Insider under D5"
+  },
+  {
+   "addr": "0x5a52E96BAcdaBb82fd05763E25335261B270Efcb",
+   "balance": "5.40M",
+   "pct": 2.16,
+   "label": "exchange",
+   "how": "Blockscout tag 'Binance: Hot Wallet'"
+  },
+  {
+   "addr": "0x690C3Eebf6ee237f00fc96f9766282F096C191cC",
+   "balance": "3.68M",
+   "pct": 1.47,
+   "label": "unidentified",
+   "how": "no label, <2%"
+  },
+  {
+   "addr": "0x91D40E4818F4D4C57b4578d9ECa6AFc92aC8DEbE",
+   "balance": "3.47M",
+   "pct": 1.39,
+   "label": "exchange",
+   "how": "Blockscout tag 'OKX 193'"
+  }
+ ],
+ "next_unlock": "Not re-verified (stopped). Prior: monthly community unlock on the 6th (~18.2M BREV, ~7.3% of circ), next 2026-12-06; team+investor cliff 2027-01-06 (app.tokenomics.com, read 2026-10-27)",
+ "not_checked": [
+  "D4 flows",
+  "All E, F and G tests (stopped after D2 hard fail)",
+  "BSC/Base deployments (<10%)",
+  "Vesting proxy admin/upgrade path"
+ ],
+ "verdict": "reject",
+ "reason": "Hard fail D2: unlabelled 2-of-3 Safe 0x925e holds 26.1% of circulating; D1 79.6%, D3 70.5% and D5 also fail. E/F/G not run (stopped per brief).",
+ "sources": [
+  "https://eth.blockscout.com/api/v2/tokens/0x086f405146ce90135750bbec9a063a8b20a8bffb/holders (read 2026-11-16 16:07 UTC)",
+  "https://api.coingecko.com/api/v3/coins/brevis (read 2026-11-16 16:07 UTC)",
+  "https://ethereum-rpc.publicnode.com Safe getThreshold/getOwners, eth_getCode (read 2026-11-16 16:07 UTC)",
+  "https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products (read 2026-11-16 16:05 UTC)"
+ ]
+}

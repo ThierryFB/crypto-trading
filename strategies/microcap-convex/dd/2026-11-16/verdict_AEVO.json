@@ -1,0 +1,227 @@
+{
+ "sym": "AEVO",
+ "name": "Aevo",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0xb528edbef013aff855ac3c50b381f253af13b997",
+   "share_of_supply_pct": "~100 of totalSupply (Ethereum ERC-20 is the canonical 1,000,000,000 supply; Aevo L2 bridged balance not checked)"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Exchange governance token on Ethereum, not stable/wrapped/staked/RWA; listed on Binance/OKX/Bybit/Kraken since 2024 (>90 days, prior analysis). totalSupply 1,000,000,000 on-chain.",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "D2": {
+   "result": "fail",
+   "value": "Largest non-excluded holder = treasury Gnosis Safe 0xdaeada3d210d2f45874724beea03c7d4bbd41674 (5-of-9 multisig, not a vesting/timelock contract) holding 174,457,584 AEVO = 18.71% of CoinGecko circulating 932,701,806 (> 10%)",
+   "source": "ethereum-rpc.publicnode.com eth_call balanceOf/totalSupply/getOwners/getThreshold + eth_getCode + eth_getTransactionCount; CoinGecko markets (cg_markets.json, last_updated 2026-11-16 15:06 UTC)",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "Liquid insider >= 18.71% (treasury Safe) + unidentified >=2% wallets counted as insiders under D5: 0x6522 4.20%, 0xca84 3.22%, 0x611f 2.32% => >= 28.45% (> 20%). Staking contracts 0x3891 (7.21%) and 0x8f9c (3.45%) not counted as insider",
+   "source": "ethereum-rpc.publicnode.com eth_call balanceOf/totalSupply/getOwners/getThreshold + eth_getCode + eth_getTransactionCount",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "Unidentified non-excluded wallets >=2%: 0x6522b7f9 (EOA, nonce 134,689, 4.20%), 0xca84f16b (EOA, nonce 34, 3.22%), 0x611f7bf8 (EOA, nonce 18,372, 2.32%); no public label found",
+   "source": "ethereum-rpc.publicnode.com eth_call balanceOf/totalSupply/getOwners/getThreshold + eth_getCode + eth_getTransactionCount; GoPlus holder tags empty",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "E1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2. Note GoPlus is_mintable=1 (mint path not read from source); owner() call reverted",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F7": {
+   "result": "pass",
+   "value": "GoPlus is_honeypot 0, cannot_sell_all 0 (other GoPlus fields: is_mintable 1, owner_address null, can_take_back_ownership 0, is_proxy 0, is_blacklisted 0, transfer_pausable 0, slippage_modifiable 0, is_open_source 1). honeypot.is not run",
+   "source": "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0xb528edbef013aff855ac3c50b381f253af13b997",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:02 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0xdaeada3d210d2f45874724beea03c7d4bbd41674",
+   "pct": 18.705,
+   "label": "insider",
+   "how": "Gnosis Safe (getThreshold 5, 9 owners); prior analysis + AGP-3 burn tx show it is the DAO treasury"
+  },
+  {
+   "addr": "0x5a52e96bacdabb82fd05763e25335261b270efcb",
+   "pct": 16.35,
+   "label": "exchange",
+   "how": "well-known Binance 7 label; excluded"
+  },
+  {
+   "addr": "0xf977814e90da44bfa03b6295a0616a897441acec",
+   "pct": 12.37,
+   "label": "exchange",
+   "how": "well-known Binance 8 label; excluded"
+  },
+  {
+   "addr": "0x0000000000000000000000000000000000000000",
+   "pct": 8.36,
+   "label": "burn",
+   "how": "null address (GoPlus 'Null Address', locked); excluded"
+  },
+  {
+   "addr": "0x38913051e01d4f6910cb66bb9ac3cb77d746ad81",
+   "pct": 7.213,
+   "label": "other",
+   "how": "contract (eth_getCode); AevoStaking per prior analysis; not an exclusion category, not counted as insider"
+  },
+  {
+   "addr": "0x6522b7f9d481eceb96557f44753a4b893f837e90",
+   "pct": 4.204,
+   "label": "unidentified",
+   "how": "EOA, nonce 134,689 (hot-wallet profile) but no exchange label found; counted as insider under D5"
+  },
+  {
+   "addr": "0x8f9c5d7fbd850d70c8d704bc67d74c7fd13551cd",
+   "pct": 3.446,
+   "label": "other",
+   "how": "contract (proxy-size code); AevoStaking proxy per prior analysis"
+  },
+  {
+   "addr": "0xca84f16bf4272522257accb914a1b8efacddbb65",
+   "pct": 3.216,
+   "label": "unidentified",
+   "how": "EOA, nonce 34, no label; counted as insider under D5"
+  },
+  {
+   "addr": "0x611f7bf868a6212f871e89f7e44684045ddfb09d",
+   "pct": 2.317,
+   "label": "unidentified",
+   "how": "EOA, nonce 18,372, no label; counted as insider under D5"
+  },
+  {
+   "addr": "0x62e0d3fd804dfbf02d08ee632e9634dba5c00d03",
+   "pct": 1.94,
+   "label": "other",
+   "how": "GoPlus tag UniswapV3 pool (AEVO/USDC)"
+  }
+ ],
+ "next_unlock": "unknown (not re-verified; stopped early). Prior: tokenomist says vesting ended 2025-04-24, 100% unlocked; discretionary treasury Safe 18.7% remains",
+ "not_checked": [
+  "D1 full top-10 beyond GoPlus top-10 list",
+  "D4 insider-to-exchange flows",
+  "E1-E4 unlock sources",
+  "F1-F6, F8, F9 source/admin/mint review (GoPlus is_mintable=1 unexplained)",
+  "G1-G4 (incl. Ribbon vault exploit 2025-12-12 remediation status)",
+  "Aevo L2 bridged balance",
+  "honeypot.is"
+ ],
+ "verdict": "reject",
+ "reason": "D2 hard fail: treasury Safe 0xdaea holds 18.71% of circulating (>10%); D3 (>=28.45% liquid insider) and D5 (3 unidentified >=2% wallets) also fail. Remaining tests not run per early-stop rule.",
+ "sources": [
+  "https://ethereum-rpc.publicnode.com (read 2026-11-16 16:02 UTC)",
+  "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0xb528edbef013aff855ac3c50b381f253af13b997 (read 2026-11-16 16:02 UTC)",
+  "CoinGecko /coins/markets via cg_markets.json (last_updated 2026-11-16 15:06 UTC)",
+  "prior_AEVO.json (Crypto Book 2026-10-20, leads only)"
+ ]
+}

@@ -1,0 +1,230 @@
+{
+ "sym": "CETUS",
+ "name": "Cetus Protocol",
+ "chains": [
+  {
+   "chain": "sui",
+   "address": "0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS",
+   "share_of_supply_pct": 100
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Governance/incentive coin of the Cetus DEX on Sui; not a stablecoin, wrapped, staked, RWA or leveraged token. Listed on OKX spot 2023-05-10 and Binance spot (CETUSUSDT TRADING), far more than 90 days ago. A small Aptos deployment exists but holds well under 10% of supply (CoinGecko platforms list only Sui).",
+ "tests": {
+  "D1": {
+   "result": "fail",
+   "value": "Top-10 non-excluded holders (excluding only GoPlus-labelled Bitget 0x3a15 and Gate 0x62f3): the 8 unlabelled wallets in the GoPlus top 10 alone sum to 365.85M CETUS = 37.57% of CoinGecko circulating 973,913,043, above 35% before adding #9-#10. Driven by 0x7ab9 (22.58%), which looks like an exchange wallet but carries no label; without it the top 10 would be at most ~17.4%.",
+   "source": "api.gopluslabs.io/api/v1/sui/token_security holders; api.coingecko.com coins/cetus-protocol circulating_supply",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "D2": {
+   "result": "fail",
+   "value": "Largest non-excluded holder 0x7ab9a6a7109dcb9cb357a109f32dfcc78a7aa2d6029084eb924d95133fc71cec holds 219,945,684.52 CETUS = 22.58% of circulating (>10%). It is a signing address (not an object/vesting contract), GoPlus tag null, no public label found by web search. It also holds 381.9M SUI, 142.5M WAL, 132.8M HAEDAL, 22.7M MMT and many small coins, and sweeps SUI/USDC/CETUS to 0x8b38f6e772... several times a week, which is exchange-like (possibly a CEX cold wallet), but that is a heuristic, not a label. If an explorer label confirms it as an exchange, the largest non-excluded holder becomes 0xdad8 at 3.75% and D2 would pass.",
+   "source": "GoPlus sui token_security; graphql.mainnet.sui.io address(0x7ab9){balance, balances, transactions}",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "Under D5, unidentified wallets >=2% count as insiders: 0x7ab9 22.58% + 0xdad8 3.75% + 0x17d1 3.51% + 0xdc46 2.05% = 31.9% liquid (none is a vesting object) >20%. Excluding 0x7ab9 as an exchange it would be 9.3% (pass). Not fully worked up after the D2 hard fail.",
+   "source": "GoPlus sui token_security; Sui GraphQL",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Insider-to-exchange flows over 90 days not traced (stopped after the D2 hard fail; no keyless labelled Sui explorer reachable: suiscan.xyz returned 407, Blockberry 401).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "Unidentified non-excluded wallets >=2%: 0x7ab9...1cec 22.58%, 0xdad8...4b5a 3.75% (active daily), 0x17d1...d005 3.51% (round 34.2M, mostly dormant, last tx 2026-08-10), 0xdc46...61a9 2.05% (round 20M).",
+   "source": "GoPlus sui token_security; Sui GraphQL",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "E1": {
+   "result": "pass",
+   "value": "Next unlock 2026-12-10: 13,888,889 CETUS (Community) = 1.43% of CoinGecko circulating 973.9M (<2%). Note: Binance's product feed gives circulating 630.3M, on which it would be 2.20%; no on-chain evidence was established that CoinGecko's figure is wrong, so CoinGecko is used per \u00a71.",
+   "source": "app.tokenomics.com/tokenomics/cetus-protocol/unlocks; api.coingecko.com",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "E2": {
+   "result": "pass",
+   "value": "Six remaining monthly community unlocks to 2027-05-10 total 79,861,112 CETUS = 8.20% of circulating (all within 180 days); no other emission found (TreasuryCap frozen, supply fixed at 1B).",
+   "source": "app.tokenomics.com unlocks; Sui GraphQL TreasuryCap 0x908d...54df",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "E3": {
+   "result": "pass",
+   "value": "973,913,043 / 1,000,000,000 max = 97.4% (CoinGecko). On the Binance 630.3M figure it would be 63.0%, still >=30%.",
+   "source": "api.coingecko.com; binance.com bapi get-products cs",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "Schedule known: 49 monthly events 2023-05-09 to 2027-05-10 (tokenomics.com, matches docs allocation 50/20/15/15).",
+   "source": "app.tokenomics.com; cetus-1.gitbook.io/cetus-docs/tokenomics/cetus (via prior)",
+   "read_utc": "2026-11-16 16:02"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "Move package 0x0686...e54b v1 is public bytecode on-chain with a single module 'cetus' exposing only a private init; explorer source verification could not be checked (suiscan.xyz 407).",
+   "source": "Sui GraphQL package(0x0686...)",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F2": {
+   "result": "pass",
+   "value": "TreasuryCap 0x908dd3b6...54df is Immutable (frozen 2024-11-11, tx 7N5whEtq...), total_supply 1,000,000,000.000000000; GoPlus mintable 0, cap_owner Immutable. No mint path.",
+   "source": "Sui GraphQL objects(TreasuryCap<CETUS>); GoPlus sui",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F3": {
+   "result": "pass",
+   "value": "No privileged roles remain: TreasuryCap and CoinMetadata immutable, no DenyCap/DenyCapV2/RegulatedCoinMetadata objects, UpgradeCap 0xa4c7...d73d (created to deployer 0x34df...02cb) no longer exists (object null), package still at version 1.",
+   "source": "Sui GraphQL publish tx CqKi5wdU... objectChanges; object(0xa4c7...)",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F4": {
+   "result": "pass",
+   "value": "Not upgradeable: UpgradeCap destroyed, packageVersions shows only v1; GoPlus contract_upgradeable 0.",
+   "source": "Sui GraphQL packageVersions; GoPlus sui",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F5": {
+   "result": "pass",
+   "value": "No blacklist/freeze: no DenyCap for the type; GoPlus blacklist 0. Sui coins have no pause mechanism without a DenyCap.",
+   "source": "Sui GraphQL; GoPlus sui",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F6": {
+   "result": "pass",
+   "value": "Standard 0x2::coin with no custom transfer logic (module has only init); no taxes, limits or toggles possible.",
+   "source": "Sui GraphQL package modules/functions",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "GoPlus Sui returns no honeypot/cannot-sell field (trusted_token 1); GeckoTerminal is_honeypot 'unknown'; honeypot.is does not cover Sui. Structurally no sell restriction is possible (no DenyCap), but no scanner gives the flag.",
+   "source": "GoPlus sui; api.geckoterminal.com tokens/info",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "Largest pool USDC/CETUS 0.25% on Cetus CLMM (0x3b13ac70...) has ~$416k of ~$480k listed reserve (>20%); CLMM positions are NFTs, ownership/lock not checked (stopped after D2 hard fail).",
+   "source": "api.geckoterminal.com tokens/.../pools",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F9": {
+   "result": "pass",
+   "value": "Unmodified standard Sui 0x2::coin implementation with TreasuryCap frozen and package immutable (Sui analogue of SPL with mint authority revoked).",
+   "source": "Sui GraphQL",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G1": {
+   "result": "pass",
+   "value": "Binance tags ['defi','Seed'], no Monitoring; CETUSUSDT/USDC/TRY TRADING. No spot delisting found on a credible venue (OKX delisted only the perp on 2025-12-26).",
+   "source": "binance.com bapi/asset/v2/public/asset-service/product/get-products; web search",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G2": {
+   "result": "pass",
+   "value": "2025-05-22 ~$223M exploit (checked_shlw overflow in a shared math library) is >90 days old, with public post-mortem, patch, audits, relaunch 2025-06-08 and compensation plan. No newer exploit found.",
+   "source": "theblock.co 2025-06-08; decrypt.co/324313; web search",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "No enforcement action or team arrest found in a web search; top-20 sanctions screening not done (only top 10 available).",
+   "source": "web search",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G4": {
+   "result": "pass",
+   "value": "No migration or redenomination announced; same coin type since 2023, package v1.",
+   "source": "web search; Sui GraphQL",
+   "read_utc": "2026-11-16 16:03"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0x7ab9a6a7109dcb9cb357a109f32dfcc78a7aa2d6029084eb924d95133fc71cec",
+   "pct": 22.58,
+   "label": "unidentified",
+   "how": "GoPlus tag null; signing address; holds 381.9M SUI and many coins, sweeps to 0x8b38 (exchange-like heuristic only)"
+  },
+  {
+   "addr": "0xdad8b77b746f38cbac5044eb7b2c7232f9e38f30e2868f0e5bf311cd83554b5a",
+   "pct": 3.75,
+   "label": "unidentified",
+   "how": "GoPlus tag null; active daily"
+  },
+  {
+   "addr": "0x17d1a481bfe4f6352be2aa83bd3b067327c8c1d42be4409fca6bc3167a8ed005",
+   "pct": 3.51,
+   "label": "unidentified",
+   "how": "GoPlus tag null; round 34.2M, dormant since 2026-08-10"
+  },
+  {
+   "addr": "0xdc46d78750022e3b9b6c3a9e96c4ce046344eb876192f5c6bca2ca68bca261a9",
+   "pct": 2.05,
+   "label": "unidentified",
+   "how": "GoPlus tag null; round 20M"
+  },
+  {
+   "addr": "0x6a0f71c0bd78e84a98052b1aaa8aba4ad649bdc3c41c4d0553d7ad81e833952c",
+   "pct": 1.9,
+   "label": "unidentified",
+   "how": "GoPlus tag null"
+  },
+  {
+   "addr": "0x3a1520d6be3a16f89655f542f6e5b050d3065ff67d7287ed8005259c4a0b36b7",
+   "pct": 1.74,
+   "label": "exchange",
+   "how": "GoPlus tag 'Bitget'"
+  },
+  {
+   "addr": "0x62f36b79d7ea8ae189491854edd9318b29c75346792177b230a95f333ffa53ad",
+   "pct": 1.65,
+   "label": "exchange",
+   "how": "GoPlus tag 'Gate 1'"
+  },
+  {
+   "addr": "0xd8c7813261a27fbf01d62aefa8e1012faa2874a26caf59b355471d87ba9db3b2",
+   "pct": 1.28,
+   "label": "unidentified",
+   "how": "GoPlus tag null"
+  },
+  {
+   "addr": "0x330f799868ff41470ca72db3c5baf35c4c04f71dae6d251c2f48fe429e55a885",
+   "pct": 1.26,
+   "label": "unidentified",
+   "how": "GoPlus tag null"
+  },
+  {
+   "addr": "0x2415e4b60b7b6a853f3b430d0dae82bc7d11db17ff213abdeff13243498d365f",
+   "pct": 1.22,
+   "label": "unidentified",
+   "how": "GoPlus tag null"
+  }
+ ],
+ "next_unlock": "2026-12-10, 13,888,889 CETUS (Community), 1.43% of CoinGecko circulating (2.20% on Binance's 630.3M figure), app.tokenomics.com/tokenomics/cetus-protocol/unlocks",
+ "not_checked": [
+  "Explorer labels for Sui holders (suiscan 407, Blockberry 401); GoPlus top-10 covers address-owned coins only, not shared objects (pools, staking, vesting)",
+  "Holders #11-#12 (needed to complete the non-excluded top 10)",
+  "D4 insider-to-exchange flows",
+  "Explorer source verification (F1)",
+  "CLMM LP position ownership/locks (F8)",
+  "Top-20 sanctions screening (G3)",
+  "Why Binance's circulating (630.3M) is 343M below CoinGecko's"
+ ],
+ "verdict": "need-more-info",
+ "reason": "Under D5, unlabelled Sui address 0x7ab9\u20261cec (22.58% of circulating; also holds 381.9M SUI, exchange-like) counts as an insider and alone fails D1\u2013D3. If it gets a credible exchange label, D1\u2013D3 pass (largest other holder 3.75%), so the result turns on identification = need-more-info. D4, F1, F7, F8 and G3 are also unknown. Reclassified from reject by Hugo 2026-11-16 per \u00a73 D5.",
+ "sources": [
+  "https://api.gopluslabs.io/api/v1/sui/token_security?contract_addresses=0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS (read 2026-11-16 16:03 UTC)",
+  "https://graphql.mainnet.sui.io/graphql (read 2026-11-16 16:03 UTC)",
+  "https://api.coingecko.com/api/v3/coins/cetus-protocol (read 2026-11-16 16:02 UTC)",
+  "https://app.tokenomics.com/tokenomics/cetus-protocol/unlocks (read 2026-11-16 16:02 UTC)",
+  "https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products (read 2026-11-16 16:03 UTC)",
+  "https://api.geckoterminal.com/api/v2/networks/sui-network/tokens/0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS/info and /pools (read 2026-11-16 16:03 UTC)",
+  "https://www.theblock.co/news/markets/2025-06-08-sui-dex-cetus-protocol-restarts-platform-after-recovering-from-223-million-exploit-357386 (read 2026-11-16 16:03 UTC)"
+ ]
+}

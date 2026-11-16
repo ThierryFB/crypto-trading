@@ -1,0 +1,237 @@
+{
+ "sym": "NOT",
+ "name": "Notcoin (TON jetton)",
+ "chains": [
+  {
+   "chain": "ton",
+   "address": "EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT",
+   "share_of_supply_pct": 100
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "TON-native jetton memecoin, not wrapped/staked/stable; on Binance/OKX/Bybit/Kraken since 2024-05 (>90 days). Circulating 99.43B used (CoinGecko).",
+ "tests": {
+  "D1": {
+   "result": "pass",
+   "value": "Top 10 non-excluded = 15.82% of circulating 99.43B (3791 3.24, 85ba 1.73, a212 1.73, 3537 1.51, 7f2c 1.45, 2550 1.42, d048 1.34, 5d5f 1.20, a476 1.18, Durov 1.04). Sensitivity: exchange exclusions for f8b8/cf7e/d8e3/fa23 are inferred from flows, not explorer labels",
+   "source": "tonapi.io/v2/jettons/<NOT>/holders + /v2/accounts/<addr> + /v2/accounts/<addr>/jettons/<NOT>/history",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "D2": {
+   "result": "pass",
+   "value": "Largest non-excluded single wallet 0:3791 3.24%; largest probable cluster (5 wallets active 2026-11-12 15:48-15:53 UTC) 7.03%. Caveat: if 0:cf7e (10.53%, unlabelled highload hot-wallet pattern) is not an exchange, D2 fails",
+   "source": "tonapi.io/v2/jettons/<NOT>/holders + /v2/accounts/<addr> + /v2/accounts/<addr>/jettons/<NOT>/history",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "D3": {
+   "result": "pass",
+   "value": "Liquid insider (incl. D5 unidentified >=2%): 0:3791 3.24% + market maker 0:a212 1.73% (flows with Binance Hot Wallet; MM counts as insider per \u00a71) + 5-wallet cluster 7.03% = 12.0% (<=20%). Ecosystem-fund (~22% at TGE) wallet not located",
+   "source": "tonapi.io/v2/jettons/<NOT>/holders + /v2/accounts/<addr> + /v2/accounts/<addr>/jettons/<NOT>/history",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Identified insider flows: MM 0:a212 sent ~166M (0.17%) to unlabelled 0:20d7 in last 90d; 0:3537 (cluster) sent 700M (0.70%) in 100-200M lumps to 0:dea2 2026-09-19..11-05 (0:dea2 unlabelled, payout-wallet pattern). If 0:dea2 is an exchange deposit and the cluster is insider, D4 fails (>=0.5%). Team/treasury wallets not located",
+   "source": "tonapi.io/v2/jettons/<NOT>/holders + /v2/accounts/<addr> + /v2/accounts/<addr>/jettons/<NOT>/history",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "Unidentified non-excluded >=2%: 0:3791 3.24% (uninit, single 3.22B receipt from OKX 11 on 2026-05-18); probable cluster 3537/85ba/2550/5d5f/a476 7.03% unidentified. Counted as insiders in D3; does not change D3 result",
+   "source": "tonapi.io/v2/jettons/<NOT>/holders + /v2/accounts/<addr> + /v2/accounts/<addr>/jettons/<NOT>/history",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "E1": {
+   "result": "pass",
+   "value": "No scheduled unlock/emission in next 30 days: jetton admin_address null (no mint), CG total-circulating gap 3.02B equals the Nobitex-hack vanity burn address balance (3.023B); no Tokenomist/CryptoRank events found",
+   "source": "toncenter v3 jetton/masters; CoinGecko /coins/markets; web search",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "E2": {
+   "result": "pass",
+   "value": "0 new supply scheduled in 180 days (mint impossible, admin null); no announced treasury release found",
+   "source": "toncenter v3 jetton/masters; web search",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "E3": {
+   "result": "pass",
+   "value": "Circulating 99,429,355,867 / max 102,456,956,843 = 97.0%",
+   "source": "CoinGecko /coins/markets",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "Schedule known: 78% released at TGE 2024-05, supply now ~fully circulating, minting disabled. Caveat: residual ecosystem-fund holdings and their deployment not published",
+   "source": "prior_NOT tokenomics_notes; toncenter; CoinGecko",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "Source published on GitHub (OpenBuilders/notcoin-contract, fork of stablecoin-contract with governance removed) but code_hash +D0FSQr3y... not matched to verifier.ton.org in this run",
+   "source": "tonapi /v2/jettons; web search",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F2": {
+   "result": "pass",
+   "value": "Mint only via admin; admin_address null, next_admin addr_none (get_next_admin_address)",
+   "source": "toncenter v3 jetton/masters; toncenter v2 runGetMethod get_next_admin_address",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F3": {
+   "result": "pass",
+   "value": "Admin renounced: admin_address null, no pending next_admin. No other privileged role in the minter",
+   "source": "toncenter v3 jetton/masters; runGetMethod",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F4": {
+   "result": "pass",
+   "value": "Minter code upgradable only by admin; admin null, so not upgradable",
+   "source": "toncenter; OpenBuilders contract description (web search)",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F5": {
+   "result": "pass",
+   "value": "Freeze/lock path (hashex 'freezable') requires admin; admin null",
+   "source": "toncenter; hashex auto-audit listing (web search)",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F6": {
+   "result": "pass",
+   "value": "Standard jetton: no transfer tax, max-tx or trading toggle; admin null",
+   "source": "tonapi /v2/jettons; toncenter",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "GoPlus TON token_security endpoint 404; honeypot.is has no TON support; no scanner result obtained. tonapi verification 'whitelist', is_scam false",
+   "source": "api.gopluslabs.io/api/v1/ton/token_security (404); tonapi",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F8": {
+   "result": "fail",
+   "value": "STON.fi v1 NOT/TON pool EQCaY8If...SoR2 holds ~$125k of ~$235k on-chain NOT liquidity (~53%). LP jetton supply 1,007,404,094,768: 63.6% held by contract 0:1d14e257 (nft_collection, likely a farm with staker withdrawal), rest in wallets (cola.ton, thetrading.ton, unlabelled). Not burned or locked",
+   "source": "GeckoTerminal /networks/ton/tokens/<NOT>/pools; tonapi /v2/jettons/<LP>/holders; /v2/accounts/0:1d14...",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Cyberscope audit page 'coin-notcoin' exists but returned 429; hashex entry is an automated scan only; not an unmodified standard (forked stablecoin minter)",
+   "source": "web search; app.cyberscope.io (429)",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "G1": {
+   "result": "pass",
+   "value": "Binance NOTUSDT/NOTUSDC/NOTTRY tags Gaming/Launchpool/Seed, no Monitoring; no current delisting on credible venues found (older Binance NOT/BNB and NOT/BTC pair removals, Bitfinex delisting are non-credible/pair-only)",
+   "source": "binance.com bapi get-products; web search",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "G2": {
+   "result": "pass",
+   "value": "No exploit of the NOT contract or TON core in last 90 days found; 2025-06 Nobitex hack was an exchange, not NOT",
+   "source": "web search; prior",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "No enforcement found on web search; sanctions screening of top-20 holders not run",
+   "source": "web search",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "G4": {
+   "result": "pass",
+   "value": "No migration or redenomination announced",
+   "source": "web search",
+   "read_utc": "2026-11-16 16:05 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0:f8b8635d0786b77f9da660e65fd31d670a675dd4302facba692f46b571eb5360",
+   "pct": 20.282,
+   "label": "exchange (inferred Binance cold)",
+   "how": "unlabelled; wallet_v4r2 with 15M TON; all NOT transfers only with tonapi-labelled 'Binance Hot Wallet'"
+  },
+  {
+   "addr": "0:cf7ea235ed6f6517edce98026ef7618e9f6d81a1331d4e65ba718e2cd15f80ad",
+   "pct": 10.527,
+   "label": "exchange (inferred hot wallet)",
+   "how": "unlabelled highload_v3; dozens of small outbound NOT transfers per hour to many addresses"
+  },
+  {
+   "addr": "0:3791a10cfca22538579d9a3a648b98b56e95bdcbde08fd1e1dba647d9f258df3",
+   "pct": 3.242,
+   "label": "unidentified (insider under D5)",
+   "how": "uninit; single 3.22B receipt from 'OKX 11' 2026-05-18; no outflows"
+  },
+  {
+   "addr": "0:d8e3e2ad5716b0654fd5bdaeca4ce865871f07a348c8d1a87279b613e58b8991",
+   "pct": 3.085,
+   "label": "exchange (inferred OKX)",
+   "how": "highload_v3 with 16.35M TON; continuous two-way flows with tonapi-labelled 'OKX 11'"
+  },
+  {
+   "addr": "0:0116e7242111824deaeba2b8acb6c34e0484c45f5d75d75d75d75d75d75d75d7",
+   "pct": 3.041,
+   "label": "burn",
+   "how": "use-ton-dns.ton keyless vanity address (Nobitex-hack burn), uninit"
+  },
+  {
+   "addr": "0:6ce8da34fc8f0ac49da75bd8486a04248d149a1822129d2ea7b220b02069bdcd",
+   "pct": 1.823,
+   "label": "exchange (Telegram Wallet custody)",
+   "how": "multisig_v2 fed by 'Wallet in Telegram' cold sends (prior; not re-traced)"
+  },
+  {
+   "addr": "0:85ba9ab88ba4fdc7db48d56bd5039c6a476f795ae947db7ba436be20102aedfc",
+   "pct": 1.726,
+   "label": "unidentified (cluster)",
+   "how": "funded by OKX 10 and 0:8dd6 2024-25; account activity 2026-11-12 15:48 UTC with 4 others"
+  },
+  {
+   "addr": "0:a212b811feed94df4108d86e51ccb7cb00d3a1ccecfc8d75392b66e454eb5ccd",
+   "pct": 1.725,
+   "label": "insider (market maker)",
+   "how": "receives from Binance Hot Wallet, sends lumps to 0:20d7; 4.65M TON"
+  },
+  {
+   "addr": "0:fa23c4ec38d7220168911cd89849f64cce105346b6cae235b512673752a8d685",
+   "pct": 1.55,
+   "label": "exchange (inferred deposit collector)",
+   "how": "unlabelled; many small inbound deposits from distinct users"
+  },
+  {
+   "addr": "0:35376072a02379119a540c197b10d943881e252878751be9192c7f03811a7cc2",
+   "pct": 1.509,
+   "label": "unidentified (cluster)",
+   "how": "pays 100-200M lumps to 0:dea2; activity 2026-11-12 15:48-15:53 UTC with 85ba/2550/5d5f/a476"
+  }
+ ],
+ "next_unlock": "none scheduled; minting disabled (admin null); CG total-circulating gap 3.02B = burn address (toncenter + CoinGecko, read 2026-11-16 16:05 UTC)",
+ "not_checked": [
+  "Explorer labels for f8b8/cf7e/d8e3/fa23 (exclusions inferred from flows; tonviewer labels not read)",
+  "Identity of 0:dea2 and 0:20d7 (exchange deposit or not) for D4",
+  "Ecosystem-fund / team wallets",
+  "Code-hash match to published source (F1)",
+  "Cyberscope audit content (429)",
+  "Any TON honeypot scanner (GoPlus TON 404)",
+  "Sanctions screening of top 20",
+  "Holders beyond top 30"
+ ],
+ "verdict": "reject",
+ "reason": "F8 fails: the dominant STON.fi NOT/TON pool (~53% of on-chain liquidity) has unlocked, unburned LP. Also unknown D4 (cluster 0:3537 sent 0.70% to an unlabelled payout wallet), F1, F7, F9, G3; D5 fails (0:3791 3.24% and a 7.03% cluster unidentified).",
+ "sources": [
+  "https://tonapi.io/v2/jettons/EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT (read 2026-11-16 16:03 UTC)",
+  "https://toncenter.com/api/v3/jetton/masters?address=EQAvlWFD...NOT (read 2026-11-16 16:03 UTC)",
+  "https://toncenter.com/api/v2/runGetMethod get_next_admin_address (read 2026-11-16 16:03 UTC)",
+  "https://tonapi.io/v2/jettons/EQAvlWFD...NOT/holders?limit=30 (read 2026-11-16 16:03 UTC)",
+  "https://tonapi.io/v2/accounts/<top20> (read 2026-11-16 16:03 UTC)",
+  "https://tonapi.io/v2/accounts/<addr>/jettons/<NOT>/history (read 2026-11-16 16:04 UTC)",
+  "https://api.geckoterminal.com/api/v2/networks/ton/tokens/EQAvlWFD...NOT/pools (read 2026-11-16 16:05 UTC)",
+  "https://tonapi.io/v2/jettons/EQCaY8Ifl2S6lRBMBJeY35LIuMXPc8JfItWG4tl7lBGrSoR2/holders (read 2026-11-16 16:05 UTC)",
+  "https://api.coingecko.com/api/v3/coins/markets?ids=notcoin (read 2026-11-16 16:05 UTC)",
+  "https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products (read 2026-11-16 16:02 UTC)",
+  "https://api.gopluslabs.io/api/v1/ton/token_security (404, read 2026-11-16 16:05 UTC)",
+  "https://hashex.org/auto-audits/ton/EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT (search result, 2026-11-16 16:05 UTC)",
+  "https://app.cyberscope.io/audits/coin-notcoin (429, 2026-11-16 16:06 UTC)"
+ ]
+}

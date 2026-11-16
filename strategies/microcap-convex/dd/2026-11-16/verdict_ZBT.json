@@ -1,0 +1,174 @@
+{
+ "sym": "ZBT",
+ "name": "ZEROBASE",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0xfab99fcf605fd8f4593edb70a43ba56542777777",
+   "share_of_supply_pct": 87.51
+  },
+  {
+   "chain": "bsc",
+   "address": "0xfab99fcf605fd8f4593edb70a43ba56542777777",
+   "share_of_supply_pct": 12.48
+  },
+  {
+   "chain": "base",
+   "address": "0xfab99fcf605fd8f4593edb70a43ba56542777777",
+   "share_of_supply_pct": 0.01
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Native omnichain (burn/mint) utility token, same address on ETH/BSC/Base; supplies 875,094,110 + 124,764,848 + 141,042 = 1.00B (publicnode totalSupply, 2026-11-16 15:30 UTC). Not wrapped/staked; Binance listing 2025-10-17 (>90 days).",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "Not run (stopped after E1). Lead: prior saw unlabelled EOA 0xfdEa...0bE2 with 89.55M = ~27% of circulating, which would fail D2 if still unidentified.",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1",
+   "source": "-",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "2026-11-17 unlock 15.7M ZBT (Private Investors 26%, Insiders 26%, Community rest) = 4.80% of CoinGecko circulating 327,076,660 (>= 2%). Monthly events of similar size follow.",
+   "source": "app.tokenomics.com/tokenomics/zerobase/unlocks; CoinGecko /coins/markets",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "E3": {
+   "result": "pass",
+   "value": "327,076,660 / 1,000,000,000 = 32.7% (>= 30%; tokenomics.com unlocked 34.7%)",
+   "source": "CoinGecko /coins/markets",
+   "read_utc": "2026-11-16 15:30"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "Monthly schedule to 2030-09-17 published (60 events)",
+   "source": "app.tokenomics.com/tokenomics/zerobase/unlocks",
+   "read_utc": "2026-11-16 15:30"
+  }
+ },
+ "top10": [],
+ "next_unlock": "2026-11-17, 15.7M ZBT, 4.80% of circulating (327.08M), app.tokenomics.com/tokenomics/zerobase/unlocks",
+ "not_checked": [
+  "D1-D5 holder lists and labels (stopped after hard fail E1)",
+  "E2 180-day supply",
+  "F1-F9 contract roles, GoPlus, proxy admin",
+  "G1-G4 flags today",
+  "Price note: CoinGecko $0.0497, ATL 2026-11-14"
+ ],
+ "verdict": "reject",
+ "reason": "E1 fails: the 2026-11-17 unlock of 15.7M ZBT is 4.80% of circulating (limit < 2%), with similar monthly unlocks after. D, F, G tests not run after the hard fail.",
+ "sources": [
+  "https://app.tokenomics.com/tokenomics/zerobase/unlocks (read 2026-11-16 15:30 UTC)",
+  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&symbols=zbt (read 2026-11-16 15:30 UTC)",
+  "https://api.coingecko.com/api/v3/coins/zerobase (read 2026-11-16 15:30 UTC)",
+  "ethereum/bsc/base-rpc.publicnode.com eth_call totalSupply (read 2026-11-16 15:30 UTC)"
+ ]
+}
