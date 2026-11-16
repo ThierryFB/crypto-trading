@@ -1,0 +1,171 @@
+{
+ "sym": "LA",
+ "name": "Lagrange",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0x0fc2...f467 (full address in prior truncated; not re-read)",
+   "share_of_supply_pct": 99.6,
+   "note": "totalSupply 995,973,055.69 per prior (2026-11-10), not re-read"
+  },
+  {
+   "chain": "bsc",
+   "address": "0x389a...02a0 (full address in prior truncated)",
+   "share_of_supply_pct": 0.4,
+   "note": "bridged BEP-20, 3,938,759 LA per prior; <10%"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Utility ERC-20 (ZK prover network token), not stable, wrapped or staked. First listed on Binance on 2025-06-04 (more than 90 days ago).",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "Next unlock 2026-12-04 (18 days): 24,502,433 LA = 6.55% of CoinGecko circulating 374,086,289 (5.48% even on tokenomics.com's ~447.3M unlocked figure). Threshold <2%.",
+   "source": "https://app.tokenomics.com/tokenomics/lagrange/unlocks ; https://api.coingecko.com/api/v3/coins/lagrange",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "E2": {
+   "result": "fail",
+   "value": "Monthly tranches on the 4th: Dec 4, Jan 4, Feb 4, Mar 4 (listed), and the same cadence continuing to Apr 4 and May 4 (inside the 180 days to 2027-05-15). That is ~6 x ~24.5M = ~147M LA = ~39% of 374.1M circulating, before the ~4%/yr prover emission. Even the 4 listed tranches (~98M, 26%) exceed 20%. Tranche sizes after Dec are taken from the cadence, not read one by one.",
+   "source": "https://app.tokenomics.com/tokenomics/lagrange/unlocks",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "E3": {
+   "result": "pass",
+   "value": "374,086,289 / 1,000,000,000 total = 37.4% (>=30%). No max supply (4% emission).",
+   "source": "https://api.coingecko.com/api/v3/coins/lagrange",
+   "read_utc": "2026-11-16 15:24 UTC"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "Schedule published: monthly unlocks through the final one on 2029-11-04 (49 events listed).",
+   "source": "https://app.tokenomics.com/tokenomics/lagrange/unlocks",
+   "read_utc": "2026-11-16 15:24 UTC"
+  }
+ },
+ "top10": [],
+ "next_unlock": "2026-12-04, 24,502,433 LA, 6.55% of CG circulating (374.1M), tokenomics.com (read 2026-11-16 15:24 UTC); prior split Insiders 43.2% / Private Investors 31.5% / Community 25.3%",
+ "not_checked": [
+  "D1-D5 holders (prior: ETH top-10 82.9%, two unlabelled EOAs at 23.05% and 15.36%, which would also likely fail D2)",
+  "F1-F9 contract",
+  "G1-G4 flags",
+  "Tokenomist/CryptoRank cross-check",
+  "exact sizes of the Apr/May 2027 tranches",
+  "on-chain totalSupply re-read today",
+  "full BSC address"
+ ],
+ "verdict": "reject",
+ "reason": "E1 fails: 24.5M LA unlocks on 2026-12-04, which is 6.55% of circulating (limit <2%). E2 fails too (~39% of circulating is new supply within 180 days). D, F and G weren't run after the hard fail.",
+ "sources": [
+  "https://app.tokenomics.com/tokenomics/lagrange/unlocks (read 2026-11-16 15:24 UTC)",
+  "https://api.coingecko.com/api/v3/coins/lagrange (read 2026-11-16 15:24 UTC)"
+ ]
+}

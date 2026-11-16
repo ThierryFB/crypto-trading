@@ -1,0 +1,129 @@
+{
+ "sym": "BERA",
+ "name": "Berachain",
+ "chains": [
+  {
+   "chain": "Berachain L1 (chainId 80094)",
+   "address": "native coin (no contract)",
+   "share_of_supply_pct": 100
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Native L1 gas/staking coin; not a stablecoin, wrapper or LST; listed on Binance/Coinbase/Kraken/OKX/Bybit since Feb 2025 (>90 days). F1-F9 replaced by native-coin checks N1-N3.",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail; native gas coin, no public native-balance ranking (Berascan/Routescan 403 on 2026-11-09 per prior)",
+   "source": "",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail; native gas coin, no public native-balance ranking (Berascan/Routescan 403 on 2026-11-09 per prior)",
+   "source": "",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail; native gas coin, no public native-balance ranking (Berascan/Routescan 403 on 2026-11-09 per prior)",
+   "source": "",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "DropsTab daily linear vesting 436,899 BERA/day -> ~13.11M BERA over the next 30 days = 3.58% of CoinGecko circulating 365,938,695 (vesting alone, before ~73.7k/day protocol emissions per prior DefiLlama read, which would add ~2.2M -> ~4.2%). Cross-check: DropsTab unlocked 301.65M on 2026-11-09 vs 304.71M on 2026-11-16 (+3.06M in 7 days = ~437k/day). Threshold <2%.",
+   "source": "https://dropstab.com/coins/berachain/vesting ; https://api.coingecko.com/api/v3/coins/berachain-bera",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not formally run (stopped after E1). Indicative: ~437k/day x 180 = ~78.6M vesting + ~13.3M emissions = ~92M = ~25% of circulating, which would exceed 20%",
+   "source": "https://dropstab.com/coins/berachain/vesting",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "N1": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "N2": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "N3": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail; lead: Nov-2025 validator halt + hard fork after Balancer V2/BEX exploit (early Nov 2025, borderline vs the 12-month window) needs dating",
+   "source": "",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 15:24"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail",
+   "source": "",
+   "read_utc": "2026-11-16 15:24"
+  }
+ },
+ "top10": [],
+ "next_unlock": "Continuous daily linear vesting: next event 436,899 BERA on 2026-11-17 (0.12% of circulating); ~13.11M BERA (3.58% of circulating) over the next 30 days; 195.29M still locked, ~447 days left (to ~Feb 2028). Source: dropstab.com/coins/berachain/vesting (read 2026-11-16 15:24 UTC)",
+ "not_checked": [
+  "D1-D5 top-10 holders (stopped after hard fail; native-balance ranking needs an indexer)",
+  "E2-E4 formal values",
+  "N1-N3 native-coin checks (including the Nov-2025 halt/hard-fork date vs the 12-month window)",
+  "G1-G4 venue/incident/legal flags",
+  "On-chain vesting contracts",
+  "Tokenomist/CryptoRank not re-read today"
+ ],
+ "verdict": "reject",
+ "reason": "E1 fails: ~13.1M BERA of daily linear vesting in the next 30 days is 3.58% of circulating (≥2%), before ~2.2M of protocol emissions. Other tests were not run after this hard fail.",
+ "sources": [
+  "https://dropstab.com/coins/berachain/vesting (read 2026-11-16 15:24 UTC)",
+  "https://api.coingecko.com/api/v3/coins/berachain-bera (read 2026-11-16 15:24 UTC)",
+  "https://defillama.com/unlocks/berachain (attempted 2026-11-16 15:24 UTC; API paywalled, page not parsed; prior read 2026-11-09)",
+  "prior_BERA.json (Crypto Book analysis 2026-11-09, leads only)"
+ ]
+}

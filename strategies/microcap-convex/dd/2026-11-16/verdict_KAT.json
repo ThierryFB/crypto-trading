@@ -1,0 +1,232 @@
+{
+ "sym": "KAT",
+ "name": "Katana",
+ "chains": [
+  {
+   "chain": "katana (chainId 747474)",
+   "address": "0x7f1f4b4b29f5058fa32cc7a97141b8d7e5abdc2d",
+   "share_of_supply_pct": 100.0
+  },
+  {
+   "chain": "base (bridged copy, backed by Katana-side tokens)",
+   "address": "0xd5390300c5db71f80d46f0fa9983fc72d4d1e3da",
+   "share_of_supply_pct": 1.39
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Native ERC-20 governance token of the Katana L2 (gas is ETH, so F tests apply, not N). Not stable/wrapped; Base copy is a bridged representation (~139.3M per prior, <10%, not re-read). Binance listing 2026-03-18, >90 days. totalSupply 10,000,000,000 on Katana (eth_call, 2026-11-16 15:27 UTC).",
+ "tests": {
+  "D1": {
+   "result": "fail",
+   "value": "Strict (only vKAT escrow excluded): top-10 non-excluded = 206.6% of CoinGecko circulating (treasury Safe 0x92d8 alone 114.87%). Lenient (also dropping all Safes, contracts and high-nonce EOAs as presumed exchanges): 0x9f92 28.61% + 0x9514 6.72% + 0x3fe8 1.75% + 0xd5b3 1.56% + 0x55be 1.49% + 0xdf6b 1.35% = 41.5% from six wallets alone, > 35%",
+   "source": "rpc.katana.network eth_getLogs (1,500,884 Transfer logs to block 48,099,933) + eth_call balanceOf/totalSupply/getThreshold/getOwners/token()/owner() + eth_getCode + eth_getTransactionCount; circulating 3,358,951,531 from CoinGecko markets",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "D2": {
+   "result": "fail",
+   "value": "Largest non-excluded holder: Gnosis Safe 0x92d8...c390 (2-of-3, treasury) 3,858,483,941 KAT = 114.87% of circulating. Even ignoring Safes: unlabelled low-nonce EOA 0x9f92...564f 960,886,678 KAT = 28.61% of circulating (> 10%; up from 880.4M on 2026-10-23)",
+   "source": "rpc.katana.network eth_getLogs (1,500,884 Transfer logs to block 48,099,933) + eth_call balanceOf/totalSupply/getThreshold/getOwners/token()/owner() + eth_getCode + eth_getTransactionCount; circulating 3,358,951,531 from CoinGecko markets",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "Treasury Safes (0x92d8 2-of-3, 0x45ff 2-of-3, 0xda1b 2-of-10, 0x0676 3-of-4, 0xcba2 3-of-3) are insider wallets with no on-chain release schedule = 4,603M KAT = 137% of circulating; plus unidentified >=2% EOAs (0x9f92 28.61%, 0x0e64 27.73%, 0x9514 6.72%, 0x961b 3.21%, 0x14e0 2.13%). Far above 20%",
+   "source": "rpc.katana.network eth_getLogs (1,500,884 Transfer logs to block 48,099,933) + eth_call balanceOf/totalSupply/getThreshold/getOwners/token()/owner() + eth_getCode + eth_getTransactionCount; circulating 3,358,951,531 from CoinGecko markets",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Insider-to-exchange flows over 90 days not traced; note Safe 0x92d8 balance fell ~150M and EOA 0x9f92 rose ~81M since 2026-10-23.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "Unidentified non-excluded wallets >=2% of circulating: 0x9f92...564f 28.61% (EOA nonce 54), 0x0e64...8076 27.73% (EOA nonce 23,273, exchange-like but unlabelled), 0x9514...8778 6.72% (nonce 285), 0x961b...e0eb 3.21% (nonce 8,168), 0x14e0...a9cd 2.13% (nonce 3,244); Katana explorer has no labels/API",
+   "source": "rpc.katana.network eth_getLogs (1,500,884 Transfer logs to block 48,099,933) + eth_call balanceOf/totalSupply/getThreshold/getOwners/token()/owner() + eth_getCode + eth_getTransactionCount; circulating 3,358,951,531 from CoinGecko markets",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "E1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Prior: monthly ~93M unlocks on the 18th (2026-10-18: 93.46M = 2.78% of circulating), so a 2026-11-18 step would likely fail E1 (>=2%); not verified today.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Prior: reported March 2027 first-anniversary cliff, unverified (Tokenomist 403).",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). CoinGecko circulating 3,358,951,531 / max 10,000,000,000 = 33.6% (CG markets, 2026-11-16 15:04 UTC), but on-chain Safe holdings alone exceed the float and CG circulating is unchanged since 2026-10-23 despite the 10-18 unlock; not resolved.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Schedule only via CMC AI / Tokenomist snippets in prior; not verified.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Contract source/roles of 0x7f1f...dc2d on Katana (chainId 747474) not read; Katana explorer (Conduit) exposes no public API; GoPlus not queried.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Contract source/roles of 0x7f1f...dc2d on Katana (chainId 747474) not read; Katana explorer (Conduit) exposes no public API; GoPlus not queried.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Contract source/roles of 0x7f1f...dc2d on Katana (chainId 747474) not read; Katana explorer (Conduit) exposes no public API; GoPlus not queried.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Contract source/roles of 0x7f1f...dc2d on Katana (chainId 747474) not read; Katana explorer (Conduit) exposes no public API; GoPlus not queried.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Contract source/roles of 0x7f1f...dc2d on Katana (chainId 747474) not read; Katana explorer (Conduit) exposes no public API; GoPlus not queried.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Contract source/roles of 0x7f1f...dc2d on Katana (chainId 747474) not read; Katana explorer (Conduit) exposes no public API; GoPlus not queried.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Contract source/roles of 0x7f1f...dc2d on Katana (chainId 747474) not read; Katana explorer (Conduit) exposes no public API; GoPlus not queried.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Contract source/roles of 0x7f1f...dc2d on Katana (chainId 747474) not read; Katana explorer (Conduit) exposes no public API; GoPlus not queried.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Contract source/roles of 0x7f1f...dc2d on Katana (chainId 747474) not read; Katana explorer (Conduit) exposes no public API; GoPlus not queried.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Prior (2026-10-23): no Binance Monitoring tag, tags incl. 'Seed'; no spot delisting. Not re-read today.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Prior: no exploit found; not re-searched.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Not checked.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule). Prior: no migration found; not re-searched.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:27 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0x92d8ce89ff02c640daf0b7c23d497ccf1880c390",
+   "pct": 114.87,
+   "label": "insider (treasury multisig)",
+   "how": "Gnosis Safe 2-of-3 via getThreshold/getOwners; 3,858,483,941 KAT (38.58% of supply); no on-chain release schedule"
+  },
+  {
+   "addr": "0x9f92e35bfcbc5c4c540b650c2d8dc0a2169a564f",
+   "pct": 28.61,
+   "label": "unidentified (insider under D5)",
+   "how": "EOA (eth_getCode 0x), nonce 54; 960,886,678 KAT; no explorer label available"
+  },
+  {
+   "addr": "0x0e644d665289fd2cf6f704909abbd9cab5eb8076",
+   "pct": 27.73,
+   "label": "unidentified (likely exchange hot wallet, unconfirmed)",
+   "how": "EOA nonce 23,273 suggests exchange hot wallet, but no label; 931,270,450 KAT"
+  },
+  {
+   "addr": "0x4d6fc15ca6258b168225d283262743c623c13ead",
+   "pct": 14.61,
+   "label": "vesting-timelock (vKAT vote escrow)",
+   "how": "contract, token()=KAT; vKAT escrow per prior totalLocked check; 490,747,652 KAT; treated as excluded"
+  },
+  {
+   "addr": "0x45fffb006a00725d0e36f30f2a3c5fc59e66ac06",
+   "pct": 8.67,
+   "label": "insider (treasury multisig)",
+   "how": "Gnosis Safe 2-of-3; 291,165,167 KAT"
+  },
+  {
+   "addr": "0x951477e86d88a73ef3a7005164bec90b7e028778",
+   "pct": 6.72,
+   "label": "unidentified (insider under D5)",
+   "how": "EOA nonce 285; 225,624,189 KAT"
+  },
+  {
+   "addr": "0xda1b148dd8e3cccd266f3a3d75a1fc654e23b98a",
+   "pct": 5.95,
+   "label": "insider (treasury multisig)",
+   "how": "Gnosis Safe 2-of-10; 200,000,000 KAT"
+  },
+  {
+   "addr": "0x06764f9118abfe1a67d6450fa9bc7135e736728e",
+   "pct": 4.64,
+   "label": "insider (treasury multisig)",
+   "how": "Gnosis Safe 3-of-4; 155,750,000 KAT"
+  },
+  {
+   "addr": "0x8f051ca72a3440d83b18e71c3e59676203ab8f91",
+   "pct": 3.31,
+   "label": "other (distributor/vesting contract, schedule not read)",
+   "how": "contract, token()=KAT, owner 0xd0673f989bc3ba9314d0aaf28bfc84e99b7898cc; 111,138,379 KAT"
+  },
+  {
+   "addr": "0x961b77fea51f1c82404393ef073160b92741e0eb",
+   "pct": 3.21,
+   "label": "unidentified (exchange-like, unconfirmed)",
+   "how": "EOA nonce 8,168; 107,763,586 KAT"
+  }
+ ],
+ "next_unlock": "Likely 2026-11-18 monthly step of ~93M KAT (~2.8% of circulating) if the 10-18 pattern repeats; source: prior analysis citing CMC AI summaries; NOT verified today",
+ "not_checked": [
+  "D4 insider-to-exchange flows",
+  "E1-E4 unlock schedule (Tokenomist/CryptoRank not read)",
+  "F1-F9 contract source, roles, proxy, GoPlus/honeypot (Katana chain explorer has no public API)",
+  "G1-G4 venue flags, exploits, enforcement, migration",
+  "Base-side holders",
+  "holder labels: no labelled explorer for Katana",
+  "whether CoinGecko circulating is correct given treasury Safe balances"
+ ],
+ "verdict": "reject",
+ "reason": "Hard fail on D2: treasury Safe 0x92d8 holds 114.9% of CoinGecko circulating, and even ignoring Safes an unlabelled EOA 0x9f92 holds 28.6% (>10%); D1, D3 and D5 also fail. E, F and G were not run (stopped early), and E1 likely fails on a ~93M (~2.8%) monthly unlock due 2026-11-18.",
+ "sources": [
+  "https://rpc.katana.network eth_getLogs/eth_call/eth_getCode/eth_getTransactionCount (read 2026-11-16 15:25-15:27 UTC)",
+  "https://api.coingecko.com/api/v3/coins/katana-network-token (platforms; read 2026-11-16 15:25 UTC)",
+  "cg_markets.json CoinGecko markets snapshot, circulating 3,358,951,531, mcap $9,917,674 (last_updated 2026-11-16 15:04 UTC)",
+  "prior_KAT.json Crypto Book analysis by agent:hugo (2026-10-23) for leads only"
+ ]
+}

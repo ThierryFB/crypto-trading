@@ -1,0 +1,232 @@
+{
+ "sym": "ANIME",
+ "name": "Animecoin",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0x4dc26fc5854e7648a064a4abd590bbe71724c277",
+   "share_of_supply_pct": "100 of totalSupply 10,000,000,000 (50.61% sits in Arbitrum L1CustomGateway escrow 0xcee2...180d)"
+  },
+  {
+   "chain": "arbitrum",
+   "address": "0x37a645648df29205c6261289983fb04ecd70b4b3 (from prior, not re-read)",
+   "share_of_supply_pct": 50.61
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Culture/memecoin ERC-20, native on Ethereum (Arbitrum copy is the canonical-bridge mirror of the same token). Listed on Binance/OKX/Bybit 2025-01-23 (>90 days). Not stable/wrapped/RWA.",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "D2": {
+   "result": "fail",
+   "value": "Largest non-excluded holder = Gnosis Safe 0x1a14801e7bbb8d1bd599d4c9270c1a1508540415 (3-of-5 multisig, not a vesting/timelock contract) holding 1,319,307,778 ANIME = 23.82% of CoinGecko circulating 5,538,604,656 (> 10%). Still 15.6% on the prior's 8.47B schedule-basis float",
+   "source": "ethereum-rpc.publicnode.com eth_call balanceOf/totalSupply/owner/getThreshold/getOwners + eth_getCode + eth_getTransactionCount; CoinGecko markets (cg_markets.json, last_updated 2026-11-16 15:04 UTC)",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "Unidentified Safes >=2% count as insiders (D5): 0x1a14 23.82% + 0x6ae7 23.47% + 0x2d87 12.46% + contract 0xd0ec 2.01% + EOA 0x76ec 2.96% = 64.72% of CG circulating (> 20%); none is a readable vesting/timelock",
+   "source": "ethereum-rpc.publicnode.com eth_call balanceOf/totalSupply/owner/getThreshold/getOwners + eth_getCode + eth_getTransactionCount",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "Unidentified non-excluded >=2%: Safes 0x1a14 (3/5), 0x6ae7 (2/3), 0x2d87 (2/3), contract 0xd0ec (2.01%), EOA 0x76ec (nonce 13,022, 2.96%); no public label (prior: likely Foundation/company treasuries, unverified)",
+   "source": "ethereum-rpc.publicnode.com eth_call balanceOf/totalSupply/owner/getThreshold/getOwners + eth_getCode + eth_getTransactionCount; GoPlus holder tags empty",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "E1": {
+   "result": "unknown",
+   "value": "not run: stopped early after D2. Lead: prior (tokenomics.com, 2026-10-27) shows ~133.3M monthly events (= 2.41% of CG circulating) to 2028-01; if a 2026-11-23 event exists E1 also fails. Not re-verified",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "not run: stopped early after D2. Note owner() = 0xf9157fcbfada1df3a5442c7ea9802c3713f1e8f3, an EOA (eth_getCode empty, nonce 18); its powers over supply/transfers not read from source. GoPlus is_mintable 0",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "F7": {
+   "result": "pass",
+   "value": "GoPlus is_honeypot 0; cannot_sell_all null (not returned). Other fields: is_mintable 0, owner_address 0xf9157f...e8f3 (EOA), can_take_back_ownership 0, is_proxy 0, is_blacklisted 0, transfer_pausable 0, slippage_modifiable 0, is_open_source 1. honeypot.is not run",
+   "source": "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0x4dc26fc5854e7648a064a4abd590bbe71724c277",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 16:03 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0xcee284f754e854890e311e3280b767f80797180d",
+   "pct": 91.37,
+   "label": "bridge escrow",
+   "how": "Arbitrum L1CustomGateway (prior analysis + GoPlus contract flag); excluded, Arbitrum side not checked"
+  },
+  {
+   "addr": "0x1a14801e7bbb8d1bd599d4c9270c1a1508540415",
+   "pct": 23.82,
+   "label": "insider",
+   "how": "Gnosis Safe 3-of-5, unlabelled; counted insider under D5"
+  },
+  {
+   "addr": "0x6ae789213c9dbf97669ac3f518922aa600a7040a",
+   "pct": 23.47,
+   "label": "insider",
+   "how": "Gnosis Safe 2-of-3, unlabelled; counted insider under D5"
+  },
+  {
+   "addr": "0x2d877c7562611cb94c7cdee46cfd919618ffe258",
+   "pct": 12.46,
+   "label": "insider",
+   "how": "Gnosis Safe 2-of-3, unlabelled; counted insider under D5"
+  },
+  {
+   "addr": "0x5a52e96bacdabb82fd05763e25335261b270efcb",
+   "pct": 5.46,
+   "label": "exchange",
+   "how": "well-known Binance 7 label; excluded"
+  },
+  {
+   "addr": "0xf977814e90da44bfa03b6295a0616a897441acec",
+   "pct": 3.61,
+   "label": "exchange",
+   "how": "well-known Binance 8 label; excluded"
+  },
+  {
+   "addr": "0x76ec5a0d3632b2133d9f1980903305b62678fbd3",
+   "pct": 2.96,
+   "label": "unidentified",
+   "how": "EOA nonce 13,022, no label; counted insider under D5"
+  },
+  {
+   "addr": "0xd0ec028a3d21533fdd200838f39c85b03679285d",
+   "pct": 2.01,
+   "label": "unidentified",
+   "how": "contract (proxy-size code, no Safe getThreshold), no label"
+  },
+  {
+   "addr": "0xb334a61a6209f14b5fa5f1684a4ed7621f66e1ef",
+   "pct": 1.72,
+   "label": "unidentified",
+   "how": "EOA nonce 506,061 (hot-wallet profile), no label"
+  },
+  {
+   "addr": "0x91d40e4818f4d4c57b4578d9eca6afc92ac8debe",
+   "pct": 1.52,
+   "label": "unidentified",
+   "how": "EOA nonce 1,277,566 (hot-wallet profile), no label"
+  }
+ ],
+ "next_unlock": "unknown (not re-verified). Prior lead: monthly ~133.3M ANIME (2.41% of CG circulating) on the 23rd, 1.53B remaining to 2028-01-23 (app.tokenomics.com, read 2026-10-27)",
+ "not_checked": [
+  "Arbitrum holder set (50.6% of supply bridged)",
+  "D1 full computation",
+  "D4 flows",
+  "E1-E4 (monthly unlock looks >=2% of CG circulating)",
+  "F1-F6, F8, F9 incl. powers of EOA owner 0xf9157f",
+  "G1-G4",
+  "honeypot.is"
+ ],
+ "verdict": "reject",
+ "reason": "D2 hard fail: unlabelled 3-of-5 Safe 0x1a14 holds 23.82% of circulating (>10%); D3 (64.7% liquid insider incl. three Safes) and D5 also fail. Rest not run per early-stop rule; token owner is an EOA (F3 unchecked).",
+ "sources": [
+  "https://ethereum-rpc.publicnode.com (read 2026-11-16 16:03 UTC)",
+  "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0x4dc26fc5854e7648a064a4abd590bbe71724c277 (read 2026-11-16 16:03 UTC)",
+  "CoinGecko /coins/markets via cg_markets.json (last_updated 2026-11-16 15:04 UTC)",
+  "prior_ANIME.json (Crypto Book 2026-10-27, leads only)"
+ ]
+}

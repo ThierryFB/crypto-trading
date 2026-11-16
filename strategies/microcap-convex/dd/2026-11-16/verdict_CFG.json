@@ -1,0 +1,238 @@
+{
+ "sym": "CFG",
+ "name": "Centrifuge",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0xcccccccccc33d538dbc2ee4feab0a7a1ff4e8a94",
+   "share_of_supply_pct": 100
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Utility/governance token of RWA infrastructure, not an RWA wrapper; listed on credible venues >90 days (Binance 2026-03-16, Coinbase/Kraken earlier). CP172 share-conversion noted for G4 (not evaluated).",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "indicative: 9 of top-10 not excluded = 298.3M = 78.4% of circulating (>35%), but ranks 11+ not labelled so full non-excluded top-10 not finalised",
+   "source": "Ethplorer getTopTokenHolders (freekey) + publicnode eth_getCode",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2",
+   "source": "",
+   "read_utc": ""
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2",
+   "source": "",
+   "read_utc": ""
+  },
+  "D5": {
+   "result": "fail",
+   "value": "9 non-excluded wallets >=2% of circulating, none identified today",
+   "source": "Ethplorer getTopTokenHolders (freekey) + publicnode eth_getCode",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "E1": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2",
+   "source": "",
+   "read_utc": ""
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2",
+   "source": "",
+   "read_utc": ""
+  },
+  "E3": {
+   "result": "pass",
+   "value": "380.38M / 680M (CoinGecko total) = 55.9%; vs on-chain 705.91M = 53.9%",
+   "source": "CoinGecko; Ethplorer getTokenInfo",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2",
+   "source": "",
+   "read_utc": ""
+  },
+  "F1": {
+   "result": "pass",
+   "value": "is_open_source=1",
+   "source": "GoPlus token_security/1",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "is_mintable=1; mint-role holder not read (stopped after D2); totalSupply grew 680M->705.9M",
+   "source": "GoPlus; Ethplorer",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2",
+   "source": "",
+   "read_utc": ""
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "GoPlus is_proxy=0 (not independently confirmed)",
+   "source": "GoPlus",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "GoPlus is_blacklisted=0, transfer_pausable=0 (source not read)",
+   "source": "GoPlus",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "GoPlus slippage_modifiable=0 (source not read)",
+   "source": "GoPlus",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "GoPlus is_honeypot=0; cannot_sell_all not returned; honeypot.is not run",
+   "source": "GoPlus",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2",
+   "source": "",
+   "read_utc": ""
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2",
+   "source": "",
+   "read_utc": ""
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2",
+   "source": "",
+   "read_utc": ""
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2",
+   "source": "",
+   "read_utc": ""
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2",
+   "source": "",
+   "read_utc": ""
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped after hard fail D2",
+   "source": "",
+   "read_utc": ""
+  },
+  "D2": {
+   "result": "fail",
+   "value": "0xd052...93cb (EOA, non-excluded) holds 106.07M CFG = 27.9% of CoinGecko circulating 380.38M (15.03% of on-chain totalSupply 705.91M)",
+   "source": "Ethplorer getTopTokenHolders (freekey) + publicnode eth_getCode; CoinGecko /coins/centrifuge-2",
+   "read_utc": "2026-11-16 15:14 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0xd052a46b8e0c89facb393805e1917afd20f293cb",
+   "balance": 106068000,
+   "pct": 27.88,
+   "label": "insider",
+   "how": "EOA (eth_getCode empty), no explorer label reachable; prior analysis: receives every mint, probable treasury; unidentified >=2% counts as insider under \u00a71 either way"
+  },
+  {
+   "addr": "0x40d31dd5682b4813899a19bfa5d7453048fa2201",
+   "balance": 48698000,
+   "pct": 12.8,
+   "label": "unidentified",
+   "how": "EOA; prior: created 2026-02-26 with exchange-like deposit flows, no label; >=2% so insider under D5"
+  },
+  {
+   "addr": "0x1369f7b2b38c76b6478c0f0e66d94923421891ba",
+   "balance": 33750000,
+   "pct": 8.87,
+   "label": "unidentified",
+   "how": "contract (1102 bytes code); not identified today (Etherscan behind Cloudflare); not excluded, release schedule unread"
+  },
+  {
+   "addr": "0xf977814e90da44bfa03b6295a0616a897441acec",
+   "balance": 33566000,
+   "pct": 8.82,
+   "label": "exchange",
+   "how": "well-known Binance 20 hot/cold wallet (Etherscan label 'Binance 20'); excluded"
+  },
+  {
+   "addr": "0x845f7623e756370e8d4e7d3ac8fb6ba6574d5467",
+   "balance": 26194000,
+   "pct": 6.89,
+   "label": "unidentified",
+   "how": "EOA; prior: funded by tcoppel.eth, received 26.2M 2026-03-02; >=2% so insider under D5"
+  },
+  {
+   "addr": "0x01c7f2c1eea6eec37e184224f259181f78ec4897",
+   "balance": 19456000,
+   "pct": 5.11,
+   "label": "unidentified",
+   "how": "EOA, no label checked today; >=2%"
+  },
+  {
+   "addr": "0x073f564419b625a45d8aea3bb0de4d5647113ad7",
+   "balance": 17346000,
+   "pct": 4.56,
+   "label": "unidentified",
+   "how": "EOA, no label checked today; >=2%"
+  },
+  {
+   "addr": "0xb185814ec5a0823e712f47de957748f6e950df6d",
+   "balance": 16313000,
+   "pct": 4.29,
+   "label": "unidentified",
+   "how": "EOA; prior: received 16.3M from ops wallet 0xb3da (treasury flow) on 2026-03-17; likely insider/MM"
+  },
+  {
+   "addr": "0x5db753a9381d43bcfa0ef96876c8aef87c486001",
+   "balance": 15464000,
+   "pct": 4.07,
+   "label": "unidentified",
+   "how": "EOA, no label checked today; >=2%"
+  },
+  {
+   "addr": "0xd2dd7b597fd2435b6db61ddf48544fd931e6869f",
+   "balance": 14962000,
+   "pct": 3.93,
+   "label": "unidentified",
+   "how": "EOA, no label checked today; >=2%"
+  }
+ ],
+ "next_unlock": "not checked today; prior: Tokenomist ~4.0M CFG (~1.05% of circ) per monthly event plus 3%/yr treasury inflation, unverified",
+ "not_checked": [
+  "D1 finalisation, D3, D4 (insider-to-exchange flows)",
+  "all E tests except E3",
+  "F2-F9 source read, mint/ward roles, honeypot.is, LP lock, audit",
+  "G1-G4 (Monitoring tag, exploits, enforcement, CP172 conversion status)",
+  "Explorer labels (Etherscan behind Cloudflare)",
+  "Other chains (CoinGecko lists Ethereum only)"
+ ],
+ "verdict": "reject",
+ "reason": "Hard fail D2: EOA 0xd052...93cb (probable treasury, unlabelled) holds 27.9% of circulating supply, above the 10% cap; D5 also fails (9 unidentified >=2% wallets). Remaining tests not run per the early-stop rule.",
+ "sources": [
+  "https://api.coingecko.com/api/v3/coins/centrifuge-2 (read 2026-11-16 15:13 UTC)",
+  "https://api.ethplorer.io/getTokenInfo/0xcccccccccc33d538dbc2ee4feab0a7a1ff4e8a94?apiKey=freekey (read 2026-11-16 15:14 UTC)",
+  "https://api.ethplorer.io/getTopTokenHolders/0xcccccccccc33d538dbc2ee4feab0a7a1ff4e8a94?apiKey=freekey (read 2026-11-16 15:14 UTC)",
+  "https://ethereum-rpc.publicnode.com eth_getCode (read 2026-11-16 15:14 UTC)",
+  "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0xcccccccccc33d538dbc2ee4feab0a7a1ff4e8a94 (read 2026-11-16 15:14 UTC)",
+  "prior_CFG.json (Crypto Book, 2026-10-17) for leads"
+ ]
+}

@@ -1,0 +1,166 @@
+{
+ "sym": "EDEN",
+ "name": "OpenEden",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0x24a3...0035 (full address per prior; not re-read today)",
+   "share_of_supply_pct": 92.2
+  },
+  {
+   "chain": "bsc",
+   "address": "0x235b...0841 (bridged subset; not re-read today)",
+   "share_of_supply_pct": 7.8
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Governance/utility token of an RWA platform, not itself an RWA wrapper/stablecoin; first credible-venue listing Binance 2025-09-30 (>90 days). Chain shares from prior 2026-11-01 totalSupply reads, not re-verified today.",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped after E1 hard fail (brief early-stop rule)",
+   "source": "",
+   "read_utc": ""
+  },
+  "E1": {
+   "result": "fail",
+   "value": "2026-11-30 unlock (in 14 days) of 20,033,333 EDEN = 4.99% of CoinGecko circulating 401,352,465 (2.66% even against tokenomics.com's 754.1M 'unlocked'); threshold <2%. Recipients: insiders 41.6% / investors 31.8% / foundation 26.6%",
+   "source": "https://app.tokenomics.com/tokenomics/openeden/unlocks ; https://api.coingecko.com/api/v3/coins/openeden",
+   "read_utc": "2026-11-16 15:14"
+  }
+ },
+ "top10": [],
+ "next_unlock": "2026-11-30, 20,033,333 EDEN, 4.99% of circulating (401.35M CoinGecko), tokenomics.com (read 2026-11-16 15:14 UTC)",
+ "not_checked": [
+  "All D, F, G tests and E2-E4: stopped after E1 hard fail per brief",
+  "Top-10 holders not re-read (prior 2026-11-01: four MerkleVesters 63.8%, Binance 10.0%, Staked Eden 5.2%, unlabelled EOA 0x1f36 3.88% and Safes 0x107a/0xac76/0xf990 of Ethereum supply)",
+  "Tokenomist/CryptoRank cross-check of the 11-30 unlock (not needed: largest-figure rule and tokenomics.com alone fails E1)",
+  "Whether the Jan-2027 team lock-up extension removes the insider tranche from the 11-30 unlock (even the investor+foundation share alone, 11.7M, is 2.9% of circulating)"
+ ],
+ "verdict": "reject",
+ "reason": "E1 fails: the 2026-11-30 unlock of 20.03M EDEN is 4.99% of circulating (limit <2%). All other D-G tests were not run under the early-stop rule.",
+ "sources": [
+  "https://app.tokenomics.com/tokenomics/openeden/unlocks (read 2026-11-16 15:14 UTC)",
+  "https://api.coingecko.com/api/v3/coins/openeden (read 2026-11-16 15:14 UTC; circulating 401,352,465, mcap $17.73M)"
+ ]
+}

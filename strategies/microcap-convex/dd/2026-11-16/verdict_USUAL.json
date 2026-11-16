@@ -1,0 +1,163 @@
+{
+ "sym": "USUAL",
+ "name": "Usual",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0xc4441c2be5d8fa8126822b9929ca0b81ea0de38e",
+   "share_of_supply_pct": "~100 (totalSupply 1,991,504,945; BSC/Base 0x4acd4d03af6f9cc0fb7c5f0868b7b6287d7969c5 bridged mirrors, not read)"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Governance/revenue token of Usual (not the USD0 stablecoin or bUSD0 wrapper); TGE and Binance listing 2024-11-15 (>90 days).",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "Next monthly emission step 2026-12-15 (29 days out): 66,583,333 USUAL = 3.35% of CoinGecko circulating 1,985,676,567 (>=2%). Sources disagree: tokenomics.com models the old 4B cap; scaled to the 3B UIP-11 cap it is ~49.9M (2.51%), still >=2%. Observed on-chain mint pace is lower: totalSupply 1,981,249,179 (2026-10-21, prior) -> 1,991,504,945 (today), ~0.39M/day, ~11.8M/30d (0.6%). Criteria say use the largest figure. Hard fail.",
+   "source": "app.tokenomics.com/tokenomics/usual/unlocks; CoinGecko /coins/usual; ethereum-rpc.publicnode.com totalSupply",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "E2": {
+   "result": "fail",
+   "value": "Largest figure: 6 monthly steps 2026-12-15..2027-05-15 x 66,583,333 = 399.5M = 20.12% of circulating (>20%). At 3B-cap scaling ~15.1%; at observed on-chain pace ~70M (3.5%). Fails on the largest-figure rule.",
+   "source": "app.tokenomics.com/tokenomics/usual/unlocks; CoinGecko /coins/usual; ethereum-rpc.publicnode.com totalSupply",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "E3": {
+   "result": "pass",
+   "value": "1,985,676,567 / 3,000,000,000 max = 66.2% (>=30%)",
+   "source": "CoinGecko /coins/usual",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "tokenomics.com schedule still on the pre-UIP-11 4B cap; no post-UIP-11 (3B) per-month schedule found; actual mint pace differs from the schedule",
+   "source": "app.tokenomics.com/tokenomics/usual/unlocks",
+   "read_utc": "2026-11-16 16:05"
+  }
+ },
+ "top10": [],
+ "next_unlock": "2026-12-15, 66,583,333 USUAL (tokenomics.com, 4B-cap model; ~49.9M on the 3B cap), 3.35% of circulating 1,985,676,567, app.tokenomics.com/tokenomics/usual/unlocks",
+ "not_checked": [
+  "D1-D5 holder map incl. usualX/UsualXLockup owners (stopped after E1 hard fail)",
+  "F1-F9 contract review (proxy/admin/mint roles)",
+  "G1-G4 flags",
+  "post-UIP-11 official emission schedule",
+  "BSC/Base bridged supply"
+ ],
+ "verdict": "reject",
+ "reason": "E1 fails: the next monthly emission (2026-12-15, 66.58M) is 3.35% of circulating, >=2% even on 3B-cap scaling; E2 also fails on the largest-figure rule (20.1%). E4 unknown; D, F, G not run.",
+ "sources": [
+  "https://app.tokenomics.com/tokenomics/usual/unlocks (read 2026-11-16 16:04 UTC)",
+  "https://api.coingecko.com/api/v3/coins/usual (read 2026-11-16 16:05 UTC)",
+  "https://ethereum-rpc.publicnode.com eth_call totalSupply 0xc444...e38e (read 2026-11-16 16:04 UTC)"
+ ]
+}

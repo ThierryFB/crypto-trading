@@ -1,0 +1,241 @@
+{
+ "sym": "AVNT",
+ "name": "Veranta (formerly Avantis)",
+ "chains": [
+  {
+   "chain": "base",
+   "address": "0x696f9436b67233384889472cd7cd58a6fb5df4f1",
+   "share_of_supply_pct": 100.0
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Governance/staking ERC-20 of a perps DEX; not stable/wrapped/RWA wrapper; first listed 2025-09 (>90 days). Rebrand is name-only.",
+ "tests": {
+  "D1": {
+   "result": "fail",
+   "value": "Top-10 non-excluded (from GoPlus top-10 after excluding vester 0x463e, Binance 0xf977, Binance 0x5a52): 0x96ea 80.76M, stkAVNT 0xd546 23.37M, 0x841e 13.96M, 0x58f7 13.02M, 0x455c 12.16M, 0xbaed 11.73M, 0x1d0d 11.07M = 166.07M = 42.8% of circulating 387.94M (only 7 of 10 visible; already > 35%). Even excluding stkAVNT and 0xbaed, 5 wallets = 33.8% before holders 11+.",
+   "source": "api.gopluslabs.io/api/v1/token_security/8453 (token_security, holders); api.coingecko.com/api/v3/coins/avantis",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "D2": {
+   "result": "fail",
+   "value": "0x96ea16a3...8a43 (EOA, nonce 127, unidentified) 80,764,088 AVNT = 20.8% of circulating (> 10%)",
+   "source": "api.gopluslabs.io/api/v1/token_security/8453 (token_security, holders); base-rpc.publicnode.com eth_call/eth_getCode/eth_getTransactionCount",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "Unidentified >=2% wallets count as insiders (D5): 0x96ea 20.8% + 0x841e 3.6% + 0x58f7 3.4% + 0x455c 3.1% + 0xbaed 3.0% (if not exchange) + 0x1d0d 2.9% = 33.8\u201336.8% of circulating (> 20%)",
+   "source": "api.gopluslabs.io/api/v1/token_security/8453 (token_security, holders); base-rpc.publicnode.com eth_call/eth_getCode/eth_getTransactionCount",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "transfer histories not read (Basescan/getLogs not attempted after hard fails)",
+   "source": "not run (stopped after hard fails per brief)",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "Unidentified wallets >=2% of circulating: 0x96ea, 0x841e, 0x58f7, 0x455c, 0x1d0d, 0xbaed (inferred exchange only)",
+   "source": "api.gopluslabs.io/api/v1/token_security/8453 (token_security, holders); base-rpc.publicnode.com eth_call/eth_getCode/eth_getTransactionCount",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "Next unlock 2026-12-09 (in 23 days): 24,692,857 AVNT = 6.37% of circulating 387.94M (>= 2%). On-chain check: vester balance fell 637.74M (2026-10-22, prior) to 612.06M today, i.e. ~25.7M released around the 2026-11-09 unlock",
+   "source": "app.tokenomics.com/tokenomics/avantis/unlocks; api.gopluslabs.io/api/v1/token_security/8453 (token_security, holders); api.coingecko.com/api/v3/coins/avantis",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "E2": {
+   "result": "fail",
+   "value": "Monthly ~24.69M on the 9th: 6 unlocks in the next 180 days (Dec 9 \u2013 May 9) = ~148.2M = 38.2% of circulating (> 20%), before staking rewards",
+   "source": "app.tokenomics.com/tokenomics/avantis/unlocks",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "E3": {
+   "result": "pass",
+   "value": "Circulating 387.94M / total 1,000M = 38.8% (>= 30%); equals 1B minus vester balance 612.06M",
+   "source": "api.coingecko.com/api/v3/coins/avantis; api.gopluslabs.io/api/v1/token_security/8453 (token_security, holders); base-rpc.publicnode.com eth_call/eth_getCode/eth_getTransactionCount totalSupply",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "Schedule known: 28 remaining monthly unlocks totalling 595.6M to 2029-03-09; on-chain vester release matches",
+   "source": "app.tokenomics.com/tokenomics/avantis/unlocks",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "F1": {
+   "result": "pass",
+   "value": "is_open_source=1 (GoPlus); Sourcify exact match per prior (2026-10-22, not re-read today)",
+   "source": "api.gopluslabs.io/api/v1/token_security/8453 (token_security, holders)",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "GoPlus is_mintable=1. Prior source read says mint only via ERC-7802 crosschainMint by SuperchainTokenBridge 0x4200...0028; not re-read today",
+   "source": "GoPlus + prior_AVNT.json",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "F3": {
+   "result": "fail",
+   "value": "Owner 0x87d8...2426 is a contract (Gnosis Safe, 3-of-6 per prior). It holds the blacklist (touches transfers) and DEFAULT_ADMIN_ROLE on the vester (can defund/revoke 61% of supply) with no >=48h timelock found. Not an EOA, so not the EOA hard fail. can_take_back_ownership=0",
+   "source": "api.gopluslabs.io/api/v1/token_security/8453 (token_security, holders) owner_address; base-rpc.publicnode.com eth_call/eth_getCode/eth_getTransactionCount getCode; prior_AVNT.json",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "F4": {
+   "result": "pass",
+   "value": "is_proxy=0",
+   "source": "api.gopluslabs.io/api/v1/token_security/8453 (token_security, holders)",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "F5": {
+   "result": "fail",
+   "value": "is_blacklisted=1 (owner blacklistUpdate); transfer_pausable=0. Multisig without a timelock, which the criteria map to need-more-info",
+   "source": "api.gopluslabs.io/api/v1/token_security/8453 (token_security, holders)",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "F6": {
+   "result": "pass",
+   "value": "buy_tax=0, sell_tax=0, slippage_modifiable=0, trading_cooldown=0, is_anti_whale=0",
+   "source": "api.gopluslabs.io/api/v1/token_security/8453 (token_security, holders)",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "F7": {
+   "result": "pass",
+   "value": "is_honeypot=0, cannot_sell_all=0 (GoPlus only; honeypot.is not checked)",
+   "source": "api.gopluslabs.io/api/v1/token_security/8453 (token_security, holders)",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "GoPlus lists UniV3 pool 0x04f0 as largest (~$4.4k) and LP holders with is_locked=0; Aerodrome Slipstream share of on-chain liquidity and its LP lock not checked",
+   "source": "not run (stopped after hard fails per brief)",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "no public audit of the token checked today; contract is OZ ERC20 + Ownable2Step + blacklist + ERC-7802 (modified, per prior)",
+   "source": "not run (stopped after hard fails per brief)",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "Binance tags / delisting notices not re-read today (prior 2026-10-22: no Monitoring, tags defi+Seed)",
+   "source": "not run (stopped after hard fails per brief)",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "exploit search not re-run today",
+   "source": "not run (stopped after hard fails per brief)",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not checked today",
+   "source": "not run (stopped after hard fails per brief)",
+   "read_utc": "2026-11-16 15:20"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not re-checked today (prior: 2026-09-15 Veranta rebrand is name-only, same contract)",
+   "source": "not run (stopped after hard fails per brief)",
+   "read_utc": "2026-11-16 15:20"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0x463e616ccb0e92284297039fdb1317d192acca2f",
+   "balance": 612060381.5,
+   "pct": 157.8,
+   "label": "vesting-timelock",
+   "how": "Verified MerkleVester (Sourcify per prior), getCode non-empty; balance = total minus CoinGecko circulating. Revocable by admin."
+  },
+  {
+   "addr": "0x96ea16a3453f9e62b80100a0bb02b497043a8a43",
+   "balance": 80764088.45,
+   "pct": 20.82,
+   "label": "unidentified",
+   "how": "EOA (eth_getCode 0x, nonce 127); no public label; counts as insider per \u00a71/D5"
+  },
+  {
+   "addr": "0xf977814e90da44bfa03b6295a0616a897441acec",
+   "balance": 47792930.95,
+   "pct": 12.32,
+   "label": "exchange",
+   "how": "Well-known public explorer label 'Binance 8' (same address across EVM chains); not re-verified on Basescan today"
+  },
+  {
+   "addr": "0xd546040f08e6b3a4f1d21683b9bd9935d73bd9e9",
+   "balance": 23367688.08,
+   "pct": 6.02,
+   "label": "other",
+   "how": "stkAVNT staking contract (name STAKED_AVNT per prior); not an excluded category, so counted"
+  },
+  {
+   "addr": "0x5a52e96bacdabb82fd05763e25335261b270efcb",
+   "balance": 14777446.71,
+   "pct": 3.81,
+   "label": "exchange",
+   "how": "Public explorer label Binance hot wallet (from memory, as in prior); not re-verified today"
+  },
+  {
+   "addr": "0x841ed663f2636863d40be4ee76243377dff13a34",
+   "balance": 13957427.24,
+   "pct": 3.6,
+   "label": "unidentified",
+   "how": "EOA (getCode 0x, nonce 2,692); new in top 10 since 10-22"
+  },
+  {
+   "addr": "0x58f71324d7dad8a0542ec629fd39886006cb8aea",
+   "balance": 13017357.18,
+   "pct": 3.36,
+   "label": "unidentified",
+   "how": "EOA per GoPlus is_contract=0 (prior: nonce 0)"
+  },
+  {
+   "addr": "0x455c31ad68af2ea0a3d026d105984d4a7646e448",
+   "balance": 12155823.11,
+   "pct": 3.13,
+   "label": "unidentified",
+   "how": "EOA per GoPlus is_contract=0 (prior: nonce 0)"
+  },
+  {
+   "addr": "0xbaed383ede0e5d9d72430661f3285daa77e9439f",
+   "balance": 11730317.9,
+   "pct": 3.02,
+   "label": "unidentified",
+   "how": "EOA; prior inferred exchange hot wallet from nonce ~2.06M, but no explorer label, so not excluded"
+  },
+  {
+   "addr": "0x1d0d523f50e7a04d19aded42cf985e0ddac3d7a8",
+   "balance": 11070469.65,
+   "pct": 2.85,
+   "label": "unidentified",
+   "how": "EOA per GoPlus is_contract=0 (prior: nonce 608)"
+  }
+ ],
+ "next_unlock": "2026-12-09, 24,692,857 AVNT, 6.37% of circulating (387.94M), source app.tokenomics.com/tokenomics/avantis/unlocks (read 2026-11-16 15:20 UTC)",
+ "not_checked": [
+  "D4 insider-to-exchange flows (no transfer histories)",
+  "F2 re-read of verified source today",
+  "F8 LP lock on Aerodrome/Uniswap pools",
+  "F9 audit",
+  "G1\u2013G4 not re-run today (stopped after hard fails)",
+  "Holders 11+ (GoPlus returns top 10 only)",
+  "Basescan labels for 0x5a52/0xbaed",
+  "honeypot.is, De.Fi scanners",
+  "Owner Safe threshold and modules not re-read today",
+  "CoinMarketCap cross-check of circulating"
+ ],
+ "verdict": "reject",
+ "reason": "Hard fails: E1 next unlock 2026-12-09 is 6.37% of circulating (limit <2%) and D2 unidentified EOA 0x96ea holds 20.8% (limit 10%). Also failed: D1 42.8%, D3, D5, E2 38.2%, F3/F5 (3-of-6 Safe, no timelock, blacklist + vester admin). D4, F2, F8, F9, G1\u2013G4 unknown.",
+ "sources": [
+  "https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=0x696f9436b67233384889472cd7cd58a6fb5df4f1 (read 2026-11-16 15:20 UTC)",
+  "https://base-rpc.publicnode.com eth_call totalSupply, eth_getCode, eth_getTransactionCount (read 2026-11-16 15:20 UTC)",
+  "https://api.coingecko.com/api/v3/coins/avantis (read 2026-11-16 15:20 UTC)",
+  "https://app.tokenomics.com/tokenomics/avantis/unlocks (read 2026-11-16 15:20 UTC)",
+  "prior_AVNT.json (Crypto Book analysis 2026-10-22, leads only)"
+ ]
+}

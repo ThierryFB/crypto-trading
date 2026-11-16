@@ -1,0 +1,162 @@
+{
+ "sym": "TRUST",
+ "name": "Intuition",
+ "chains": [
+  {
+   "chain": "base",
+   "address": "0x6cd905df2ed214b22e0d48ff17cd4200c1c6d8a3",
+   "share_of_supply_pct": "~100 (ERC-20 on Base; also native gas on Intuition L3 via bridge)"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Protocol utility/governance token, not wrapped/stable; TGE and Coinbase/Kraken listing 2025-11-05 (>90 days).",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "2026-12-05 unlock 25,712,917 TRUST = 14.31% of CoinGecko circulating 179,647,832 (>=2%). CoinGecko circulating looks not yet updated for the 2026-11-05 cliff release; even at schedule-unlocked ~244M it is ~10.5%. Hard fail.",
+   "source": "app.tokenomics.com/tokenomics/intuition/unlocks; CoinGecko /coins/intuition",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "E2": {
+   "result": "fail",
+   "value": "Monthly unlocks 2026-12-05..2027-05-05: 6 x 25,712,917 = 154,277,502 = 85.9% of circulating (>20%), before TrustBonding emissions",
+   "source": "app.tokenomics.com/tokenomics/intuition/unlocks; CoinGecko /coins/intuition",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "E3": {
+   "result": "fail",
+   "value": "179,647,832 / 1,000,000,000 total (no max) = 17.96% (<30%); remainder is on a release schedule to 2029-11-05, not burned/locked indefinitely. On-chain Base totalSupply ~1,072M (prior 2026-10-26, not re-read) makes it lower.",
+   "source": "app.tokenomics.com/tokenomics/intuition/unlocks; CoinGecko /coins/intuition",
+   "read_utc": "2026-11-16 16:04"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "Monthly schedule (5th) published to 2029-11-05; TrustBonding emissions on top not modelled there",
+   "source": "app.tokenomics.com/tokenomics/intuition/unlocks",
+   "read_utc": "2026-11-16 16:04"
+  }
+ },
+ "top10": [],
+ "next_unlock": "2026-12-05, 25,712,917 TRUST, 14.31% of circulating (179,647,832), app.tokenomics.com/tokenomics/intuition/unlocks",
+ "not_checked": [
+  "D1-D5 holder map (stopped after E1 hard fail)",
+  "F1-F9 contract review (Base token, TrustBonding mint path)",
+  "G1-G4 flags",
+  "TrustBonding emissions for E2",
+  "whether CoinGecko circulating reflects the 2026-11-05 cliff"
+ ],
+ "verdict": "reject",
+ "reason": "E1 fails (2026-12-05 unlock = 14.3% of circulating), and E2 (85.9% in 180 days) and E3 (18.0% circulating/total) also fail. D, F, G not run after the hard fail.",
+ "sources": [
+  "https://app.tokenomics.com/tokenomics/intuition/unlocks (read 2026-11-16 16:03 UTC)",
+  "https://api.coingecko.com/api/v3/coins/intuition (read 2026-11-16 16:03 UTC)"
+ ]
+}

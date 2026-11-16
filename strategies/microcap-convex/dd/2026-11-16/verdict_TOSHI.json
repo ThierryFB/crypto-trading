@@ -1,0 +1,245 @@
+{
+ "sym": "TOSHI",
+ "name": "Toshi",
+ "chains": [
+  {
+   "chain": "base",
+   "address": "0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4",
+   "share_of_supply_pct": 98.8
+  },
+  {
+   "chain": "bsc",
+   "address": "0x6a26...db3f (bridged BEP-20, full address not re-read)",
+   "share_of_supply_pct": 1.2
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Base-native memecoin, not wrapped/bridged/stable; Base totalSupply 420,689,980,957 (on-chain, 2026-11-16 15:14 UTC). Listed on Coinbase/Kraken well over 90 days (prior analysis; OKX since 2025-10-07). BSC copy ~1.2% (<10%, prior figure, not re-read), so only Base checked.",
+ "tests": {
+  "D1": {
+   "result": "fail",
+   "value": "Top 10 non-excluded = 39.28% of circulating (37.84% even if the Uniswap v3 pool were excluded); no top-10 wallet is a labelled exchange, burn, bridge or vesting contract",
+   "source": "base-rpc.publicnode.com eth_call balanceOf/totalSupply + eth_getCode + eth_getTransactionCount; GoPlus holders list",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "D2": {
+   "result": "fail",
+   "value": "Largest non-excluded holder 0x8c2e...d3ba = 64,434,944,904 TOSHI = 15.32% (> 10%), unlabelled dormant EOA (nonce 2)",
+   "source": "base-rpc.publicnode.com eth_call balanceOf/totalSupply + eth_getCode + eth_getTransactionCount; GoPlus holders",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "Under D5, unidentified >=2% wallets count as insiders: 15.32+7.20+3.79+2.89+2.12 = 31.30% liquid (> 20%); none in vesting/timelock",
+   "source": "base-rpc.publicnode.com eth_call balanceOf/totalSupply + eth_getCode + eth_getTransactionCount",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); insider-to-exchange flows over 90 days not traced (explorer tx history behind Cloudflare)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "5 non-excluded wallets >=2% unidentified (0x8c2e 15.32%, 0x941e 7.20%, 0xb220 3.79%, 0x8752 2.89%, 0xd3e0 2.12%)",
+   "source": "base-rpc.publicnode.com eth_call balanceOf/totalSupply + eth_getCode + eth_getTransactionCount; GoPlus tags empty; Basescan/Blockscout blocked",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "E1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); prior: fair launch, no vesting; not re-verified",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); prior: circulating = max = 420.69B; not re-verified on CoinGecko",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F1": {
+   "result": "pass",
+   "value": "is_open_source=1",
+   "source": "https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F2": {
+   "result": "pass",
+   "value": "is_mintable=0; totalSupply unchanged 420,689,980,957",
+   "source": "https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4; base-rpc totalSupply",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F3": {
+   "result": "pass",
+   "value": "owner_address=0x0 (renounced), can_take_back_ownership=0, hidden_owner=0",
+   "source": "https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F4": {
+   "result": "pass",
+   "value": "is_proxy=0",
+   "source": "https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F5": {
+   "result": "pass",
+   "value": "is_blacklisted=0, transfer_pausable=0",
+   "source": "https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F6": {
+   "result": "pass",
+   "value": "slippage_modifiable=0, trading_cooldown=0, is_anti_whale=0; honeypot.is buy/sell/transfer tax 0",
+   "source": "https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4; https://api.honeypot.is/v2/IsHoneypot?address=0xac1b...b2b4&chainID=8453",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F7": {
+   "result": "pass",
+   "value": "GoPlus is_honeypot=0 (cannot_sell_all not returned); honeypot.is isHoneypot=false, risk low, no flags",
+   "source": "https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4; honeypot.is",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); main pool is Uniswap v3 0x4b0a...c2d3 (~85% of Base DEX liquidity); v3 LP NFT ownership/locks not checked",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); verified source not read; Halborn audit cited in prior is for Toshi Tools, not confirmed for the token",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); prior: not on Binance spot, no delisting notices as of 2026-11-11; not re-verified",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); top-20 sanctions screen not done",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fail D2 (brief budget rule); prior: 2023 v2 migration complete; not re-verified",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:14 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0x8c2e59e0f28308ee1ea0ff92e9235ae4cfe9d3ba",
+   "balance": 64434944904,
+   "pct": 15.316,
+   "label": "unidentified",
+   "how": "EOA (getCode 0x), nonce 2 (dormant), no GoPlus tag; Basescan/Blockscout labels blocked by Cloudflare"
+  },
+  {
+   "addr": "0x941e6482a6bf17f40d29718aa47b38fe9b44898a",
+   "balance": 30270856125,
+   "pct": 7.196,
+   "label": "unidentified",
+   "how": "EOA, nonce 307, no GoPlus tag; no explorer label readable"
+  },
+  {
+   "addr": "0xb220dcf0be455d56f2d0300019f5bcdf6b2775b4",
+   "balance": 15921756352,
+   "pct": 3.785,
+   "label": "unidentified",
+   "how": "EOA, nonce 0 (receive-only), no tag"
+  },
+  {
+   "addr": "0x8752a799b990a7f9688323da4517b327000740cc",
+   "balance": 12137407791,
+   "pct": 2.885,
+   "label": "unidentified",
+   "how": "EOA, nonce 0, no tag"
+  },
+  {
+   "addr": "0xd3e0341b361134014e0c89378b3e36bc5020cd97",
+   "balance": 8916697089,
+   "pct": 2.12,
+   "label": "unidentified",
+   "how": "EOA, nonce 219, no tag"
+  },
+  {
+   "addr": "0x5d6575927d655eca067ab5203d271dadb9221f35",
+   "balance": 8229966743,
+   "pct": 1.956,
+   "label": "unidentified",
+   "how": "EOA, nonce 197, no tag"
+  },
+  {
+   "addr": "0xe810e8b2052fbd1b3a8d6cf8e69e4cd4f475d0a1",
+   "balance": 6421817328,
+   "pct": 1.526,
+   "label": "unidentified",
+   "how": "EOA, nonce 0; identical balance to next two (likely one entity)"
+  },
+  {
+   "addr": "0xce6cadc0de92d5becafb362169c25e393dba4f31",
+   "balance": 6421817328,
+   "pct": 1.526,
+   "label": "unidentified",
+   "how": "EOA, nonce 0; identical balance"
+  },
+  {
+   "addr": "0x29db9b1ae0e9d65ec065be45b0b568beceb8c0f4",
+   "balance": 6421817328,
+   "pct": 1.526,
+   "label": "unidentified",
+   "how": "EOA, nonce 0; identical balance"
+  },
+  {
+   "addr": "0x4b0aaf3ebb163dd45f663b38b6d93f6093ebc2d3",
+   "balance": 6085532570,
+   "pct": 1.447,
+   "label": "other (DEX pool)",
+   "how": "contract; token0()=WETH, token1()=TOSHI, fee()=10000: Uniswap v3 TOSHI/WETH 1% pool (DexScreener ~$809k liq). Not an excluded category under \u00a73 D"
+  }
+ ],
+ "next_unlock": "None known: prior analysis (2026-11-11) says fair launch, no vesting, not mintable (GoPlus is_mintable=0 re-read 2026-11-16); E1-E4 not re-verified today",
+ "not_checked": [
+  "D4 insider-to-exchange flows (explorer tx history behind Cloudflare)",
+  "identity of 0x8c2e...d3ba and other >=2% wallets (Basescan/Blockscout labels unavailable)",
+  "E1-E4 unlock sources (Tokenomist/CryptoRank)",
+  "F8 Uniswap v3 LP position ownership",
+  "F9 source read / audit",
+  "G1-G4 venue notices, exploits, sanctions, migration",
+  "BSC bridged supply re-read (full address not in prior)",
+  "A, B, C tests (out of brief scope)"
+ ],
+ "verdict": "reject",
+ "reason": "Hard fail on holder concentration: D2 largest non-excluded holder 15.32% (unlabelled dormant EOA, >10%), D1 top-10 39.28% (>35%), D3 31.30% treated-as-insider (>20%), D5 five unidentified >=2% wallets. Contract tests F1-F7 pass; D4, E1-E4, F8-F9, G1-G4 left unknown after the early stop.",
+ "sources": [
+  "https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4 (read 2026-11-16 15:13 UTC)",
+  "https://base-rpc.publicnode.com eth_call/eth_getCode/eth_getTransactionCount (read 2026-11-16 15:14 UTC)",
+  "https://api.honeypot.is/v2/IsHoneypot?address=0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4&chainID=8453 (read 2026-11-16 15:14 UTC)",
+  "https://api.dexscreener.com/latest/dex/tokens/0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4 (read 2026-11-16 15:14 UTC)",
+  "https://base.blockscout.com/api/v2/addresses/... and https://basescan.org/address/... (Cloudflare challenge, no data, 2026-11-16 15:14 UTC)",
+  "prior_TOSHI.json (Crypto Book analysis 2026-11-11, leads only)"
+ ]
+}

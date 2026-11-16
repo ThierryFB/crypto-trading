@@ -1,0 +1,257 @@
+{
+ "sym": "BIO",
+ "name": "Bio Protocol",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0xcb1592591996765Ec0eFc1f92599A19767ee5ffA",
+   "share_of_supply_pct": 87.8
+  },
+  {
+   "chain": "solana",
+   "address": "bioJ9JTqW62MLz7UKHU69gtKhPpGi1BQhccj2kmSvUJ",
+   "share_of_supply_pct": 6.3
+  },
+  {
+   "chain": "base",
+   "address": "0x226a2fa2556c48245e57cd1cba4c6c9e67077dd2",
+   "share_of_supply_pct": 5.6
+  },
+  {
+   "chain": "bsc",
+   "address": "0x226a2fa2556c48245e57cd1cba4c6c9e67077dd2",
+   "share_of_supply_pct": 0.3
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "DeSci governance token, not stable/wrapped/staked/RWA. Ethereum totalSupply 2,914.43M of 3,320M max (Blockscout 16:02 UTC); Solana/Base/BSC are Wormhole NTT burn-and-mint copies (shares from prior 2026-11-14 RPC reads, each <10%), so only Ethereum checked. Listed Binance since Jan 2025 (>90 days). Circulating = CoinGecko 2,145,029,070 (16:02 UTC); on-chain upper bound ~2,450.7M (3,320M minus the two vesting contracts) does not prove CG wrong (tokenomics.com unlocked 2,278.5M), so CG used (conservative).",
+ "tests": {
+  "D1": {
+   "result": "pass",
+   "value": "Top 10 non-excluded = 18.5% of CG circ: 0xeC43 6.00, veBIO staking proxy 2.76, 0x1cfD 2.60, 0x135B 1.85, 0xc80A 1.20, 0x42fD 0.93, Uniswap V4 PoolManager 0.88, 0x9EfF 0.81, Safe 0xF248 0.81, 0xBbD5 0.63. Excluded: BIO Vesting Master 38.72%, vBIO vesting 1.81%, Binance (3 wallets 24.25%), BtcTurk 2.67%, OKX (2) 3.46%, Robinhood 0.95%, Bitvavo/Gate deposit",
+   "source": "eth.blockscout.com/api/v2/tokens/0xcb1592591996765Ec0eFc1f92599A19767ee5ffA/holders (+ /addresses/<a> labels)",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "D2": {
+   "result": "pass",
+   "value": "Largest non-excluded 0xeC4349ba7cA00401199203CFc3Fa770325D60838 = 128.67M = 6.00% (<=10%). Note 0x5a52...Efcb 231.8M (10.81%) is Blockscout-labelled 'Binance: Hot Wallet / Binance 28', excluded",
+   "source": "eth.blockscout.com/api/v2/tokens/0xcb1592591996765Ec0eFc1f92599A19767ee5ffA/holders (+ /addresses/<a> labels)",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "D3": {
+   "result": "pass",
+   "value": "Liquid insider (incl. D5 unidentified >=2%): 0xeC43 6.00% + 0x1cfD 2.60% = 8.60% (<=20%). Foundation Safes 0xe57a (3/6) and 0xd9c6 (5/11) hold no BIO in top 45. Many ~12M EOAs (~0.55% each, 25+) unclassified; even all of them would not obviously exceed 20% but were not traced",
+   "source": "eth.blockscout.com/api/v2/tokens/0xcb1592591996765Ec0eFc1f92599A19767ee5ffA/holders (+ /addresses/<a> labels); ethereum-rpc.publicnode.com eth_call/eth_getCode",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "0xeC43 (D5 insider) cycles BIO with unlabelled EOA 0xc4629579...C95e: ~200M+ out in 90d (e.g. 23M 2026-09-08, 16M 08-25, 13M x2 09-18/19) with near-matching inflows back; also address-poisoning dust. 0x1cfD sent 0.81M clips to unlabelled 0x5683Cb81...E735 and receives sweeps from labelled 'Bithumb: Deposit Address' 0x0084... Neither counterparty labelled as exchange deposit, so cannot conclude",
+   "source": "eth.blockscout.com/api/v2/addresses/<a>/token-transfers?token=BIO (90-day window from 2026-08-18)",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "Unidentified non-excluded >=2%: 0xeC43 (6.00%, EOA, round-trips with 0xc462) and 0x1cfD (2.60%, EOA, receives from Bithumb deposit address: possibly a Bithumb collection wallet, unlabelled). Counted as insiders in D3; does not change D3 result. veBIO 2.76% identified (Blockscout 'BIO Protocol: veBIO Token')",
+   "source": "eth.blockscout.com/api/v2/tokens/0xcb1592591996765Ec0eFc1f92599A19767ee5ffA/holders (+ /addresses/<a> labels); ethereum-rpc.publicnode.com eth_call/eth_getCode eth_getCode=0x for both",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "E1": {
+   "result": "pass",
+   "value": "Next unlock 2026-12-03, 30,802,222 BIO = 1.44% of CG circ (<2%); only event in 30 days",
+   "source": "https://app.tokenomics.com/tokenomics/bio-protocol/unlocks (CryptoRank 403, Tokenomist empty page)",
+   "read_utc": "2026-11-16 16:06 UTC"
+  },
+  "E2": {
+   "result": "pass",
+   "value": "6 monthly unlocks (Dec 3 - May 3) x 30.8M = 184.8M = 8.6% of circ (<=20%). Staking/veBIO emissions not quantified; uncapped MINTER_ROLE not scheduled (see F2)",
+   "source": "app.tokenomics.com (Dec-Mar listed; Apr/May extrapolated from monthly linear schedule)",
+   "read_utc": "2026-11-16 16:06 UTC"
+  },
+  "E3": {
+   "result": "pass",
+   "value": "2,145.0M / 3,320M max = 64.6% (>=30%)",
+   "source": "CoinGecko /coins/bio-protocol",
+   "read_utc": "2026-11-16 16:02 UTC"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "Schedule published: monthly on the 3rd, 1,041.5M locked, linear to ~2030",
+   "source": "app.tokenomics.com; on-chain TokenVesting schedules readable (getVestingSchedule)",
+   "read_utc": "2026-11-16 16:06 UTC"
+  },
+  "F1": {
+   "result": "pass",
+   "value": "Verified: BioToken, solc 0.8.23, OZ ERC20/ERC20Burnable/Ownable/AccessControlEnumerable; is_open_source=1",
+   "source": "eth.blockscout.com/api/v2/smart-contracts/0xcb15...5ffA; https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0xcb1592591996765ec0efc1f92599a19767ee5ffa",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F2": {
+   "result": "fail",
+   "value": "mint(address,uint256) onlyRole(MINTER_ROLE) with NO cap (ERC20Capped imported but not inherited); is_mintable=1. MINTER_ROLE holders (getRoleMember): Gnosis Safe 0xd9c6ee1547fd6d48f8872dd866473893bbe8a1ab (5-of-11, no timelock) and Wormhole NttManager proxy 0x1783e7d1f498321d7e15044d769621e1bedc7f4c (burn-and-mint bridge, UUPS, owner = 3-of-6 Safe). No >=48h timelock, no fixed schedule",
+   "source": "verified source; ethereum-rpc.publicnode.com eth_call/eth_getCode getRoleMemberCount/getRoleMember/getThreshold/getOwners; https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0xcb1592591996765ec0efc1f92599a19767ee5ffa",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F3": {
+   "result": "fail",
+   "value": "DEFAULT_ADMIN_ROLE (grants MINTER) = Safe 0xd9c6 5/11; owner() = Safe 0xe57a09c3fdfb6bd2b8ebc46e0ff884876fae60fd 3/6; NTT manager owner (can upgrade minter) = same 3/6 Safe. Multisigs >=3 signers but no >=48h timelock on supply power. Not EOA. GoPlus owner_address=0xe57a..., can_take_back_ownership=0, hidden_owner=0",
+   "source": "verified source; ethereum-rpc.publicnode.com eth_call/eth_getCode; https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0xcb1592591996765ec0efc1f92599a19767ee5ffa",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F4": {
+   "result": "pass",
+   "value": "Token not a proxy (is_proxy=0, no ERC1967 slots). Note: minter NttManager IS an ERC1967 UUPS proxy upgradeable by the 3/6 Safe without timelock (covered under F2/F3)",
+   "source": "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0xcb1592591996765ec0efc1f92599a19767ee5ffa; ethereum-rpc.publicnode.com eth_call/eth_getCode eth_getStorageAt",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F5": {
+   "result": "pass",
+   "value": "No blacklist/pause/freeze in token source; is_blacklisted=0, transfer_pausable=0. NTT manager has a pauser 0x9ec0b6ae...99b5 (bridge only, not token transfers)",
+   "source": "verified source; https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0xcb1592591996765ec0efc1f92599a19767ee5ffa",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F6": {
+   "result": "pass",
+   "value": "No taxes/max-tx (buy_tax=0, sell_tax=0, slippage_modifiable=0, anti_whale=0). Transfer gate transfersEnabled is one-way and already true (eth_call =1); TRANSFER_ROLE has 29 members but is moot once enabled",
+   "source": "verified source; https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0xcb1592591996765ec0efc1f92599a19767ee5ffa; ethereum-rpc.publicnode.com eth_call/eth_getCode",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F7": {
+   "result": "pass",
+   "value": "is_honeypot=0, cannot_buy=0, cannot_sell_all=null (not reported). honeypot.is not run",
+   "source": "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0xcb1592591996765ec0efc1f92599a19767ee5ffa",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F8": {
+   "result": "fail",
+   "value": "UniswapV4 BIO pool (fee 0.3%) holds ~$45.7k of ~$46.7k on-chain liquidity (~98%); its LP position NFT 155489 (99.2%) is held by EOA 0x004978f31780fbc799f35cb74a941b55c0cd5628, is_locked=0",
+   "source": "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0xcb1592591996765ec0efc1f92599a19767ee5ffa (dex, lp_holders)",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Modified OZ (custom uncapped mint + transfer gate), so not an unmodified standard. Web search mentions FYEO / Pashov audits and CertiK Skynet scan, but no audit report of this token contract located and read",
+   "source": "WebSearch 'BioToken BIO Protocol audit'",
+   "read_utc": "2026-11-16 16:07 UTC"
+  },
+  "G1": {
+   "result": "pass",
+   "value": "Binance BIOUSDT/BIOUSDC/BIOTRY/BIOU TRADING, tags ['Launchpool'] only, no Monitoring. Only past event: BIO/BNB pair removed 2026-01-09 (pair cleanup, not token delisting). No token delisting found on Coinbase/Kraken/OKX/Bybit",
+   "source": "binance.com/bapi/asset/v2/public/asset-service/product/get-products; web search",
+   "read_utc": "2026-11-16 16:05 UTC"
+  },
+  "G2": {
+   "result": "pass",
+   "value": "No exploit of BIO, veBIO, or the Wormhole NTT bridge found in last 90 days or earlier",
+   "source": "web search (CMC AI updates, news)",
+   "read_utc": "2026-11-16 16:06 UTC"
+  },
+  "G3": {
+   "result": "pass",
+   "value": "No enforcement/arrest found; no sanctioned/OFAC tag on top-20 Ethereum holders (Blockscout tags)",
+   "source": "web search; eth.blockscout.com/api/v2/tokens/0xcb1592591996765Ec0eFc1f92599A19767ee5ffA/holders (+ /addresses/<a> labels)",
+   "read_utc": "2026-11-16 16:06 UTC"
+  },
+  "G4": {
+   "result": "pass",
+   "value": "No pending migration. Current contract is a pre-TGE redeploy of 0xd2cf1dC4...b331 per Snapshot vote (complete, 2024)",
+   "source": "verified source comment; web search",
+   "read_utc": "2026-11-16 16:06 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0x0d2ADB4Af57cdac02d553e7601456739857D2eF4",
+   "balance": "830.50M",
+   "pct": 38.72,
+   "label": "vesting-timelock",
+   "how": "Blockscout name 'BIO Vesting Master' (MultiTokenVestingMerklePurchasable, verified); admin 3/6 Safe can withdraw/revoke"
+  },
+  {
+   "addr": "0x5a52E96BAcdaBb82fd05763E25335261B270Efcb",
+   "balance": "231.83M",
+   "pct": 10.81,
+   "label": "exchange",
+   "how": "Blockscout tag 'Binance: Hot Wallet' / 'Binance 28'"
+  },
+  {
+   "addr": "0xF977814e90dA44bFA03b6295A0616a897441aceC",
+   "balance": "160.00M",
+   "pct": 7.46,
+   "label": "exchange",
+   "how": "Blockscout tag 'Binance: Hot Wallet 20' / 'Binance 8'"
+  },
+  {
+   "addr": "0xeC4349ba7cA00401199203CFc3Fa770325D60838",
+   "balance": "128.67M",
+   "pct": 6.0,
+   "label": "unidentified",
+   "how": "EOA (eth_getCode 0x), no tag; heavy round-trips with unlabelled 0xc462...C95e. Insider under D5"
+  },
+  {
+   "addr": "0x43684D03D81d3a4C70da68feBDd61029d426F042",
+   "balance": "128.25M",
+   "pct": 5.98,
+   "label": "exchange",
+   "how": "Blockscout tag 'Binance 117' (hildobby)"
+  },
+  {
+   "addr": "0xF91a12742Aa609d41513a137d3c36b749F56f40C",
+   "balance": "59.15M",
+   "pct": 2.76,
+   "label": "other",
+   "how": "Blockscout 'BIO Protocol: veBIO Token' staking proxy; not an excluded class, counted"
+  },
+  {
+   "addr": "0x76eC5A0D3632b2133d9f1980903305B62678Fbd3",
+   "balance": "57.30M",
+   "pct": 2.67,
+   "label": "exchange",
+   "how": "Blockscout tag 'BtcTurk 14'"
+  },
+  {
+   "addr": "0x1cfDEc78D6E3ecfb5C4a4D11324395F2DEf5bF01",
+   "balance": "55.79M",
+   "pct": 2.6,
+   "label": "unidentified",
+   "how": "EOA, no tag; receives sweeps from 'Bithumb: Deposit Address' 0x0084... (possible Bithumb wallet, unconfirmed). Insider under D5"
+  },
+  {
+   "addr": "0x135BA87Faf69BDfEe2960113C99D513939dA27Cb",
+   "balance": "39.63M",
+   "pct": 1.85,
+   "label": "unidentified",
+   "how": "EOA, no tag, <2%"
+  },
+  {
+   "addr": "0x611f7bF868a6212f871e89F7e44684045DdFB09d",
+   "balance": "39.32M",
+   "pct": 1.83,
+   "label": "exchange",
+   "how": "Blockscout tag 'OKX: Cold Wallet'"
+  }
+ ],
+ "next_unlock": "2026-12-03, 30,802,222 BIO, 1.44% of CG circulating, app.tokenomics.com (read 2026-11-16 16:06 UTC)",
+ "not_checked": [
+  "Solana/Base/BSC holders and mint authorities (each <10% of supply)",
+  "Whether 0xc4629579...C95e and 0x5683Cb81...E735 are exchange deposit addresses (D4)",
+  "Identity of ~25 EOAs holding ~12M BIO each",
+  "veBIO/staking reward emissions for E2",
+  "Audit report text (F9)",
+  "honeypot.is, De.Fi scanners",
+  "Coinbase/Kraken/OKX/Bybit announcement pages directly (web search only)"
+ ],
+ "verdict": "reject",
+ "reason": "Hard fails F2/F3 (uncapped MINTER_ROLE held by a 5/11 Safe and a Wormhole NTT manager upgradeable by a 3/6 Safe, no timelock) and F8 (main Uniswap V4 LP held unlocked by an EOA); D5 fail, D4 and F9 unknown.",
+ "sources": [
+  "https://eth.blockscout.com/api/v2/tokens/0xcb1592591996765Ec0eFc1f92599A19767ee5ffA/holders (read 2026-11-16 16:02 UTC)",
+  "https://eth.blockscout.com/api/v2/smart-contracts/0xcb1592591996765Ec0eFc1f92599A19767ee5ffA (read 2026-11-16 16:03 UTC)",
+  "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0xcb1592591996765ec0efc1f92599a19767ee5ffa (read 2026-11-16 16:03 UTC)",
+  "https://ethereum-rpc.publicnode.com eth_call roles/Safe owners (read 2026-11-16 16:03 UTC)",
+  "https://api.coingecko.com/api/v3/coins/bio-protocol (read 2026-11-16 16:02 UTC)",
+  "https://app.tokenomics.com/tokenomics/bio-protocol/unlocks (read 2026-11-16 16:06 UTC)",
+  "https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products (read 2026-11-16 16:05 UTC)",
+  "https://eth.blockscout.com/api/v2/addresses/<insider>/token-transfers (read 2026-11-16 16:04 UTC)",
+  "https://coinmarketcap.com/cmc-ai/bio/latest-updates/ via web search (read 2026-11-16 16:06 UTC)"
+ ]
+}

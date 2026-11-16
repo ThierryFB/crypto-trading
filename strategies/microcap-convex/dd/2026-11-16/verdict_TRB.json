@@ -1,0 +1,255 @@
+{
+ "sym": "TRB",
+ "name": "Tellor",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0x88df592f8eb5d7bd38bfef7deb0fbc02cf3778a0",
+   "share_of_supply_pct": 100.0,
+   "note": "canonical ERC-20; L2 copies (Polygon, Arbitrum, Optimism, Gnosis, Manta, Lisk) and Tellor Layer are backed by bridge escrows on Ethereum; no other chain holds >=10% of the Ethereum supply"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Native ERC-20 utility/staking token of the Tellor oracle, not wrapped/bridged/staked/stable/RWA; listed on Binance/Coinbase/OKX since 2019-2021 (>90 days). Ethereum ERC-20 is the canonical supply; Tellor Layer TRB is bridged from it, so the F (contract) tests apply, not N1-N3.",
+ "circulating_supply_used": "2,836,216 TRB (CoinGecko snapshot 2026-11-16 13:02 UTC); consistent on-chain: totalSupply 2,912,566.88 minus team multisig 76,301.55 = 2,836,265 (publicnode eth_call 15:14 UTC)",
+ "tests": {
+  "D1": {
+   "result": "pass",
+   "value": "33.88% of circ (top-10 non-excluded: 0x073f 7.44, 0x15da 4.23, 0xa399 3.44, 0x00c0 3.43, 0x7717 3.41, 0x0201 3.24, team multisig 0x39e4 2.69, 0xb0a2 2.40, TellorFlex Oracle 0xe821 1.95, Parachute 0x83eb 1.65). Borderline: 1.1 pp under the 35% line; excluding unlabelled exchange-like wallets is not allowed, so not rounded either way",
+   "source": "Ethplorer getTopTokenHolders (limit 20) + GoPlus holders; exclusions: Binance 8, Binance 28 (Etherscan labels), TokenBridgeV2 (bridge), Gate.io 5 (#18)",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "D2": {
+   "result": "pass",
+   "value": "7.44% (0x073f...3ad7, 210,998 TRB, unidentified EOA)",
+   "source": "Ethplorer getTopTokenHolders; publicnode eth_getCode",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "31.92% of circ counting D5 unidentified >=2% wallets as insiders (0x073f 7.44, 0x15da 4.23, Coinbase-funded cluster 10.28, 0x0201 3.24, 0xb0a2 2.40) plus labelled team wallets (multisig 2.69, Parachute 1.65). Labelled insiders alone: 4.34% (would pass); the fail is driven by D5",
+   "source": "Ethplorer, Blockscout, Tellor360/Parachute source, getAddressVars eth_call",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "D4": {
+   "result": "fail",
+   "value": "17,000 TRB = 0.60% of circ (>=0.5%) sent by insiders to Coinbase in the last 90 days, no published schedule found: team multisig 0x39e4 -> team Safe 0x1B8E...9190 (8,000 on 2026-08-24, 10,000 on 2026-10-01) -> five single-use EOAs (3,500 on 08-24, 3,500 on 09-21, 2,000 on 09-28, 4,000 on 10-01, 4,000 on 10-06) -> each swept within ~5 min to Coinbase 10 (0xa9d1...3e43). These are Coinbase deposit addresses. Also ~465 TRB/month to two EOAs (payroll-like), not traced further",
+   "source": "eth.blockscout.com /api/v2/addresses/{addr}/token-transfers (multisig, Safe and the five hops); Coinbase 10 label from Etherscan label dataset",
+   "read_utc": "2026-11-16 15:16 UTC"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "7 non-excluded wallets >=2% are unidentified: 0x073f (7.44%), 0x15da (4.23%), 0xa399/0x00c0/0x7717 (10.28% combined, Coinbase-funded cluster), 0x0201 (3.24%), 0xb0a2 (2.40%; 75k ETH, exchange-like but unlabelled). Counted as insiders under D3",
+   "source": "Blockscout address API (no names/tags), Etherscan label dataset (no match), publicnode nonce/code",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "E1": {
+   "result": "pass",
+   "value": "0.31% of circ: time-based mint 2 x 146.94 TRB/day (mintToOracle + mintToTeam) = 8,816 TRB in 30 days; no unlocks or announced treasury release found",
+   "source": "Tellor360.sol verified source (Blockscout); getUintVar _LAST_RELEASE_TIME_DAO 2026-11-16 15:11, _TEAM 2026-11-04 20:54 UTC",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "E2": {
+   "result": "pass",
+   "value": "1.87% of circ: 52,898 TRB of emission in 180 days; no vesting",
+   "source": "Tellor360.sol; prior on-chain totalSupply series (+108k/yr) agrees",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "E3": {
+   "result": "pass",
+   "value": "97.4% (2,836,216 / total 2,912,567; no max supply)",
+   "source": "CoinGecko snapshot; totalSupply eth_call",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "Known: no vesting/unlock schedule (2019 fair-mined launch); emission fixed in Tellor360 code. Not cross-checked on Tokenomist/CryptoRank. Caveat: emission can be changed by an implementation upgrade (see F4)",
+   "source": "Tellor360.sol; prior analysis",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F1": {
+   "result": "pass",
+   "value": "TellorMaster proxy 0x88df verified (Blockscout, 2023-11-18); implementation Tellor360 0xd3b9...ded7 verified (2024-02-25)",
+   "source": "eth.blockscout.com /api/v2/smart-contracts",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F2": {
+   "result": "pass",
+   "value": "Mint paths: mintToOracle/mintToTeam at a fixed 146.94 TRB/day each (constants in code), and migrate() mints the caller's balance on the original 2019 TRB contract 0x0ba45...a2e5 once per address (old totalSupply 1,784,082; unmigrated remainder not measured). No owner mint. Holds only as long as the implementation isn't swapped (F4)",
+   "source": "Tellor360.sol + BaseToken.sol source; old contract totalSupply eth_call",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F3": {
+   "result": "fail",
+   "value": "Not an EOA, but no timelock: _OWNER = 0x39e4 MultiSigWalletWithDailyLimit, 2-of-3 (owners 0x28dc...f090, 0x0d7e...eba4, 0xa579...2616, all EOAs), dailyLimit 0. It can instantly: changeOwner; teamTransferDisputedStake (moves the stake balance of any legacy TellorX staker with status 3 to any address, which touches balances); transferOutOfContract; and, via Parachute, migrateFor (moves Parachute's 46,665 TRB) and killContract. It also gains _DEITY (instant implementation upgrade) through Parachute rescues. None of this sits behind a >=48h timelock",
+   "source": "TellorMaster, BaseToken, Parachute verified source; getAddressVars(_OWNER/_DEITY), getOwners(), required() eth_call (publicnode)",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F4": {
+   "result": "fail",
+   "value": "Upgradeable: TellorMaster.changeTellorContract(addr) by _DEITY swaps the implementation instantly, with no delay. _DEITY = Parachute 0x83eb...6084 (contract). Anyone can trigger rescueBrokenDataReporting (oracle timestamp stale >7 days) or rescueFailedUpdate, which hand _DEITY to the 2-of-3 team multisig. The upgrade admin is therefore conditionally a no-timelock multisig, which does not meet F3. GoPlus is_proxy=1; honeypot.is isProxy true",
+   "source": "TellorMaster/Parachute source; getAddressVars(_DEITY) eth_call; TokenBridgeV2.getTimeOfLastNewValue = 2026-11-16 13:17 UTC (rescue not currently armed)",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F5": {
+   "result": "pass",
+   "value": "No blacklist, pause or freeze in BaseToken/Tellor360. The only transfer restriction is allowedToTrade, which locks the stake amount of legacy disputed stakers. GoPlus returned no is_blacklisted/transfer_pausable fields (proxy); judged from source",
+   "source": "Tellor360/BaseToken source; GoPlus",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F6": {
+   "result": "pass",
+   "value": "No taxes, max-tx limits or trading toggles in source. GoPlus buy_tax 0, sell_tax 0, transfer_tax 0 (slippage_modifiable not returned). honeypot.is buy/sell/transfer tax 0",
+   "source": "source; GoPlus; honeypot.is v2 IsHoneypot",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F7": {
+   "result": "pass",
+   "value": "honeypot.is isHoneypot false, risk low, 79/79 holder sells simulated OK. GoPlus cannot_buy 0, is_honeypot/cannot_sell_all not returned (proxy)",
+   "source": "api.honeypot.is/v2/IsHoneypot; GoPlus",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F8": {
+   "result": "fail",
+   "value": "Uniswap V4 TRB pool (0xc6df...656b, fee 1%) holds ~$12.2k of ~$13.5k on-chain liquidity (~91%). Its LP position (NFT 197380) is held by EOA 0x6b5f...6ff7 (eth_getCode empty), is_locked 0. Small pool, but the test as written fails",
+   "source": "GoPlus dex + lp_holders; publicnode eth_getCode",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Tellor360 is custom code, not standard OZ ERC-20. No public audit of Tellor360/TellorMaster located in this pass (web search returned only a Cyberscope listing page, not opened)",
+   "source": "web search 2026-11-16",
+   "read_utc": "2026-11-16 15:14 UTC"
+  },
+  "G1": {
+   "result": "pass",
+   "value": "Binance tags Infrastructure/defi/pos/mining-zone, no Monitoring; TRBUSDT TRADING. Coinbase TRB-USD online, trading_disabled false. OKX TRB-USDT live. Kraken and Bybit don't list it. No delisting announcement found on a credible venue (2025 OKX Singapore and KuCoin TRB/BTC removals are not credible-venue-global, per prior)",
+   "source": "binance.com bapi get-products; api.binance.com exchangeInfo; api.exchange.coinbase.com/products/TRB-USD; okx v5 public instruments",
+   "read_utc": "2026-11-16 15:17 UTC"
+  },
+  "G2": {
+   "result": "pass",
+   "value": "No exploit of the TRB contract, Tellor oracle or TokenBridge found. Separately, a team social account was compromised in the past (phishing airdrop post, crypto.news), which is not a contract exploit",
+   "source": "web search; prior analysis",
+   "read_utc": "2026-11-16 15:18 UTC"
+  },
+  "G3": {
+   "result": "pass",
+   "value": "No enforcement action or team arrests found. 0 of the top-20 holders flagged by the Chainalysis sanctions oracle (0x40C5...c8fb isSanctioned)",
+   "source": "Chainalysis SanctionsList eth_call (publicnode); web search",
+   "read_utc": "2026-11-16 15:17 UTC"
+  },
+  "G4": {
+   "result": "pass",
+   "value": "No pending migration or redenomination. TokenBridge V1->V2 completed automatically 2026-04-13. The 2019->2020 TRB migrate() claim path is still open in code but isn't an announced live migration",
+   "source": "tellor.io blogs (via prior); Tellor360 source",
+   "read_utc": "2026-11-16 15:14 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0xf977814e90da44bfa03b6295a0616a897441acec",
+   "balance_trb": 624269.23,
+   "pct": 22.01,
+   "label": "exchange",
+   "how": "Etherscan label 'Binance 8'; EOA 76.8k ETH"
+  },
+  {
+   "addr": "0x5a52e96bacdabb82fd05763e25335261b270efcb",
+   "balance_trb": 393822.81,
+   "pct": 13.89,
+   "label": "exchange",
+   "how": "Etherscan label 'Binance 28'; EOA 30.0k ETH"
+  },
+  {
+   "addr": "0x073f564419b625a45d8aea3bb0de4d5647113ad7",
+   "balance_trb": 210998.28,
+   "pct": 7.44,
+   "label": "unidentified",
+   "how": "EOA, nonce 15,050, 0.62 ETH, no label; possible MM/OTC (prior)"
+  },
+  {
+   "addr": "0x15da7556d5ed888306839bed06f868aeaedcb0d7",
+   "balance_trb": 120022.09,
+   "pct": 4.23,
+   "label": "unidentified",
+   "how": "EOA, nonce 22,201, 5,092 ETH, Coinbase-10-funded; exchange-like, unlabelled"
+  },
+  {
+   "addr": "0xa399c10122b0a6c5161389335c389d3d6d49fc35",
+   "balance_trb": 97592.98,
+   "pct": 3.44,
+   "label": "unidentified",
+   "how": "zero-nonce EOA; Coinbase-10-funded cluster (with next two)"
+  },
+  {
+   "addr": "0x00c00904210380edc80c9dd6f6c85fda5dab42fc",
+   "balance_trb": 97209.34,
+   "pct": 3.43,
+   "label": "unidentified",
+   "how": "zero-nonce EOA; same cluster"
+  },
+  {
+   "addr": "0x7717e7e5ef9558f022dbee643ee3991985108c01",
+   "balance_trb": 96805.86,
+   "pct": 3.41,
+   "label": "unidentified",
+   "how": "zero-nonce EOA; same cluster"
+  },
+  {
+   "addr": "0x6ec401744008f4b018ed9a36f76e6629799ee50e",
+   "balance_trb": 95222.93,
+   "pct": 3.36,
+   "label": "bridge escrow",
+   "how": "Blockscout name TokenBridgeV2; = Tellor360 _ORACLE_CONTRACT"
+  },
+  {
+   "addr": "0x02013e73a10fa36efc23826e8d0ffa0edc4d0a51",
+   "balance_trb": 91924.01,
+   "pct": 3.24,
+   "label": "unidentified",
+   "how": "zero-nonce EOA, layered single-use-hop funding (prior)"
+  },
+  {
+   "addr": "0x39e419ba25196794b595b2a595ea8e527ddc9856",
+   "balance_trb": 76301.55,
+   "pct": 2.69,
+   "label": "insider",
+   "how": "Tellor360 _OWNER team multisig, 2-of-3 MultiSigWalletWithDailyLimit"
+  }
+ ],
+ "top10_note": "Balances from Ethplorer getTopTokenHolders 2026-11-16 15:15 UTC; pct of CG circulating 2,836,216. Next: #11 0xb0a2...3d64 2.40% unidentified (75k ETH), #12 TellorFlex Oracle 1.95%, #13 Parachute 1.65%, #18 Gate.io 5 1.16% (exchange).",
+ "next_unlock": "No scheduled unlock. Continuous emission: mintToTeam accrues 146.94 TRB/day (last claimed 2026-11-04 20:54 UTC; ~1,763 TRB accrued, 0.06%) and mintToOracle 146.94 TRB/day (last 2026-11-16 15:11 UTC). 30-day total ~8,816 TRB = 0.31% of circ (Tellor360.sol; getUintVar eth_call 15:14 UTC)",
+ "not_checked": [
+  "Identity of 0x073f, 0x15da, 0xb0a2, the Coinbase-funded cluster and 0x0201 (no Arkham, and Etherscan pages blocked by Cloudflare)",
+  "TRB holders on Tellor Layer and on L2 copies",
+  "Public audit of Tellor360/TellorMaster/Parachute (F9)",
+  "Whether any legacy TellorX staker is still in dispute status 3 (sets the real reach of teamTransferDisputedStake)",
+  "Unmigrated balance on the 2019 TRB contract claimable through migrate(), and whether the old contract can still mint",
+  "Tokenomist/CryptoRank cross-check of emission",
+  "GoPlus fields is_mintable, owner_address, can_take_back_ownership, is_blacklisted, transfer_pausable, slippage_modifiable, is_honeypot, cannot_sell_all: not returned for this proxy",
+  "The ~465 TRB/month multisig payments to 0x3a05/0x23E0 beyond one hop",
+  "Exchange announcement pages read directly (status APIs only)"
+ ],
+ "verdict": "reject",
+ "reason": "D4 fails: insiders moved 17,000 TRB (0.60% of circulating) from the team multisig through a team Safe and single-use deposit addresses into Coinbase 10 between 2026-08-24 and 2026-10-06, with no published schedule. F3/F4 (2-of-3 multisig, no timelock, can obtain instant upgrade via Parachute) and F8 (unlocked Uniswap V4 LP) also fail; D3/D5 fail on 31.9% unidentified-plus-insider holdings; F9 unknown.",
+ "sources": [
+  "https://eth.blockscout.com/api/v2/smart-contracts/0x88df592f8eb5d7bd38bfef7deb0fbc02cf3778a0 (read 2026-11-16 15:14 UTC)",
+  "https://eth.blockscout.com/api/v2/smart-contracts/0xD3b9A1DCAbd16c482785Fd4265cB4580B84cdeD7 (read 2026-11-16 15:14 UTC)",
+  "https://eth.blockscout.com/api/v2/smart-contracts/0x83eb2094072f6ed9f57d3f19f54820ee0bae6084 (Parachute, read 2026-11-16 15:15 UTC)",
+  "https://eth.blockscout.com/api/v2/smart-contracts/0x39e419ba25196794b595b2a595ea8e527ddc9856 (read 2026-11-16 15:15 UTC)",
+  "https://ethereum-rpc.publicnode.com eth_call getAddressVars/getUintVar/totalSupply/balanceOf/getOwners/required/getTimeOfLastNewValue, eth_getCode, eth_getTransactionCount (read 2026-11-16 15:14-15:17 UTC, block ~26,428,420)",
+  "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0x88df592f8eb5d7bd38bfef7deb0fbc02cf3778a0 (read 2026-11-16 15:14 UTC)",
+  "https://api.honeypot.is/v2/IsHoneypot?address=0x88df592f8eb5d7bd38bfef7deb0fbc02cf3778a0&chainID=1 (read 2026-11-16 15:14 UTC)",
+  "https://api.ethplorer.io/getTopTokenHolders/0x88df592f8eb5d7bd38bfef7deb0fbc02cf3778a0?apiKey=freekey&limit=20 (read 2026-11-16 15:15 UTC)",
+  "https://eth.blockscout.com/api/v2/addresses/{0x39e4...,0x1B8E06E7133B89ea5A799Bf2bF0221aE71959190,0xd7fB5A19...,0xa109ca78...,0x9f42Aea9...,0xC7503056...,0x59202c65...}/token-transfers (read 2026-11-16 15:16 UTC)",
+  "https://raw.githubusercontent.com/brianleect/etherscan-labels/main/data/etherscan/combined/combinedAllLabels.json (read 2026-11-16 15:16 UTC)",
+  "Chainalysis sanctions oracle 0x40C57923924B5c5c5455c48D93317139ADDaC8fb isSanctioned via publicnode (read 2026-11-16 15:17 UTC)",
+  "https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products (read 2026-11-16 15:17 UTC)",
+  "https://api.binance.com/api/v3/exchangeInfo?symbol=TRBUSDT (read 2026-11-16 15:17 UTC)",
+  "https://api.exchange.coinbase.com/products/TRB-USD (read 2026-11-16 15:17 UTC)",
+  "https://www.okx.com/api/v5/public/instruments?instType=SPOT&instId=TRB-USDT (read 2026-11-16 15:17 UTC)",
+  "https://crypto.news/tellor-account-compromised-after-price-surge/ (search result, read 2026-11-16 15:18 UTC)",
+  "prior_TRB.json (Crypto Book analysis by agent:hugo, 2026-11-16 13:16 UTC), used for leads only"
+ ]
+}

@@ -1,0 +1,167 @@
+{
+ "sym": "SOLV",
+ "name": "Solv Protocol",
+ "chains": [
+  {
+   "chain": "bsc",
+   "address": "0xabe8e5cabe24cb36df9540088fd7ce1175b9bc52",
+   "share_of_supply_pct": 86.96
+  },
+  {
+   "chain": "ethereum",
+   "address": "0x169e36f327caa83d004f5c2668ac25a1424c940d",
+   "share_of_supply_pct": 13.04
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Governance/utility token (not the SolvBTC wrapper); TGE and Binance listing 2025-01-17 (>90 days). Chain shares from prior on-chain totalSupply (8.4B BSC / 1.26B ETH), not re-read today.",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 per brief",
+   "source": "-",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "2026-11-17 unlock 189,664,953 SOLV (Private Investors 53.3%, Community 25.6%, Insiders 16%, Foundation 5.2% per prior) = 3.21% of CoinGecko circulating 5,904,733,333 (>=2%). Hard fail.",
+   "source": "app.tokenomics.com/tokenomics/solv-protocol/unlocks; CoinGecko /coins/solv-protocol",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "Scheduled unlocks 2026-11-17..2027-04-17 (6 monthly): 2x189,664,953 + 4x159,319,953 = 1,016,609,718 = 17.22% of circulating; emissions/staking rewards and status of the 1.26B Ethereum BRO allocation not checked, so not passed",
+   "source": "app.tokenomics.com/tokenomics/solv-protocol/unlocks",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "E3": {
+   "result": "pass",
+   "value": "5,904,733,333 / 9,660,000,000 max = 61.1% (>=30%)",
+   "source": "CoinGecko /coins/solv-protocol",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "Monthly schedule (17th) published to 2028-12-17 for the 8.4B BSC base; Ethereum 1.26B BRO schedule not covered",
+   "source": "app.tokenomics.com/tokenomics/solv-protocol/unlocks",
+   "read_utc": "2026-11-16 16:03"
+  }
+ },
+ "top10": [],
+ "next_unlock": "2026-11-17, 189,664,953 SOLV, 3.21% of circulating (5,904,733,333), app.tokenomics.com/tokenomics/solv-protocol/unlocks",
+ "not_checked": [
+  "D1-D5 holder map (stopped after E1 hard fail)",
+  "F1-F9 contract review",
+  "G1-G4 flags",
+  "emissions/staking rewards for E2",
+  "Ethereum BRO 1.26B vesting status"
+ ],
+ "verdict": "reject",
+ "reason": "E1 fails: the 2026-11-17 unlock of 189.66M SOLV is 3.21% of circulating (>=2%). D, F, G tests and E2 not run after the hard fail.",
+ "sources": [
+  "https://app.tokenomics.com/tokenomics/solv-protocol/unlocks (read 2026-11-16 16:02 UTC)",
+  "https://api.coingecko.com/api/v3/coins/solv-protocol (read 2026-11-16 16:02 UTC)"
+ ]
+}

@@ -1,0 +1,249 @@
+{
+ "sym": "SAPIEN",
+ "name": "Sapien",
+ "chains": [
+  {
+   "chain": "base",
+   "address": "0xc729777d0470f30612b1564fd96e8dd26f5814e3",
+   "share_of_supply_pct": 100.0
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Base ERC-20 utility/staking token, not stable/wrapped/RWA/leveraged; totalSupply 1,000,000,000 (on-chain 2026-11-16 15:20 UTC). TGE 2025-08-20, Binance spot since 2025-11-06, Coinbase/Kraken listed (>90 days; prior analysis). No other chain deployment found.",
+ "circulating_basis": "CoinGecko circulating 243,313,360 (cg_markets.json, last_updated 2026-11-16T15:04Z). Prior analysis and tokenomics.com say ~417.6M is unlocked per schedule, but on-chain evidence can't prove it's circulating (the unlocked tokens sit in unlabelled EOAs), so CoinGecko is used. The D2 and E1 fails hold on either basis.",
+ "tests": {
+  "D1": {
+   "result": "fail",
+   "value": "Top 10 non-excluded (excl. Binance 8 only) = 823,336,602 SAPIEN = 338.4% of CoinGecko circulating (82.3% of total supply; 197.2% of 417.6M schedule-unlocked). Limit is 35%. The 0x80cc contract (1.34%) is included because it is unlabelled with no readable schedule",
+   "source": "base-rpc.publicnode.com eth_call balanceOf/totalSupply + eth_getCode + eth_getTransactionCount; GoPlus token_security 8453 holders",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "D2": {
+   "result": "fail",
+   "value": "Largest non-excluded holder 0x1341...be23 = 226,758,672 SAPIEN = 93.2% of circulating (22.68% of total supply; 54.3% of 417.6M). Limit is 10%. Unlabelled EOA, nonce 3",
+   "source": "base-rpc.publicnode.com eth_call balanceOf/totalSupply + eth_getCode + eth_getTransactionCount; GoPlus token_security 8453 holders",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "Under D5, 7 unidentified EOAs >=2% count as insiders: 797,090,917 SAPIEN = 328% of CoinGecko circulating (79.71% of total supply; 191% of 417.6M). None are in a readable vesting/timelock contract. Limit is 20%",
+   "source": "base-rpc.publicnode.com eth_call balanceOf/totalSupply + eth_getCode + eth_getTransactionCount; GoPlus token_security 8453 holders",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule); insider-to-exchange flows not traced",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "7 non-excluded wallets >=2% are unidentified (0x1341 22.68%, 0x9150 19.32%, 0x3fb1 12.70%, 0x9340 9.50%, 0x2d6d 6.49%, 0x3366 4.97%, 0x01e7 4.04% of total supply; all EOAs)",
+   "source": "base-rpc.publicnode.com eth_call balanceOf/totalSupply + eth_getCode + eth_getTransactionCount; GoPlus token_security 8453 holders; GoPlus tags empty; Basescan/Blockscout not reachable",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "Unlock 2026-11-20: 27,361,111 SAPIEN (investors 40.8%, insiders 30.7%, community 15.2%, foundation 13.2%) = 11.2% of CoinGecko circulating (6.6% of 417.6M schedule-unlocked; 2.7% of total supply). Limit is <2%. A further ~27M unlocks 2026-12-20, also inside 30 days by mid-Dec",
+   "source": "app.tokenomics.com/tokenomics/sapien/unlocks",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule); prior/tokenomics.com: ~27M/month linear, so ~164M in 180 days = ~67% of CoinGecko circulating; would fail, not formally run",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "E3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule); CoinGecko 243.3M / 1B = 24.3%, which would fail; on the schedule basis 41.8%. Not formally run",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "E4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule); tokenomics.com publishes a 37-event schedule to 2028-08-20; not cross-checked against Tokenomist/CryptoRank",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule); GoPlus is_open_source=1; explorer verification page not read",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule); GoPlus is_mintable=0; source not read",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule); GoPlus owner_address=null, hidden_owner=0, can_take_back_ownership=0; source not read",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule); GoPlus is_proxy=0",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule); GoPlus is_blacklisted=0, transfer_pausable=0",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule); GoPlus slippage_modifiable=0, buy/sell tax 0, trading_cooldown 0, is_anti_whale 0",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F7": {
+   "result": "pass",
+   "value": "GoPlus is_honeypot=0, cannot_sell_all=0; honeypot.is isHoneypot=false, buy/sell/transfer tax 0, risk low, no flags",
+   "source": "GoPlus token_security chain 8453; api.honeypot.is/v2/IsHoneypot chainID=8453",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule); Aerodrome SAPIEN/USDC LP (~$839k per prior) lock not checked; GoPlus lp_holders show is_locked=0 on top LP NFT positions",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule); Hacken audit (Jan 2025) referenced in prior, report not read",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule); prior 2026-10-30: no Binance Monitoring tag, no delisting; not re-read today",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule); prior: no known exploit; not re-checked",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule)",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped early after hard fails D2/E1 (brief budget rule); prior: no migration; not re-checked",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0x134156b773476860211c024318bd92196a71be23",
+   "balance": 226758672,
+   "pct": 93.2,
+   "pct_of_total_supply": 22.676,
+   "label": "unidentified",
+   "how": "no label in GoPlus; no code; explorer labels not reachable; prior analysis guessed vesting/treasury custody but unproven; counts as insider under D5; EOA, nonce 3"
+  },
+  {
+   "addr": "0x915055eab51d509d9e2df3aae6c51a55d280690e",
+   "balance": 193241318,
+   "pct": 79.42,
+   "pct_of_total_supply": 19.324,
+   "label": "unidentified",
+   "how": "no label in GoPlus; no code; explorer labels not reachable; prior analysis guessed vesting/treasury custody but unproven; counts as insider under D5; EOA, nonce 2"
+  },
+  {
+   "addr": "0x3fb1d0ace99f765ea96d8965208797faa3f0cb9c",
+   "balance": 127000000,
+   "pct": 52.2,
+   "pct_of_total_supply": 12.7,
+   "label": "unidentified",
+   "how": "no label in GoPlus; no code; explorer labels not reachable; prior analysis guessed vesting/treasury custody but unproven; counts as insider under D5; EOA, nonce 5"
+  },
+  {
+   "addr": "0x934040946ef69ed1b70471ec18101e2ebdf7899f",
+   "balance": 95043223,
+   "pct": 39.06,
+   "pct_of_total_supply": 9.504,
+   "label": "unidentified",
+   "how": "no label in GoPlus; no code; explorer labels not reachable; prior analysis guessed vesting/treasury custody but unproven; counts as insider under D5; EOA, nonce 4"
+  },
+  {
+   "addr": "0x2d6dc3f6951e6737d4f52a67cf1d44172064f8b5",
+   "balance": 64943427,
+   "pct": 26.69,
+   "pct_of_total_supply": 6.494,
+   "label": "unidentified",
+   "how": "no label in GoPlus; no code; explorer labels not reachable; prior analysis guessed vesting/treasury custody but unproven; counts as insider under D5; EOA, nonce 2"
+  },
+  {
+   "addr": "0xf977814e90da44bfa03b6295a0616a897441acec",
+   "balance": 51151238,
+   "pct": 21.02,
+   "pct_of_total_supply": 5.115,
+   "label": "exchange",
+   "how": "Binance 8 hot/cold wallet, widely labelled on explorers (same address on all EVM chains); EOA, nonce 477"
+  },
+  {
+   "addr": "0x336630c44f687ff2b20ff6650e191dd13c056cf6",
+   "balance": 49700000,
+   "pct": 20.43,
+   "pct_of_total_supply": 4.97,
+   "label": "unidentified",
+   "how": "no label in GoPlus; no code; explorer labels not reachable; prior analysis guessed vesting/treasury custody but unproven; counts as insider under D5; EOA, nonce 4"
+  },
+  {
+   "addr": "0x01e7ea150359ea629fd70a5de46fdf82f889a819",
+   "balance": 40404277,
+   "pct": 16.61,
+   "pct_of_total_supply": 4.04,
+   "label": "unidentified",
+   "how": "no label in GoPlus; no code; explorer labels not reachable; prior analysis guessed vesting/treasury custody but unproven; counts as insider under D5; EOA, nonce 9"
+  },
+  {
+   "addr": "0x80cc08712aa61ce9dc7604f9ce7560a25094b862",
+   "balance": 13435953,
+   "pct": 5.52,
+   "pct_of_total_supply": 1.344,
+   "label": "unidentified",
+   "how": "contract, no explorer label read (Basescan/Blockscout blocked); release schedule not readable, so not excluded; 45-byte contract (EIP-1167 minimal-proxy size), nonce 1"
+  },
+  {
+   "addr": "0x43684d03d81d3a4c70da68febdd61029d426f042",
+   "balance": 12809732,
+   "pct": 5.26,
+   "pct_of_total_supply": 1.281,
+   "label": "unidentified",
+   "how": "no label in GoPlus; no code; explorer labels not reachable; prior analysis guessed vesting/treasury custody but unproven; counts as insider under D5; EOA, nonce 8"
+  }
+ ],
+ "next_unlock": "2026-11-20, 27,361,111 SAPIEN, 11.2% of CoinGecko circulating (6.6% of 417.6M schedule-unlocked; 2.7% of total supply), app.tokenomics.com/tokenomics/sapien/unlocks (read 2026-11-16 15:20 UTC)",
+ "not_checked": [
+  "D4 insider-to-exchange flows (90d)",
+  "E2-E4 formal runs; Tokenomist/CryptoRank cross-check",
+  "F1-F6, F8, F9 from verified source (GoPlus values recorded only)",
+  "G1-G4 re-check today",
+  "Explorer labels for top-10 (Basescan/Blockscout not reachable); identity of the 8 large EOAs",
+  "CoinMarketCap circulating cross-check"
+ ],
+ "verdict": "reject",
+ "reason": "Hard fails: D2 (largest non-excluded holder 0x1341 = 93.2% of CoinGecko circulating, 22.7% of total supply), D1/D3/D5 (7 unidentified EOAs >=2% hold 79.7% of total supply), and E1 (2026-11-20 unlock of 27.4M = 11.2% of circulating, 6.6% even on the 417.6M schedule basis).",
+ "sources": [
+  "https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=0xc729777d0470f30612b1564fd96e8dd26f5814e3 (read 2026-11-16 15:20 UTC)",
+  "https://base-rpc.publicnode.com eth_call/eth_getCode/eth_getTransactionCount (read 2026-11-16 15:20 UTC)",
+  "https://app.tokenomics.com/tokenomics/sapien/unlocks (read 2026-11-16 15:20 UTC)",
+  "https://api.honeypot.is/v2/IsHoneypot?address=0xc729777d0470f30612b1564fd96e8dd26f5814e3&chainID=8453 (read 2026-11-16 15:20 UTC)",
+  "CoinGecko markets sapien-2 via cg_markets.json (last_updated 2026-11-16 15:04 UTC)",
+  "prior_SAPIEN.json (Crypto Book analysis 2026-10-30, leads only)"
+ ]
+}

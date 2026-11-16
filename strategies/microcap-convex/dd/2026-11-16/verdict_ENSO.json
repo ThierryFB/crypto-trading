@@ -1,0 +1,169 @@
+{
+ "sym": "ENSO",
+ "name": "Enso",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0x699F088b5DddcafB7c4824db5B10B57B37cB0C66",
+   "share_of_supply_pct": "~97 (not re-measured; prior: BSC OFT mirror backed by 3.07M locked in the Ethereum OFT adapter)"
+  },
+  {
+   "chain": "bsc",
+   "address": "0xfeb339236d25d3e415f280189bc7c2fbab6ae9ef",
+   "share_of_supply_pct": "~3 (not re-measured)"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Governance/staking token of the Enso routing layer; not a stablecoin/wrapped/staked/RWA/leveraged token. TGE and Binance/Bybit listing 2025-10-14, >90 days ago.",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "Next unlock 2026-12-14 (in 28 days): 3,575,120 ENSO (Investors 39%, Insiders 33%, Foundation 17.2%, Community 10.8%) = 17.36% of CoinGecko circulating 20,590,000 (limit <2%). Even on the prior's ~35M on-chain liquid estimate it is 10.2%. Consistent with the prior's on-chain finding of 161 EnsoVestingWallet contracts (54.19M) vesting linearly over 24 months from 2026-10-14 (~2.26M/month).",
+   "source": "app.tokenomics.com/tokenomics/enso/unlocks; api.coingecko.com/api/v3/coins/enso; prior_ENSO.json (Blockscout vesting args, 2026-10-22)",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "E2": {
+   "result": "fail",
+   "value": "Monthly unlocks of ~3.0-3.6M ENSO for the next 6 months (>=18M) plus 8%/yr inflation = roughly 90%+ of CoinGecko circulating 20.59M over 180 days (limit 20%).",
+   "source": "app.tokenomics.com/tokenomics/enso/unlocks (107 upcoming events, 85.5M)",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "E3": {
+   "result": "fail",
+   "value": "20.59M / 127,339,703 max = 16.2% (20.59M / 105,286,268.94 on-chain totalSupply = 19.6%), below 30%; the remainder has a release schedule, so the exemption does not apply.",
+   "source": "api.coingecko.com; ethereum-rpc.publicnode.com eth_call totalSupply() on 0x699F...0C66",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "Schedule known: tokenomics.com lists 107 upcoming events; on-chain vesting wallets (prior).",
+   "source": "app.tokenomics.com/tokenomics/enso/unlocks",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "G1": {
+   "result": "pass",
+   "value": "Binance tags ['Infrastructure','Seed','HODLer'], no Monitoring; ENSOUSDT/USDC/TRY TRADING. No delisting check beyond this (stopped early).",
+   "source": "binance.com bapi get-products",
+   "read_utc": "2026-11-16 16:03"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "Not run: stopped after the E1 hard fail (brief early-stop rule).",
+   "source": "not run",
+   "read_utc": "2026-11-16 16:05"
+  }
+ },
+ "top10": [],
+ "next_unlock": "2026-12-14, 3,575,120 ENSO, 17.36% of CoinGecko circulating (20.59M), app.tokenomics.com/tokenomics/enso/unlocks",
+ "not_checked": [
+  "D1-D5 holders (stopped early)",
+  "F1-F9 contract roles (stopped early)",
+  "G2-G4",
+  "On-chain re-read of individual vesting wallets today (relied on tokenomics.com plus the prior's on-chain decode)",
+  "Tokenomist and CryptoRank (Cloudflare challenge / empty)"
+ ],
+ "verdict": "reject",
+ "reason": "E1 hard fail: the 2026-12-14 unlock of 3.58M ENSO is 17.4% of circulating (limit <2%); E2 and E3 (16.2%) also fail. D, F and G2-G4 were not run under the early-stop rule.",
+ "sources": [
+  "https://app.tokenomics.com/tokenomics/enso/unlocks (read 2026-11-16 16:05 UTC)",
+  "https://api.coingecko.com/api/v3/coins/enso (read 2026-11-16 16:05 UTC)",
+  "https://ethereum-rpc.publicnode.com eth_call totalSupply 0x699F088b5DddcafB7c4824db5B10B57B37cB0C66 (read 2026-11-16 16:05 UTC)",
+  "https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products (read 2026-11-16 16:03 UTC)"
+ ]
+}

@@ -1,0 +1,254 @@
+{
+ "sym": "SXT",
+ "name": "Space and Time",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0xe6bfd33f52d82ccb5b37e16d3dd81f9ffdabb195",
+   "share_of_supply_pct": 100.0,
+   "note": "total 5B; Base copy is lock-release mirror"
+  },
+  {
+   "chain": "base",
+   "address": "0xa2c22252cdc8b7cddee1b0b2e242818509fcf7b8",
+   "share_of_supply_pct": 1.7,
+   "note": "mirror of ~83.9M in CCIP pool; <10%"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "Utility ERC-20, not wrapped/staked/stable; first listed on Binance/Coinbase/Bybit 2025-05-08 (>90 days).",
+ "tests": {
+  "D1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "D2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). Raw top EOA 0xA14E 257.53M = 6.8% of on-chain circ upper bound 3.797B (9.9% of tokenomics.com 2.599B); label not verified.",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "D3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "D5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "Not run: stopped after hard fail E1 (brief early-stop rule). ",
+   "source": "n/a",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "Next unlock 2026-12-08 (22 days): 91,770,833 SXT (Investors 39.2%, Insiders 33.9%, Foundation rest). Circulating per \u00a71: CoinGecko 4,646,994,974 is contradicted on-chain (19 project Gnosis Safes in Ethereum top-50 hold 1,203.0M, so CG's implied 353M non-circulating is impossible). On-chain circulating <= 5,000M - 1,203M = 3,797M -> 2.42%; tokenomics.com schedule circulating 2,598.8M -> 3.53%. Fails on both on-chain bases. (CoinGecko basis would be 1.975%, not used per \u00a71.)",
+   "source": "https://app.tokenomics.com/tokenomics/space-and-time/unlocks; https://eth.blockscout.com/api/v2/tokens/0xe6bfd33f52d82ccb5b37e16d3dd81f9ffdabb195/holders; https://api.coingecko.com/api/v3/coins/space-and-time",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "E2": {
+   "result": "unknown",
+   "value": "Not computed precisely. Six monthly ~92-107M unlocks to 2027-05 (~0.55-0.64B) = ~15-17% of 3.797B or ~21-25% of 2.599B, plus staking rewards; likely fail on schedule basis.",
+   "source": "https://app.tokenomics.com/tokenomics/space-and-time/unlocks",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "E3": {
+   "result": "pass",
+   "value": "2,598.8M/5,000M = 52.0% (tokenomics.com) up to 3,797M/5,000M = 75.9% (on-chain upper bound); >=30% on either basis.",
+   "source": "https://app.tokenomics.com/tokenomics/space-and-time/unlocks; https://eth.blockscout.com/api/v2/tokens/0xe6bfd33f52d82ccb5b37e16d3dd81f9ffdabb195/holders",
+   "read_utc": "2026-11-16 15:20 UTC"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "Schedule published: 30 remaining monthly events (8th of month) releasing 2,686,041,657 SXT to 2029-05-08. Note: custody is discretionary multisig Safes, not on-chain vesting contracts.",
+   "source": "https://app.tokenomics.com/tokenomics/space-and-time/unlocks; project SXT token blog (via prior)",
+   "read_utc": "2026-11-16 15:20 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0xF977814e90dA44bFA03b6295A0616a897441aceC",
+   "balance_sxt_m": 412.57,
+   "pct": 10.87,
+   "pct_basis": "of on-chain circulating upper bound 3,797M (raw Ethereum top 10, incl. excluded categories, read 2026-11-16 15:20 UTC)",
+   "label": "exchange",
+   "how": "Binance 8 known hot/cold wallet; Blockscout tags present (excluded)"
+  },
+  {
+   "addr": "0xA14EeF2588ba4DB10f9FA7836229B1a31f2E3218",
+   "balance_sxt_m": 257.53,
+   "pct": 6.78,
+   "pct_basis": "of on-chain circulating upper bound 3,797M (raw Ethereum top 10, incl. excluded categories, read 2026-11-16 15:20 UTC)",
+   "label": "unidentified",
+   "how": "EOA, no tag; prior: funded only from Coinbase 10 - not re-verified"
+  },
+  {
+   "addr": "0x5a52E96BAcdaBb82fd05763E25335261B270Efcb",
+   "balance_sxt_m": 244.97,
+   "pct": 6.45,
+   "pct_basis": "of on-chain circulating upper bound 3,797M (raw Ethereum top 10, incl. excluded categories, read 2026-11-16 15:20 UTC)",
+   "label": "exchange",
+   "how": "Blockscout tags present; prior: moves only between Binance wallets (inferred Binance)"
+  },
+  {
+   "addr": "0x9277fc74BDD49328bdF3E85d9d2ff20cEe16519B",
+   "balance_sxt_m": 242.81,
+   "pct": 6.39,
+   "pct_basis": "of on-chain circulating upper bound 3,797M (raw Ethereum top 10, incl. excluded categories, read 2026-11-16 15:20 UTC)",
+   "label": "unidentified",
+   "how": "EOA, no tag; prior: Coinbase-funded - not re-verified"
+  },
+  {
+   "addr": "0xCF7Cedde0b83bCd5036665db9c8B9D21ee761E50",
+   "balance_sxt_m": 236.3,
+   "pct": 6.22,
+   "pct_basis": "of on-chain circulating upper bound 3,797M (raw Ethereum top 10, incl. excluded categories, read 2026-11-16 15:20 UTC)",
+   "label": "insider",
+   "how": "Gnosis Safe funded 236.3M from project Safe 0x6D91 on 2026-11-11 (transfer history)"
+  },
+  {
+   "addr": "0x738e8e6A0212d9F9f207F37A46c89e6ABaa149d3",
+   "balance_sxt_m": 210.63,
+   "pct": 5.55,
+   "pct_basis": "of on-chain circulating upper bound 3,797M (raw Ethereum top 10, incl. excluded categories, read 2026-11-16 15:20 UTC)",
+   "label": "insider",
+   "how": "Gnosis Safe funded 210.63M from project Safe 0x6D91 on 2026-11-11 (transfer history)"
+  },
+  {
+   "addr": "0xce1eF60a9A4829D4EF5542D34f9ea7b95ce0C833",
+   "balance_sxt_m": 191.6,
+   "pct": 5.05,
+   "pct_basis": "of on-chain circulating upper bound 3,797M (raw Ethereum top 10, incl. excluded categories, read 2026-11-16 15:20 UTC)",
+   "label": "unidentified",
+   "how": "EOA, no tag; prior inferred exchange from sweep pattern - not re-verified"
+  },
+  {
+   "addr": "0x76589f5cb9dA870FF6fCa4c1c16733c58c3aF223",
+   "balance_sxt_m": 147.76,
+   "pct": 3.89,
+   "pct_basis": "of on-chain circulating upper bound 3,797M (raw Ethereum top 10, incl. excluded categories, read 2026-11-16 15:20 UTC)",
+   "label": "other",
+   "how": "StakingPool contract (Blockscout name)"
+  },
+  {
+   "addr": "0xBdaE3D9746f7613e14BD4489Af27a8B92C3f6691",
+   "balance_sxt_m": 88.4,
+   "pct": 2.33,
+   "pct_basis": "of on-chain circulating upper bound 3,797M (raw Ethereum top 10, incl. excluded categories, read 2026-11-16 15:20 UTC)",
+   "label": "unidentified",
+   "how": "EOA, no tag; prior: market-maker-like outflows - not re-verified"
+  },
+  {
+   "addr": "0x19EE30DE803b921Ecbba64eD1787Cda6d536c26a",
+   "balance_sxt_m": 83.92,
+   "pct": 2.21,
+   "pct_basis": "of on-chain circulating upper bound 3,797M (raw Ethereum top 10, incl. excluded categories, read 2026-11-16 15:20 UTC)",
+   "label": "bridge escrow",
+   "how": "Chainlink CCIP LockReleaseTokenPool (Blockscout name); Base mirror (excluded)"
+  }
+ ],
+ "next_unlock": "2026-12-08, 91,770,833 SXT, 2.42% of on-chain circulating upper bound (3.53% of tokenomics.com 2,598.8M; 1.975% of CoinGecko 4,647M), source https://app.tokenomics.com/tokenomics/space-and-time/unlocks",
+ "not_checked": [
+  "D1-D5 (holder labels not re-verified; \u22651.2B in project Safes, several unidentified EOAs >2%)",
+  "F1-F9 contract/admin/proxy/GoPlus",
+  "G1-G4 flags",
+  "E2 exact sum",
+  "Base holder set",
+  "Why project Safe 0x6D91 split 447M into two new Safes on 2026-11-11"
+ ],
+ "verdict": "reject",
+ "reason": "E1 fails: the 2026-12-08 unlock of 91.77M SXT is 2.42-3.53% of on-chain circulating supply (CoinGecko's 4.65B is contradicted by >=1.2B held in project Safes). D, F, G and E2 were not run after the hard fail.",
+ "sources": [
+  "https://api.coingecko.com/api/v3/coins/space-and-time (read 2026-11-16 15:20 UTC)",
+  "https://app.tokenomics.com/tokenomics/space-and-time/unlocks (read 2026-11-16 15:20 UTC)",
+  "https://eth.blockscout.com/api/v2/tokens/0xe6bfd33f52d82ccb5b37e16d3dd81f9ffdabb195/holders (read 2026-11-16 15:20 UTC)",
+  "https://eth.blockscout.com/api/v2/addresses/0xCF7Cedde0b83bCd5036665db9c8B9D21ee761E50/token-transfers (read 2026-11-16 15:21 UTC)",
+  "https://eth.blockscout.com/api/v2/addresses/0x738e8e6A0212d9F9f207F37A46c89e6ABaa149d3/token-transfers (read 2026-11-16 15:21 UTC)"
+ ]
+}

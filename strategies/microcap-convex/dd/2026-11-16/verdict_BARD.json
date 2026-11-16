@@ -1,0 +1,247 @@
+{
+ "sym": "BARD",
+ "name": "Lombard",
+ "chains": [
+  {
+   "chain": "ethereum",
+   "address": "0xf0db65d17e30a966c2ae6a21f6bba71cea6e9754",
+   "share_of_supply_pct": 99.1
+  },
+  {
+   "chain": "bsc",
+   "address": "0xd23a186a78c0b3b805505e5f8ea4083295ef9f3a",
+   "share_of_supply_pct": 0.9,
+   "note": "CCIP lock-release bridge copy, ~8.8M locked on Ethereum (prior). Below 10%, so not tested"
+  }
+ ],
+ "scope_ok": true,
+ "scope_note": "BARD is Lombard's governance/staking ERC-20, not the LBTC liquid-staking token itself. Listed on Binance/OKX/Coinbase since 2025-09-18 (>90 days).",
+ "circulating_supply_used": "396,562,500 (CoinGecko lombard-protocol, read 2026-11-16 15:20 UTC); total/max 1,000,000,000",
+ "tests": {
+  "D1": {
+   "result": "fail",
+   "value": "205.5% of circ: no top-10 holder is a labelled exchange, burn, bridge escrow or readable vesting contract (all are EOAs or Safes)",
+   "source": "eth.blockscout.com /api/v2/tokens/{addr}/holders; publicnode eth_getCode",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "D2": {
+   "result": "fail",
+   "value": "0xd27c...Eb91 holds 249,999,999 BARD = 63.04% of circulating. It is an EOA (eth_getCode = 0x), not a vesting contract, so it is not excluded",
+   "source": "Blockscout holders API; ethereum-rpc.publicnode.com eth_getCode",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "D3": {
+   "result": "fail",
+   "value": "insider/D5 wallets in the top 10 alone = 205.5% of circ (>20%), none in an on-chain vesting or timelock contract",
+   "source": "Blockscout holders; eth_getCode",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "D4": {
+   "result": "unknown",
+   "value": "not run: stopped at early hard fail (D2, E1). insider to exchange-deposit flows not traced",
+   "source": "-",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "D5": {
+   "result": "fail",
+   "value": "all 10 top holders hold >=2% of circulating and none has an explorer label. The 250M/200M wallets are identified only by matching allocation sizes, so all count as insiders",
+   "source": "Blockscout address metadata",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "E1": {
+   "result": "fail",
+   "value": "2026-11-18 unlock of 22,812,729 BARD = 5.75% of circulating (>=2%). Monthly unlocks of about the same size continue to ~Sep 2027",
+   "source": "app.tokenomics.com/tokenomics/lombard/unlocks (page text: 'November 18, 2026 (in 3 days), releasing 22,812,729 tokens')",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "E2": {
+   "result": "fail",
+   "value": "6 monthly unlocks x ~22.8M = ~136.9M = ~34.5% of circulating in the next 180 days (>20%). Based on tokenomics.com's monthly cadence, not each event re-read",
+   "source": "app.tokenomics.com/tokenomics/lombard/unlocks; prior_BARD.json",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "E3": {
+   "result": "pass",
+   "value": "396.56M / 1,000M = 39.7% (>=30%)",
+   "source": "CoinGecko coins/lombard-protocol",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "E4": {
+   "result": "pass",
+   "value": "schedule published (tokenomics.com, 34 events to ~2029)",
+   "source": "app.tokenomics.com",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "F1": {
+   "result": "pass",
+   "value": "GoPlus is_open_source=1",
+   "source": "api.gopluslabs.io token_security/1",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "F2": {
+   "result": "unknown",
+   "value": "GoPlus is_mintable=1. The owner is a 2-of-3 Gnosis Safe (0x6296...140d, getOwners=3, getThreshold=2). Mint path and timelock not read from source; a 2-of-3 Safe without a timelock would not meet F2",
+   "source": "GoPlus; publicnode eth_call getOwners/getThreshold",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "F3": {
+   "result": "unknown",
+   "value": "owner_address 0x629692bb...140d is a contract (GnosisSafe proxy, 3 owners, threshold 2), can_take_back_ownership=0. No >=48h timelock found; source roles not reviewed",
+   "source": "GoPlus; publicnode eth_getCode/eth_call; Blockscout",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "F4": {
+   "result": "pass",
+   "value": "GoPlus is_proxy=0",
+   "source": "GoPlus",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "F5": {
+   "result": "unknown",
+   "value": "GoPlus is_blacklisted=0, transfer_pausable=0. Freeze/other roles in the source not reviewed",
+   "source": "GoPlus",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "F6": {
+   "result": "unknown",
+   "value": "GoPlus slippage_modifiable=0. Source not reviewed",
+   "source": "GoPlus",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "F7": {
+   "result": "unknown",
+   "value": "GoPlus is_honeypot=0, cannot_sell_all=null (not returned). honeypot.is not run",
+   "source": "GoPlus",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "F8": {
+   "result": "unknown",
+   "value": "not run: stopped at early hard fail (D2, E1). DEX pools / LP locks not checked",
+   "source": "-",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "F9": {
+   "result": "unknown",
+   "value": "not run: stopped at early hard fail (D2, E1). audit of the BARD token contract not confirmed (prior cites LBTC audits only)",
+   "source": "-",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "G1": {
+   "result": "unknown",
+   "value": "not run: stopped at early hard fail (D2, E1). Binance Monitoring tag / delistings not re-read today (prior 2026-11-10: none)",
+   "source": "-",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "G2": {
+   "result": "unknown",
+   "value": "not run: stopped at early hard fail (D2, E1). exploit search not re-run (prior: none)",
+   "source": "-",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "G3": {
+   "result": "unknown",
+   "value": "not run: stopped at early hard fail (D2, E1). not checked",
+   "source": "-",
+   "read_utc": "2026-11-16 15:21 UTC"
+  },
+  "G4": {
+   "result": "unknown",
+   "value": "not run: stopped at early hard fail (D2, E1). not checked (prior: no migration)",
+   "source": "-",
+   "read_utc": "2026-11-16 15:21 UTC"
+  }
+ },
+ "top10": [
+  {
+   "addr": "0xd27cF5C2FC9ba2253215d0A0F2CbD5aa7d22Eb91",
+   "balance": 249999999,
+   "pct": 63.04,
+   "label": "insider",
+   "how": "EOA (eth_getCode 0x). Holds exactly the 25% Core Contributors allocation from one inbound transfer (prior THE analysis). No explorer label, so it is a D5 insider in any case"
+  },
+  {
+   "addr": "0x668550e325005029648e88f48E73F424D99b8aa4",
+   "balance": 199999999,
+   "pct": 50.43,
+   "label": "insider",
+   "how": "EOA (eth_getCode 0x). Holds exactly the 20% Early Investors allocation. No explorer label. Not a readable vesting contract"
+  },
+  {
+   "addr": "0x8278b1D693f230E61109ed1437d129760691Ecf9",
+   "balance": 159075769,
+   "pct": 40.11,
+   "label": "insider",
+   "how": "EOA, unlabelled, >=2%, so D5 makes it an insider (probably Foundation/Ecosystem)"
+  },
+  {
+   "addr": "0x77E98d762ad8d79750F8DBe5dc8c3Bf719A6c66B",
+   "balance": 43587634,
+   "pct": 10.99,
+   "label": "unidentified",
+   "how": "EOA, no label, >=2%, so D5 makes it an insider. Prior saw deposit-like inflows, not confirmed"
+  },
+  {
+   "addr": "0xF753d043aD5684A53663E2c26f6692E26fBA2615",
+   "balance": 38306792,
+   "pct": 9.66,
+   "label": "unidentified",
+   "how": "EOA, no label, >=2%, so D5 makes it an insider"
+  },
+  {
+   "addr": "0x9b6e4B3FCa5804b6860858e3211FC28dBF32525b",
+   "balance": 36700000,
+   "pct": 9.25,
+   "label": "insider",
+   "how": "Gnosis SafeProxy (Blockscout), round balance, probably a foundation treasury. Unlabelled and >=2%"
+  },
+  {
+   "addr": "0x247e06A059ff62022F7a8A237d12e60782b9f791",
+   "balance": 27800000,
+   "pct": 7.01,
+   "label": "insider",
+   "how": "Gnosis SafeProxy, round balance. Unlabelled and >=2%"
+  },
+  {
+   "addr": "0x4e19698c366f7DCD1cfAd4D7f621B4D275Bb1a6C",
+   "balance": 23999988,
+   "pct": 6.05,
+   "label": "unidentified",
+   "how": "EOA, Blockscout tags returned unnamed. >=2% of circ (6.05%)"
+  },
+  {
+   "addr": "0xeEd5378883d08135Ce948c94cDAFFf75fc38C351",
+   "balance": 22200000,
+   "pct": 5.6,
+   "label": "insider",
+   "how": "Gnosis SafeProxy, round balance. Unlabelled and >=2%"
+  },
+  {
+   "addr": "0x313C358189E25f16177f15dC23fff75288Fd393A",
+   "balance": 13300000,
+   "pct": 3.35,
+   "label": "insider",
+   "how": "Gnosis SafeProxy, round balance. Unlabelled and >=2% (3.35%)"
+  }
+ ],
+ "next_unlock": "2026-11-18, 22,812,729 BARD, 5.75% of circulating (2.3% of total), app.tokenomics.com/tokenomics/lombard/unlocks read 2026-11-16 15:21 UTC",
+ "not_checked": [
+  "D4 insider to exchange flows",
+  "F2/F3 source-level role and timelock review",
+  "F8 LP locks",
+  "F9 token audit",
+  "honeypot.is",
+  "G1-G4 re-verification today",
+  "BSC deployment (<10% of supply)",
+  "CryptoRank/Tokenomist cross-check of the unlock (pages returned no parsable data)"
+ ],
+ "verdict": "reject",
+ "reason": "Hard fails: D2 (an unlabelled EOA holds 63.0% of circulating), D1/D3/D5 (top 10 are all insider or unidentified wallets, 205.5% of circ), and E1 (a 2026-11-18 unlock of 22.8M = 5.75% of circ). E2 also fails. F2/F3/F5-F9 and G1-G4 were left unknown after the early stop.",
+ "sources": [
+  "https://api.coingecko.com/api/v3/coins/lombard-protocol (read 2026-11-16 15:20 UTC)",
+  "https://eth.blockscout.com/api/v2/tokens/0xf0db65d17e30a966c2ae6a21f6bba71cea6e9754/holders (read 2026-11-16 15:20 UTC)",
+  "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0xf0db65d17e30a966c2ae6a21f6bba71cea6e9754 (read 2026-11-16 15:20 UTC)",
+  "https://ethereum-rpc.publicnode.com eth_getCode / eth_call getOwners,getThreshold (read 2026-11-16 15:21 UTC)",
+  "https://eth.blockscout.com/api/v2/addresses/0x629692bbca65a94deebd98de93bd74531561140d (read 2026-11-16 15:21 UTC)",
+  "https://app.tokenomics.com/tokenomics/lombard/unlocks (read 2026-11-16 15:21 UTC)"
+ ]
+}
