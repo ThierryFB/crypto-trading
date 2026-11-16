@@ -161,22 +161,40 @@ def halt_issues(cfg, st=None):
     fail closed). The runner's own halt issue is also read directly, so a search miss can't hide it."""
     norm = lambda t: " ".join(t.lower().replace("–", "—").replace(" - ", " — ").split())
     want = [norm(t) for t in cfg["limits"]["halt_issue_titles"]]
-    for i in range(2):  # the search is slow at times: one retry before failing closed
-        try:
-            d = mb.pc("GET", f"/api/companies/{os.environ['PAPERCLIP_COMPANY_ID']}/issues?q=HALT")
+    seen, out, page = set(), {}, 100
+    while True:  # every page of the search, so a HALT issue past the first page isn't missed
+        for i in range(2):  # the search is slow at times: one retry before failing closed
+            try:
+                d = mb.pc("GET", f"/api/companies/{os.environ['PAPERCLIP_COMPANY_ID']}/issues?q=HALT&limit={page}&offset={len(seen)}")
+                break
+            except Exception:
+                if i:
+                    raise
+        d = d if isinstance(d, list) else d["issues"]
+        new = [i for i in d if i["id"] not in seen]
+        seen.update(i["id"] for i in new)
+        out.update({i["id"]: dict(id=i["id"], identifier=i.get("identifier") or i["id"], title=i["title"]) for i in new
+                    if i.get("status") not in ("done", "cancelled") and any(norm(i["title"]).startswith(w) for w in want)})
+        if len(d) < page or not new:
             break
-        except Exception:
-            if i:
-                raise
-    out = {i["id"]: dict(id=i["id"], identifier=i.get("identifier") or i["id"], title=i["title"])
-           for i in (d if isinstance(d, list) else d["issues"])
-           if i.get("status") not in ("done", "cancelled") and any(norm(i["title"]).startswith(w) for w in want)}
     own = ((st or {}).get("halted") or {}).get("issue")
     if own and own["id"] not in out:
         i = mb.pc("GET", f"/api/issues/{own['id']}")
         if i.get("status") not in ("done", "cancelled"):
             out[i["id"]] = dict(id=i["id"], identifier=i.get("identifier") or i["id"], title=i["title"])
     return list(out.values())
+
+
+def issue_comments(issue_id):
+    """Every comment on an issue, oldest first. `after` includes the cursor comment, so pages are de-duplicated by id."""
+    out, after, page = {}, None, 100
+    while True:
+        d = mb.pc("GET", f"/api/issues/{issue_id}/comments?order=asc&limit={page}" + (f"&after={after}" if after else ""))
+        new = [c for c in d if c["id"] not in out]
+        out.update((c["id"], c) for c in new)
+        if len(d) < page or not new:
+            return list(out.values())
+        after = d[-1]["id"]
 
 
 def halt_body(st, h):
@@ -279,7 +297,7 @@ def exit_request_problem(cfg, st, t):
             c = mb.pc("GET", f"/api/issues/{i['id']}/comments/{ref}")
         except Exception:
             continue
-        if c.get("issueId") not in (None, i["id"]) or c.get("deletedAt"):
+        if c.get("issueId") != i["id"] or c.get("deletedAt"):
             continue
         who = next((n for n, a in R.items() if a == c.get("authorAgentId")), None)
         if not who:
@@ -512,8 +530,10 @@ def cmd_execute(cfg, st, a):
             bal = demo.balances()
         except Exception as e:
             errs.append(f"Demo balances: {e}")
-    elif ex.open_lots(st):
+    elif ex.open_lots(st):  # the resting stops can't be checked: O5, not just a failed wake
         errs.append("no Bybit Demo credentials while lots are open")
+        latch(cfg, st, "O5-creds", "O5: no Bybit Demo credentials while lots are open, so their stops can't be checked",
+              f"lots {', '.join(ex.open_lots(st))} at {ex.utc(now)}", now, notes)
     if bal is not None:
         errs += ex.sweep(cfg, st, demo, inst, now, orders, notes)
         recon = ex.reconcile(st, demo.balances(), inst, coins, notes, cfg["sleeve_usdt"], cfg["limits"]["O2_usdt_tolerance"])
@@ -833,21 +853,29 @@ def cmd_halt(cfg, st, a):
 
 def cmd_resume(cfg, st, a):
     """Only Nadia resumes, after Ingrid's written review (risk-policy.md, Halt levels). Refused unless the halt's issue
-    exists, --ref is Nadia's comment on it, and no HALT issue (this one, another runner halt, or HALT — desk) is open."""
-    h, now = st["halted"], time.time()
+    exists, --ref is Nadia's comment on it, Ingrid's written review is on it before that comment and after the last halt
+    reason, and no HALT issue (this one, another runner halt, or HALT — desk) is open."""
+    h, now, G = st["halted"], time.time(), cfg["governance"]
     if not h:
         sys.exit("nothing to resume: the runner isn't halted")
     halt_sync(cfg, st, now)
     save_state(st)
     if not h.get("issue"):
         sys.exit(f"refused: the halt has no HALT issue yet ({h.get('issue_error')})")
+    hi = h["issue"]
     try:
-        c = mb.pc("GET", f"/api/issues/{h['issue']['id']}/comments/{a.ref}")
+        c = mb.pc("GET", f"/api/issues/{hi['id']}/comments/{a.ref}")
+        thread = issue_comments(hi["id"])
         still = halt_issues(cfg, st)
     except Exception as e:
         sys.exit(f"refused: could not read Paperclip ({e})")
-    if c.get("authorAgentId") != cfg["governance"]["resume_agent_id"] or c.get("deletedAt") or c.get("issueId") not in (None, h["issue"]["id"]):
-        sys.exit(f"refused: comment {a.ref} is not Nadia's comment on {h['issue']['identifier']}")
+    if c.get("authorAgentId") != G["resume_agent_id"] or c.get("deletedAt") or c.get("issueId") != hi["id"]:
+        sys.exit(f"refused: comment {a.ref} is not Nadia's comment on {hi['identifier']}")
+    last_reason = max(tickets.ts(x["t"]) for x in [h] + h.get("also", []))
+    reviews = [x for x in thread if x.get("authorAgentId") == G["review_agent_id"] and not x.get("deletedAt")
+               and x.get("issueId") == hi["id"] and last_reason <= tickets.ts(x["createdAt"]) < tickets.ts(c["createdAt"])]
+    if not reviews:
+        sys.exit(f"refused: no written review by Ingrid on {hi['identifier']} after the last halt reason and before Nadia's comment {a.ref}")
     if still:
         sys.exit("refused: HALT issue(s) still open: " + ", ".join(i["identifier"] for i in still) + ". Nadia closes them after Ingrid's review")
     if a.rebaseline:

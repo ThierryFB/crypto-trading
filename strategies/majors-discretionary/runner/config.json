@@ -46,10 +46,11 @@
     "resting_target_note": "Off. A resting PostOnly limit sell is not an order type L9 allows, so switching this on needs an L9 amendment to risk-policy.md (Ingrid's approval), not just this flag and the Demo test. Until then a target is taken at a wake."
   },
   "governance": {
-    "note": "Halts (risk-policy.md, Halt levels): a runner halt opens a HALT issue in this project assigned to Nadia; resume needs that issue closed, no open HALT issue, and a resume comment by Nadia on it. A discretionary exit under a halt needs a comment by Nadia or Ingrid on an open HALT issue.",
+    "note": "Halts (risk-policy.md, Halt levels): a runner halt opens a HALT issue in this project assigned to Nadia; resume needs that issue closed, no open HALT issue, a written review by Ingrid on it after the last halt reason, and a later resume comment by Nadia on it. A discretionary exit under a halt needs a comment by Nadia or Ingrid on an open HALT issue.",
     "project_id": "7ff13205-a364-47b0-baee-9178951c6edc",
     "halt_title": "HALT — majors-discretionary",
     "resume_agent_id": "61d8dff6-02c6-4a36-b985-22a5ffb4d96d",
+    "review_agent_id": "20e2608c-49d2-407a-97f1-47280f505ea6",
     "exit_requesters": {
       "Nadia": "61d8dff6-02c6-4a36-b985-22a5ffb4d96d",
       "Ingrid": "20e2608c-49d2-407a-97f1-47280f505ea6"

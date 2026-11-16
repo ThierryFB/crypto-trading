@@ -112,8 +112,15 @@ def fake_pc(m, path, body=None):
         return ISSUES[iid]
     if m == "POST":
         return comment(path.split("/")[3], body["body"], LEO)
-    if "/issues?q=" in path:
-        return [dict(i) for i in ISSUES.values()]
+    if "/issues?q=" in path:  # paged like Paperclip: limit / offset
+        q = dict(x.split("=") for x in path.split("?")[1].split("&"))
+        o, n = int(q.get("offset", 0)), int(q.get("limit", 10 ** 6))
+        return [dict(i) for i in ISSUES.values()][o:o + n]
+    if "/comments?" in path:  # oldest first; after includes the cursor comment, as the real API does
+        q = dict(x.split("=") for x in path.split("?")[1].split("&"))
+        cs = [c for c in COMMENTS.values() if c["issueId"] == path.split("/")[3]]
+        o = next((k for k, c in enumerate(cs) if c["id"] == q.get("after")), 0)
+        return cs[o:o + int(q.get("limit", 10 ** 6))]
     if "/comments/" in path:
         cid = path.rsplit("/", 1)[1]
         if cid not in COMMENTS:
@@ -386,18 +393,46 @@ def main():
         return None
     msg = resume(comment(hid, "I resume", LEO)["id"])
     check(msg and "not Nadia's comment" in msg, "resume: Leo's own comment is refused")
-    msg = resume(comment(hid, "Resumed after Ingrid's review", NADIA)["id"])
+    ISSUES[hid]["status"] = "done"
+    at("2026-11-17T00:10Z"); early = comment(hid, "ack, waiting for Ingrid", NADIA)["id"]
+    msg = resume(early)
+    check(msg and "no written review by Ingrid" in msg and mdisc.load_state(cfg)["halted"],
+          "resume: Nadia's comment with no review by Ingrid is refused, even with the issue closed")
+    at("2026-11-17T00:20Z"); comment(hid, "Review: cause found, fixed; OK to resume", INGRID)
+    msg = resume(early)
+    check(msg and "no written review by Ingrid" in msg, "resume: Nadia's comment posted before Ingrid's review is refused")
+    ISSUES[hid]["status"] = "todo"
+    at("2026-11-17T00:30Z"); msg = resume(comment(hid, "Resumed after Ingrid's review", NADIA)["id"])
     check(msg and "still open" in msg and mdisc.load_state(cfg)["halted"], "resume: refused while the HALT issue is open")
+    other = halt_issue("HALT — majors-discretionary: other"); ok_elsewhere = comment(other, "Resumed", NADIA)["id"]
+    msg = resume(ok_elsewhere)
+    check(msg and "not Nadia's comment on" in msg, "resume: Nadia's comment on a different issue is refused")
+    ISSUES[other]["status"] = "done"
     ISSUES[hid]["status"] = "done"; desk = halt_issue()
     msg = resume(comment(hid, "Resumed", NADIA)["id"])
     check(msg and "THE-" in msg and "still open" in msg, "resume: refused while HALT — desk is open")
     ISSUES[desk]["status"] = "done"
-    check(resume(comment(hid, "Resumed", NADIA)["id"]) is None and not mdisc.load_state(cfg)["halted"], "resume: Nadia's comment, issues closed")
+    for k in range(150):  # more than a page of HALT search results and of comments: both are read to the end
+        ISSUES[f"x{k}"] = dict(id=f"x{k}", identifier=f"THE-{2000 + k}", title=f"old {k}", status="done")
+        comment(hid, f"noise {k}", LEO)
+    desk2 = halt_issue()
+    msg = resume(comment(hid, "Resumed", NADIA)["id"])
+    check(msg and ISSUES[desk2]["identifier"] in msg, "halt_issues: a HALT — desk issue past the first page of the search is found")
+    ISSUES[desk2]["status"] = "done"
+    check(resume(comment(hid, "Resumed", NADIA)["id"]) is None and not mdisc.load_state(cfg)["halted"],
+          "resume: Ingrid's review, then Nadia's comment, issues closed; more than a page of comments is read")
     PC_DOWN[0] = True
     st = mdisc.load_state(cfg); mdisc.latch(cfg, st, "manual:x", "manual halt by Ingrid: x", "x", CLOCK[0]); mdisc.save_state(st)
     PC_DOWN[0] = False
     check(resume("whatever") and "no HALT issue yet" not in (resume("whatever") or "") and mdisc.load_state(cfg)["halted"]["issue"],
           "a halt issue that couldn't be opened is opened at the next try, and resume still refuses")
+
+    # 18b. no Demo credentials while a lot is open: its stop can't be checked, so O5 halts
+    setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()])); at("2026-11-16T08:07Z"); run("execute")
+    mb.creds = lambda cfg_: None
+    at("2026-11-16T14:36Z"); run("post", wake(review={"L-0001": "hold"})); rc, st = run("execute")
+    mb.creds = lambda cfg_: ("k", "s")
+    check(st["halted"] and st["halted"]["code"] == "O5-creds" and st["halted"]["issue"], "O5: no credentials with a lot open halts")
 
     # 19. O2 cash: a USDT balance that doesn't add up halts
     setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()])); at("2026-11-16T08:07Z"); run("execute")
