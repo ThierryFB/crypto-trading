@@ -53,6 +53,8 @@ def main():
     refused(entry(), ctx(lots=lots), "L5"); n += 1
     lots = {"L-1": dict(coin="SOL", qty=1.0, entry_px=205.0, stop=206.0)}  # add below the average entry
     refused(entry(), ctx(lots=lots), "L5"); n += 1
+    lots = {"L-1": dict(coin="SOL", qty=1.0, entry_px=200.2, stop=200.2)}  # limit 200.3 is above the average, the ask isn't
+    refused(entry(), ctx(lots=lots), "L5"); n += 1
     lots = {f"L-{i}": dict(coin=c, qty=0.001, entry_px=1.0, stop=1.0) for i, c in enumerate(["BTC", "ETH", "XRP", "ADA"])}
     refused(entry(), ctx(lots=lots), "L6"); n += 1
     refused(entry(), ctx(entries_this_wake=2), "L7"); n += 1

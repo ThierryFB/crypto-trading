@@ -16,7 +16,7 @@
     "14:35"
   ],
   "limits_source": "strategies/majors-discretionary/risk-policy.md",
-  "limits_note": "Ids follow risk-policy.md (merged cd4767c). All shares are of sleeve NAV. Changing any value here, or the gate code (tickets.py, execute.py, the gates in mdisc.py), is a risk-policy change (Runner independence): PR with Ingrid's approval.",
+  "limits_note": "Ids follow risk-policy.md (merged cd4767c). All shares are of sleeve NAV. Changing any value here, or the gate code (tickets.py, execute.py, the gates, halts and resume in mdisc.py, governance below), is a risk-policy change (Runner independence): PR with Ingrid's approval.",
   "limits": {
     "L2_risk_per_trade_nav": 0.0075,
     "L4_max_coin_nav": 0.25,
@@ -33,7 +33,8 @@
     "halt_issue_titles": [
       "HALT — majors-discretionary",
       "HALT — desk"
-    ]
+    ],
+    "O2_usdt_tolerance": 0.05
   },
   "execution": {
     "touch_offset": 0.001,
@@ -42,7 +43,17 @@
     "shadow_fee": 0.0015,
     "max_test_order_usdt": 20,
     "resting_target": false,
-    "resting_target_note": "Off until the Demo test shows a resting limit sell can sit next to the stop on the same coin (strategy.md §4); until then a target is taken at a wake."
+    "resting_target_note": "Off. A resting PostOnly limit sell is not an order type L9 allows, so switching this on needs an L9 amendment to risk-policy.md (Ingrid's approval), not just this flag and the Demo test. Until then a target is taken at a wake."
+  },
+  "governance": {
+    "note": "Halts (risk-policy.md, Halt levels): a runner halt opens a HALT issue in this project assigned to Nadia; resume needs that issue closed, no open HALT issue, and a resume comment by Nadia on it. A discretionary exit under a halt needs a comment by Nadia or Ingrid on an open HALT issue.",
+    "project_id": "7ff13205-a364-47b0-baee-9178951c6edc",
+    "halt_title": "HALT — majors-discretionary",
+    "resume_agent_id": "61d8dff6-02c6-4a36-b985-22a5ffb4d96d",
+    "exit_requesters": {
+      "Nadia": "61d8dff6-02c6-4a36-b985-22a5ffb4d96d",
+      "Ingrid": "20e2608c-49d2-407a-97f1-47280f505ea6"
+    }
   },
   "log_issue": "THE-334",
   "crypto_book_url": "http://asset-management.asset-management.svc.cluster.local",

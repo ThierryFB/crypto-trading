@@ -11,6 +11,8 @@ import mdisc, execute as ex, tickets, shadow, inputs  # noqa: E402
 from inputs import bybit, engine  # noqa: E402
 import runner as mb  # noqa: E402
 
+MERGED = ex.merged_gate  # the real one, before setup() fakes it
+
 CLOCK = [tickets.ts("2026-11-16T08:06Z")]
 PX = {"BTC": 64000.0, "ETH": 1800.0, "SOL": 70.0, "XRP": 0.9, "DOGE": 0.057, "ADA": 0.147}
 F6 = {"BTC": 0.48, "ETH": 0.47, "SOL": 0.6, "XRP": 0.46, "DOGE": 0.47, "ADA": 0.46}
@@ -94,19 +96,45 @@ def live(coin=None):
     return [o for o in V.cond.values() if o["status"] in ("Untriggered", "New") and (coin is None or o["sym"][:-4] == coin)]
 
 
-COMMENTS, POSTS, CB, HALTS = {}, [], [], []
+COMMENTS, POSTS, CB, ISSUES = {}, [], [], {}
+LEO, NADIA, INGRID = "leo-id", "61d8dff6-02c6-4a36-b985-22a5ffb4d96d", "20e2608c-49d2-407a-97f1-47280f505ea6"
+PC_DOWN = [False]
 
 
 def fake_pc(m, path, body=None):
+    """Fake Paperclip: comments on any issue, issue create / read / search. PC_DOWN makes every call fail."""
+    if PC_DOWN[0]:
+        raise OSError("Paperclip unreachable")
+    t = mdisc.ex.iso(CLOCK[0]).replace("+00:00", ".000Z")
+    if m == "POST" and path.endswith("/issues"):
+        iid = f"i{len(ISSUES)}"
+        ISSUES[iid] = dict(dict(status="todo"), **body, id=iid, identifier=f"THE-{900 + len(ISSUES)}")
+        return ISSUES[iid]
     if m == "POST":
-        cid = f"c{len(COMMENTS)}"
-        t = mdisc.ex.iso(CLOCK[0]).replace("+00:00", ".000Z")
-        COMMENTS[cid] = dict(id=cid, body=body["body"], createdAt=t, updatedAt=t)
-        POSTS.append(body["body"]); return COMMENTS[cid]
-    cid = path.rsplit("/", 1)[1]
-    if cid not in COMMENTS:
-        raise OSError("404")
+        return comment(path.split("/")[3], body["body"], LEO)
+    if "/issues?q=" in path:
+        return [dict(i) for i in ISSUES.values()]
+    if "/comments/" in path:
+        cid = path.rsplit("/", 1)[1]
+        if cid not in COMMENTS:
+            raise OSError("404")
+        return COMMENTS[cid]
+    return ISSUES[path.rsplit("/", 1)[1]]
+
+
+def comment(issue, text, author):
+    cid = f"c{len(COMMENTS)}"
+    t = mdisc.ex.iso(CLOCK[0]).replace("+00:00", ".000Z")
+    COMMENTS[cid] = dict(id=cid, issueId=issue if issue in ISSUES else None, body=text, createdAt=t, updatedAt=t, authorAgentId=author)
+    if issue == "THE-334":
+        POSTS.append(text)
     return COMMENTS[cid]
+
+
+def halt_issue(title="HALT — desk"):
+    iid = f"i{len(ISSUES)}"
+    ISSUES[iid] = dict(id=iid, identifier=f"THE-{900 + len(ISSUES)}", title=title, status="todo")
+    return iid
 
 
 def candles(sym, now):
@@ -130,19 +158,18 @@ def setup():
     mb.creds = lambda cfg: ("k", "s")
     mb.pc = fake_pc
     mb.cb_post = lambda cfg, body: (CB.append(body), f"cb{len(CB)}")[1]
-    mb.halt_issues = lambda cfg: list(HALTS)
     ex.merged_gate = lambda: []
     inputs.collect = lambda U, now=None: dict(t=CLOCK[0], coins={c: dict(mid=PX[c], up24_90d=0.5) for c in PX}, perp={}, hist={}, errors=[])
     inputs.render = lambda D: "(inputs)"
     for f in os.listdir(os.environ["MD_STATE_DIR"]):
         os.remove(os.path.join(os.environ["MD_STATE_DIR"], f))
-    COMMENTS.clear(); POSTS.clear(); CB.clear(); HALTS.clear()
+    COMMENTS.clear(); POSTS.clear(); CB.clear(); ISSUES.clear(); PC_DOWN[0] = False
     json.dump({"stop_test": {"ok": True}}, open(os.path.join(os.environ["MD_STATE_DIR"], "state.json"), "w"))
 
 
 def entry(**kw):
     t = {"type": "entry", "coin": "SOL", "risk_usd": 12.0, "entry": "touch", "stop": 66.0, "target": 76.0, "forecast_24h": 0.6,
-         "thesis": {"why_now": "w", "invalidated_if": "i", "sources": [{"what": "a", "url": "u", "at": "2026-11-16T07:50Z"}]}}
+         "thesis": {"why_now": "w", "invalidated_if": "i", "sources": [{"what": "a", "url": "u", "at": ex.iso(CLOCK[0] - 600)}]}}
     t.update(kw)
     return t
 
@@ -261,15 +288,28 @@ def main():
 
     # 9. HALT issue: entries refused; a discretionary exit needs Nadia's or Ingrid's request
     setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()])); at("2026-11-16T08:07Z"); run("execute")
-    HALTS.append("THE-999 HALT — desk")
+    desk = halt_issue()
     at("2026-11-16T14:36Z")
-    run("post", wake([entry(coin="BTC", stop=62000.0, forecast_24h=0.55),
+    run("post", wake([entry(coin="BTC", stop=62000.0, target=70000.0, forecast_24h=0.55),
                       {"type": "exit", "coin": "SOL", "lot": "L-0001", "reason": "r"}], review={"L-0001": "x"},
                      forecasts_=dict(F6, BTC=0.55)))
     rc, st = run("execute")
     check("halted" in st["tickets"]["T-20261116-1435-1"]["result"], "halt: entry refused")
-    check("requested_by" in st["tickets"]["T-20261116-1435-2"]["result"] and "L-0001" in st["lots"], "halt: exit needs a request")
+    check("request_ref" in st["tickets"]["T-20261116-1435-2"]["result"] and "L-0001" in st["lots"], "halt: exit needs a request")
     check(len(live("SOL")) == 1, "halt: the resting stop stays")
+    leo_c = comment(desk, "please let me exit", LEO)["id"]
+    at("2026-11-17T00:06Z")
+    run("post", wake([{"type": "exit", "coin": "SOL", "lot": "L-0001", "reason": "r", "requested_by": "Nadia", "request_ref": leo_c}],
+                     review={"L-0001": "x"}))
+    rc, st = run("execute")
+    check("not a comment by Nadia or Ingrid" in st["tickets"]["T-20261117-0005-1"]["result"] and "L-0001" in st["lots"],
+          "halt: an exit request has to be Nadia's or Ingrid's comment on the HALT issue")
+    nadia_c = comment(desk, "exit SOL", NADIA)["id"]
+    at("2026-11-17T08:06Z")
+    run("post", wake([{"type": "exit", "coin": "SOL", "lot": "L-0001", "reason": "r", "requested_by": "Nadia", "request_ref": nadia_c}],
+                     review={"L-0001": "x"}))
+    rc, st = run("execute")
+    check(not st["lots"] and not live(), "halt: an exit Nadia asked for on the HALT issue runs")
 
     # 10. O2: a balance that doesn't add up halts the runner
     setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()])); at("2026-11-16T08:07Z"); run("execute")
@@ -283,6 +323,11 @@ def main():
     at("2026-11-16T08:06Z"); run("post", wake([entry()])); at("2026-11-16T08:07Z")
     rc, st = run("execute")
     check(rc == 1 and st["wakes"][-1]["failed"] and "NO resting stop" in POSTS[-1], "O5: unprotected lot fails the wake")
+    check(st["halted"] and st["halted"]["code"].startswith("O5") and "L-0001" in st["halted"]["ref"], "O5: no stop after the retry halts")
+    hi = st["halted"]["issue"]
+    check(hi and ISSUES[hi["id"]]["title"].startswith("HALT — majors-discretionary") and ISSUES[hi["id"]]["assigneeAgentId"] == NADIA
+          and "NO resting stop" in ISSUES[hi["id"]]["description"], "O5: HALT issue opened, assigned to Nadia, with the evidence")
+    check("L-0001" in POSTS[-1] and hi["identifier"] in POSTS[-1], "O5: the fills comment names the lot and the halt issue")
 
     # 12. O1: a missed wake then an on-time one resets; a missed wake then a late one is two in a row: halt
     setup(); at("2026-11-16T08:06Z"); run("post", wake())
@@ -307,6 +352,111 @@ def main():
     n0 = len(V.orders)
     moves = shadow.step(sh, bars, 0.0015)
     check(any("buy SOL" in m for m in moves) and len(V.orders) == n0 and sh["last_bar"] == k[-1], "shadow: buys the breakout, no order")
+
+    # 16. D3 latches: it holds after NAV recovers and after the day rolls over
+    setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()])); at("2026-11-16T08:07Z"); run("execute")
+    st = mdisc.load_state(mdisc.load_cfg()); st["cash"] -= 450; st["venue_base"]["USDT"] += 450; mdisc.save_state(st)  # NAV ≈ $1,550
+    at("2026-11-16T14:36Z"); run("post", wake(review={"L-0001": "hold"})); rc, st = run("execute")
+    check(st["halted"] and st["halted"]["code"] == "D3" and st["halted"]["issue"], "D3: NAV ≤ $1,600 halts and opens the issue")
+    st["cash"] += 450; st["venue_base"]["USDT"] -= 450; mdisc.save_state(st)  # NAV back near $2,000
+    at("2026-11-17T00:06Z"); run("post", wake([entry(coin="BTC", stop=62000.0, target=70000.0, forecast_24h=0.55)], review={"L-0001": "hold"},
+                                               forecasts_=dict(F6, BTC=0.55)))
+    rc, st = run("execute")
+    check(st["halted"]["code"] == "D3" and "D3" in st["tickets"]["T-20261117-0005-1"]["result"] and len(ISSUES) == 1,
+          "D3: still halted after NAV recovers and the day rolls; one issue, not a new one per run")
+
+    # 17. D2 latches: a ≥ 10% day loss holds into the next day
+    setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()])); at("2026-11-16T08:07Z"); run("execute")
+    st = mdisc.load_state(mdisc.load_cfg()); st["day"]["nav"] = 2300.0; mdisc.save_state(st)  # as if NAV had been $2,300 at 00:00
+    at("2026-11-16T14:36Z"); run("post", wake(review={"L-0001": "hold"})); rc, st = run("execute")
+    check(st["halted"] and st["halted"]["code"] == "D2", "D2: day loss ≥ 10% halts")
+    at("2026-11-17T00:06Z"); run("post", wake(review={"L-0001": "hold"})); rc, st = run("execute")
+    check(st["halted"]["code"] == "D2" and st["day"]["date"] == "2026-11-17", "D2: still halted on the next UTC day")
+
+    # 18. resume: refused while a HALT issue is open, refused on anyone's comment but Nadia's, then allowed
+    cfg = mdisc.load_cfg()
+    hid = st["halted"]["issue"]["id"]
+
+    def resume(ref):
+        st_ = mdisc.load_state(cfg)
+        try:
+            mdisc.cmd_resume(cfg, st_, types.SimpleNamespace(ref=ref, rebaseline=False))
+        except SystemExit as e:
+            return str(e)
+        return None
+    msg = resume(comment(hid, "I resume", LEO)["id"])
+    check(msg and "not Nadia's comment" in msg, "resume: Leo's own comment is refused")
+    msg = resume(comment(hid, "Resumed after Ingrid's review", NADIA)["id"])
+    check(msg and "still open" in msg and mdisc.load_state(cfg)["halted"], "resume: refused while the HALT issue is open")
+    ISSUES[hid]["status"] = "done"; desk = halt_issue()
+    msg = resume(comment(hid, "Resumed", NADIA)["id"])
+    check(msg and "THE-" in msg and "still open" in msg, "resume: refused while HALT — desk is open")
+    ISSUES[desk]["status"] = "done"
+    check(resume(comment(hid, "Resumed", NADIA)["id"]) is None and not mdisc.load_state(cfg)["halted"], "resume: Nadia's comment, issues closed")
+    PC_DOWN[0] = True
+    st = mdisc.load_state(cfg); mdisc.latch(cfg, st, "manual:x", "manual halt by Ingrid: x", "x", CLOCK[0]); mdisc.save_state(st)
+    PC_DOWN[0] = False
+    check(resume("whatever") and "no HALT issue yet" not in (resume("whatever") or "") and mdisc.load_state(cfg)["halted"]["issue"],
+          "a halt issue that couldn't be opened is opened at the next try, and resume still refuses")
+
+    # 19. O2 cash: a USDT balance that doesn't add up halts
+    setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()])); at("2026-11-16T08:07Z"); run("execute")
+    V.bal["USDT"] += 5.0
+    at("2026-11-16T14:36Z"); run("post", wake(review={"L-0001": "hold"})); rc, st = run("execute")
+    check(st["halted"] and st["halted"]["code"] == "O2" and "USDT" in st["halted"]["evidence"], "O2: a USDT mismatch halts")
+
+    # 20. a held coin with no price: NAV unknown, entries refused, O2 halt
+    setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()])); at("2026-11-16T08:07Z"); run("execute")
+    at("2026-11-16T14:36Z")
+    run("post", wake([entry(coin="BTC", stop=62000.0, target=70000.0, forecast_24h=0.55)], review={"L-0001": "hold"}, forecasts_=dict(F6, BTC=0.55)))
+    good = bybit.touch
+    bybit.touch = lambda s_, base=None: (_ for _ in ()).throw(OSError("timeout")) if s_ == "SOLUSDT" else good(s_)
+    rc, st = run("execute")
+    bybit.touch = good
+    check(mdisc.nav(st, {"BTC": 1.0}) is None and st["halted"]["code"] == "O2-nav", "missing mid: NAV unknown is an O2 halt")
+    check("BTC" not in {l["coin"] for l in st["lots"].values()} and "NAV can't be computed" in st["tickets"]["T-20261116-1435-1"]["result"],
+          "missing mid: the entry is refused")
+
+    # 21. the day's NAV is the 00:00 book at the 00:00 candle opens, even when the first run of the day is the 08:05 wake
+    th = {"why_now": "w", "invalidated_if": "i", "sources": [{"what": "a", "url": "u", "at": "2026-11-15T14:00Z"}]}
+    setup(); at("2026-11-15T14:36Z"); run("post", wake([entry(thesis=th)])); at("2026-11-15T14:37Z"); run("execute")
+    t00, o = tickets.ts("2026-11-16T00:00Z"), 66.5  # SOL opened the day at 66.5; the 08:06 mid is 70
+    bybit.klines4h = lambda s_, **k: [(t, o, h, l, c) if t == t00 and s_ == "SOLUSDT" else (t, o_, h, l, c)
+                                      for t, o_, h, l, c in candles(s_, CLOCK[0])]
+    at("2026-11-16T08:06Z"); rc, st0 = run("post", wake(review={"L-0001": "hold"}))  # the 00:05 wake was missed
+    lot = st0["lots"]["L-0001"]
+    check(abs(st0["day"]["nav"] - (st0["cash"] + lot["qty"] * o)) < 1e-9 and st0["day"]["how"] == "00:00 UTC marks" and o != PX["SOL"],
+          "day NAV marked at the 00:00 open, not the first NAV seen")
+
+    # 22. test-order: refused under a halt, when Paperclip can't be read, and from unmerged code
+    def test_order():
+        st_ = mdisc.load_state(cfg)
+        try:
+            mdisc.cmd_test_order(cfg, st_, types.SimpleNamespace(usdt=18, symbol="DOGEUSDT"))
+        except SystemExit as e:
+            return str(e)
+    setup(); halt_issue()
+    check("refused" in test_order() and not V.orders, "test-order: refused while HALT — desk is open")
+    setup(); PC_DOWN[0] = True
+    check("could not check for HALT" in test_order() and not V.orders, "test-order: refused if Paperclip can't be read")
+    setup(); ex.merged_gate = lambda: ["O7: runner differs from origin/master"]
+    check("O7" in test_order() and not V.orders, "test-order: refused from unmerged code")
+
+    # 23. the HALT issues are re-read before every buy: a halt opened after the first entry stops the second
+    setup(); at("2026-11-16T08:06Z")
+    run("post", wake([entry(), entry(coin="BTC", stop=62000.0, target=70000.0, forecast_24h=0.55)], forecasts_=dict(F6, BTC=0.55)))
+    orig = ex.do_entry
+    ex.do_entry = lambda *a_: (halt_issue(), orig(*a_))[1]
+    at("2026-11-16T08:07Z"); rc, st = run("execute")
+    ex.do_entry = orig
+    check("L-0001" in st["lots"] and "halted" in st["tickets"]["T-20261116-0805-2"]["result"], "halt check before each buy")
+
+    # 24. O7: a failed git fetch refuses instead of comparing with a stale origin/master
+    sub = ex.subprocess
+    ex.subprocess = types.SimpleNamespace(run=lambda c, **k: types.SimpleNamespace(returncode=1 if "fetch" in c else 0, stdout="/r\n", stderr="no network"))
+    miss = MERGED()
+    ex.subprocess = sub
+    check(len(miss) == 1 and "fetch" in miss[0], "O7: stale master refused")
 
     # 15. backfill parses a hand-posted wake log
     body = ("## Wake Sun 15 Nov 00:05Z: Majors Discretionary, definition phase (forecast-only)\n\n"

@@ -77,7 +77,9 @@ def merged_gate():
     to trade is byte-identical to the merged one. Returns the list of what's missing (empty = met)."""
     try:
         top = repo_top()
-        subprocess.run(["git", "-C", top, "fetch", "-q", "origin", "master"], capture_output=True, timeout=60)
+        f = subprocess.run(["git", "-C", top, "fetch", "-q", "origin", "master"], capture_output=True, text=True, timeout=60)
+        if f.returncode:  # never compare against a stale origin/master
+            return [f"git fetch origin master failed ({(f.stderr or '').strip()[:120] or f.returncode}): can't confirm the merged runner"]
         tree = subprocess.run(["git", "-C", top, "ls-tree", "-r", "--name-only", "origin/master", "strategies/"],
                               capture_output=True, text=True, check=True).stdout.split()
     except Exception as e:
@@ -249,15 +251,26 @@ def ensure_stops(st, demo, inst, notes):
     return bad
 
 
-def reconcile(st, bal, inst, coins, notes):
-    """O2: lots + dust + the baseline captured at the first venue read equal each coin's Demo balance."""
+def venue_base_now(st, bal, coins, sleeve):
+    """What the Demo account holds outside the sleeve: each coin less the lots and dust, USDT less the sleeve's cash change."""
+    base = {c: bal.get(c, 0.0) - sum(l["qty"] for l in open_lots(st).values() if l["coin"] == c) - st["dust"].get(c, 0) for c in coins}
+    base["USDT"] = bal.get("USDT", 0.0) - (st["cash"] - sleeve)
+    return base
+
+
+def reconcile(st, bal, inst, coins, notes, sleeve, usdt_tol):
+    """O2 ("any quantity or cash"): lots + dust + the baseline captured at the first venue read equal each coin's Demo
+    balance, and the baseline USDT + (sleeve cash − sleeve start) equals the Demo USDT."""
     held = {c: sum(l["qty"] for l in st["lots"].values() if l["coin"] == c) + st["dust"].get(c, 0) for c in coins}
     bad = []
-    if st.get("venue_base") is None:
+    if st.get("venue_base") is None or "USDT" not in st["venue_base"]:
         if any(held.values()):
             return ["no venue baseline while lots are open"]
-        st["venue_base"] = {c: bal.get(c, 0.0) for c in coins}
+        st["venue_base"] = venue_base_now(st, bal, coins, sleeve)
         notes.append("Venue baseline captured (Demo balances outside the sleeve): " + ", ".join(f"{c} {q:g}" for c, q in st["venue_base"].items()))
+    want, got = st["venue_base"]["USDT"] + st["cash"] - sleeve, bal.get("USDT", 0.0)
+    if abs(got - want) > max(usdt_tol, 1e-6 * abs(got)):
+        bad.append(f"USDT Demo {got:.4f} ≠ baseline + sleeve cash change {want:.4f}")
     for c in coins:
         want, got = st["venue_base"].get(c, 0.0) + held[c], bal.get(c, 0.0)
         step = float(inst[c]["step"]) if c in inst else 1e-8
@@ -276,6 +289,8 @@ def do_entry(cfg, st, demo, plan, rec, inst, now):
     px = min(mb.rnd(plan["limit"], I["tick"], ROUND_DOWN), mb.limit_px("Buy", bid, ask, I, X["touch_offset"]))
     q = mb.rnd(plan["qty"], I["step"], ROUND_DOWN)
     out = dict(kind="entry", ticket=rec["id"], coin=c, bid=bid, ask=ask, limit=float(px), qty=float(q))
+    if plan.get("add_floor") and ask < plan["add_floor"]:  # L5 at the live ask: an IOC buy can't fill below it
+        out["result"] = f"REFUSED: L5: ask {ask:g} is below the average entry {plan['add_floor']:g}"; return out, None
     if float(px) * float(q) - plan["value"] > 1e-6 or float(q) * (float(px) - plan["stop"]) > plan["risk"] + 1e-6:
         out["result"] = "REFUSED: rounding would exceed the checked size"; return out, None
     link = f"md-{rec['id']}"

@@ -11,7 +11,7 @@ ticket, no order. Each wake is two steps, so every ticket is in the decision log
   mdisc.py wake WAKE.json              post, then execute
   mdisc.py key-check                   read-only /v5/user/query-api: permissions and read-only flag, never the key
   mdisc.py test-order [--usdt 18]      the Demo stop-market test (order gate item 4); outside the sleeve
-  mdisc.py score | status | backfill THE-334 | halt --by X --ref Y | resume --by Nadia --ref Y [--rebaseline]
+  mdisc.py score | status | backfill THE-334 | halt --by X --ref Y | resume --ref NADIAS_COMMENT_ID [--rebaseline]
 
 WAKE.json: {"read": "...", "news": "...", "forecasts": {"BTC": 0.55, ...all six}, "review": {"L-0001": "..."},
             "tickets": [ticket, ...], "no_trade": "reason (when there are no tickets)"}; tickets per strategy.md §4.
@@ -79,13 +79,53 @@ def week_start(t):
     return int(t // 86400 - (dt.datetime.fromtimestamp(t, dt.timezone.utc).weekday())) * 86400
 
 
-def roll(st, now, nav):
-    """Day NAV = the first NAV seen in the UTC day (the 00:05 wake); week NAV and cost reset on Monday 00:00 UTC."""
+def held_qty(st):
+    q = {}
+    for l in ex.open_lots(st).values():
+        q[l["coin"]] = q.get(l["coin"], 0) + l["qty"]
+    for c, x in st["dust"].items():
+        if x > 0:
+            q[c] = q.get(c, 0) + x
+    return q
+
+
+def nav_at(st, t):
+    """The book as it stands now, marked at the open of the Bybit 4h candles starting at t. None if a candle is missing."""
+    v = st["cash"]
+    for c, q in held_qty(st).items():
+        o = next((r[1] for r in bybit.klines4h(c + "USDT") if r[0] == t), None)
+        if o is None:
+            return None
+        v += q * o
+    return v
+
+
+def ref_nav(st, t, n):
+    try:
+        v = nav_at(st, t)
+    except Exception:
+        v = None
+    if v is not None:
+        return v, "00:00 UTC marks"
+    return (n, "first NAV seen (00:00 candles unavailable)") if n is not None else (None, None)
+
+
+def roll(st, now, n=None):
+    """Day NAV (D1, D2) and week NAV (L8) are NAV at 00:00 UTC (risk-policy.md, Definitions). Called first in every run,
+    before the run changes the book: between runs only resting stops and targets trade, and they are swept after this.
+    So the book as it stands is the 00:00 book, marked at the 00:00 4h-candle opens. Not covered: a stop that filled
+    between the last run and 00:00 is marked at the 00:00 open, not at its fill. If the candles can't be read, the
+    first NAV seen (n) is used and labelled; with neither, the reference stays unknown and entries are refused."""
+    d0 = int(now // 86400) * 86400
     day = dt.datetime.fromtimestamp(now, dt.timezone.utc).strftime("%Y-%m-%d")
     if not st["day"] or st["day"]["date"] != day:
-        st["day"] = {"date": day, "nav": nav}
+        st["day"] = {"date": day, "nav": None}
+    if st["day"]["nav"] is None:
+        st["day"]["nav"], st["day"]["how"] = ref_nav(st, d0, n)
     if not st["week"] or st["week"]["start"] != week_start(now):
-        st["week"] = {"start": week_start(now), "nav": nav, "cost": 0.0}
+        st["week"] = {"start": week_start(now), "nav": None, "cost": 0.0}
+    if st["week"]["nav"] is None:
+        st["week"]["nav"], st["week"]["how"] = ref_nav(st, week_start(now), n)
 
 
 def streak(st):
@@ -97,37 +137,169 @@ def streak(st):
     return n
 
 
+def o1(cfg, st, now, notes=None):
+    s = streak(st)
+    if s >= cfg["limits"]["O1_halt_failed_wakes"]:
+        latch(cfg, st, "O1", f"O1: {s} failed wakes in a row", "failed: " + ", ".join(
+            ex.utc(w["sched"]) + (" (missed)" if w.get("missed") else "") for w in st["wakes"][-s:]), now, notes)
+
+
 # ---------- book ----------
 
 def nav(st, mids):
-    lots = ex.open_lots(st).values()
-    return st["cash"] + sum(l["qty"] * mids.get(l["coin"], l["entry_px"]) for l in lots) + \
-        sum(q * mids.get(c, 0) for c, q in st["dust"].items())
+    """Cash + every held coin at mid. None if a held coin has no mid: NAV can't be computed (O2), never filled in."""
+    q = held_qty(st)
+    if any(c not in mids for c in q):
+        return None
+    return st["cash"] + sum(x * mids[c] for c, x in q.items())
 
 
-def halt_reasons(cfg, st, n, check_issues=True):
-    L, out = cfg["limits"], []
-    if st["halted"]:
-        out.append(f"halted by {st['halted']['by']} ({st['halted']['ref']})")
+# ---------- halts (risk-policy.md, Halt levels: a halt is an open HALT issue; only Nadia resumes) ----------
+
+def halt_issues(cfg, st=None):
+    """Open 'HALT — majors-discretionary' / 'HALT — desk' issues as dicts. Raises if Paperclip can't be read (callers
+    fail closed). The runner's own halt issue is also read directly, so a search miss can't hide it."""
+    norm = lambda t: " ".join(t.lower().replace("–", "—").replace(" - ", " — ").split())
+    want = [norm(t) for t in cfg["limits"]["halt_issue_titles"]]
+    for i in range(2):  # the search is slow at times: one retry before failing closed
+        try:
+            d = mb.pc("GET", f"/api/companies/{os.environ['PAPERCLIP_COMPANY_ID']}/issues?q=HALT")
+            break
+        except Exception:
+            if i:
+                raise
+    out = {i["id"]: dict(id=i["id"], identifier=i.get("identifier") or i["id"], title=i["title"])
+           for i in (d if isinstance(d, list) else d["issues"])
+           if i.get("status") not in ("done", "cancelled") and any(norm(i["title"]).startswith(w) for w in want)}
+    own = ((st or {}).get("halted") or {}).get("issue")
+    if own and own["id"] not in out:
+        i = mb.pc("GET", f"/api/issues/{own['id']}")
+        if i.get("status") not in ("done", "cancelled"):
+            out[i["id"]] = dict(id=i["id"], identifier=i.get("identifier") or i["id"], title=i["title"])
+    return list(out.values())
+
+
+def halt_body(st, h):
+    lots = ex.open_lots(st)
+    return "\n".join([
+        f"**Runner halt: {h['ref']}**", "",
+        f"Strategy: majors-discretionary, phase {'paper' if st.get('started') else 'definition'}. Latched {h['t']} by {h['by']}. "
+        f"Decision log: [{st['log_issue']}](/{st['log_issue'].split('-')[0]}/issues/{st['log_issue']}).", "",
+        "**Evidence:** " + (h.get("evidence") or "(none recorded)"), "",
+        f"**Book:** cash ${st['cash']:.2f}; open lots: " + (", ".join(
+            f"{k} {l['coin']} {l['qty']:g}, stop {l['stop']:g} ({'resting' if l.get('stop_order') else '**NOT resting**'})"
+            for k, l in lots.items()) or "none") + ".", "",
+        "While this issue is open the runner places no entry and changes no order except exits; resting stops stay. "
+        "A discretionary exit needs a comment here by Nadia or Ingrid; its comment id is the exit ticket's `request_ref`.", "",
+        "**To resume:** Ingrid writes her review here. Nadia comments that she resumes and closes this issue. Then the runner "
+        "runs `mdisc.py resume --ref <Nadia's comment id>`. It refuses while this or any other HALT issue is open."])
+
+
+def halt_sync(cfg, st, now, notes=None):
+    """The latched halt has its HALT issue, assigned to Nadia, and every later reason is on it. Retried every run until it
+    works; the halt holds in the state either way."""
+    h = st["halted"]
+    if not h:
+        return
+    G = cfg["governance"]
+    try:
+        if not h.get("issue"):
+            r = mb.pc("POST", f"/api/companies/{os.environ['PAPERCLIP_COMPANY_ID']}/issues", dict(
+                title=f"{G['halt_title']}: {h['ref'][:90]}", description=halt_body(st, h), projectId=G["project_id"],
+                assigneeAgentId=G["resume_agent_id"], priority="critical", status="todo", parentId=None))
+            h["issue"] = dict(id=r["id"], identifier=r.get("identifier") or r["id"])
+            if notes is not None:
+                notes.append(f"Halt issue opened: {h['issue']['identifier']}, assigned to Nadia")
+        for x in h.get("also", []):
+            if not x.get("posted"):
+                mb.pc("POST", f"/api/issues/{h['issue']['id']}/comments",
+                      {"body": f"**Further halt reason ({x['t']}):** {x['ref']}\n\n**Evidence:** {x.get('evidence') or '(none recorded)'}"})
+                x["posted"] = True
+        h.pop("issue_error", None)
+    except Exception as e:
+        h["issue_error"] = f"{ex.iso(now)}: {e}"
+        msg = f"**Halt issue not opened yet** ({e}): retried next run. The halt holds regardless."
+        if notes is not None and msg not in notes:
+            notes.append(msg)
+
+
+def latch(cfg, st, code, ref, evidence, now, notes=None, by="runner", sync=True):
+    """A halt stays until Nadia resumes (O1, O2, O3, O5, D2, D3, manual). code de-duplicates repeat reasons."""
+    h = st["halted"]
+    if h is None:
+        st["halted"] = dict(by=by, code=code, ref=ref, t=ex.iso(now), evidence=evidence, issue=None, also=[])
+    elif code != h.get("code") and all(code != x["code"] for x in h.setdefault("also", [])):
+        h["also"].append(dict(code=code, ref=ref, t=ex.iso(now), evidence=evidence))
+    else:
+        return
+    if sync:
+        halt_sync(cfg, st, now, notes)
+        save_state(st)  # an opened issue is never forgotten, even if the rest of the run fails
+
+
+def nav_halts(cfg, st, n, now, notes=None, sync=True):
+    """D2 and D3 latch: they hold when NAV recovers or the day rolls over, until Nadia resumes."""
+    L, d = cfg["limits"], (st["day"] or {}).get("nav")
+    if n is None:
+        return
     if n <= L["D3_halt_nav_usdt"]:
-        out.append(f"D3: NAV ${n:.2f} ≤ ${L['D3_halt_nav_usdt']}")
-    if st["day"] and st["day"]["nav"] and 1 - n / st["day"]["nav"] >= L["D2_day_halt_nav"]:
-        out.append(f"D2: day loss ≥ {L['D2_day_halt_nav']:.0%}")
+        latch(cfg, st, "D3", f"D3: NAV ${n:.2f} ≤ ${L['D3_halt_nav_usdt']}; Ingrid escalates to David",
+              f"NAV ${n:.2f} at {ex.utc(now)}", now, notes, sync=sync)
+    if d and 1 - n / d >= L["D2_day_halt_nav"]:
+        latch(cfg, st, "D2", f"D2: day loss {1 - n / d:.1%} ≥ {L['D2_day_halt_nav']:.0%}",
+              f"NAV ${n:.2f} at {ex.utc(now)} against ${d:.2f} at 00:00 UTC ({st['day'].get('how')})", now, notes, sync=sync)
+
+
+def halt_reasons(cfg, st, check_issues=True):
+    L, out, h = cfg["limits"], [], st["halted"]
+    if h:
+        out.append(f"halted by {h['by']} ({h['ref']}" + "".join(f"; also {x['ref']}" for x in h.get("also", [])) + ")")
     if streak(st) >= L["O1_halt_failed_wakes"]:
         out.append(f"O1: {streak(st)} failed wakes in a row")
     if check_issues:
         try:
-            out += [f"open halt issue {h}" for h in mb.halt_issues(cfg)]
+            out += [f"open halt issue {i['identifier']} {i['title']}" for i in halt_issues(cfg, st)]
         except Exception as e:
             out.append(f"could not check for HALT issues ({e})")
     return out
 
 
+def exit_request_problem(cfg, st, t):
+    """Under a halt a discretionary exit runs only if Nadia or Ingrid asked for it on an open HALT issue: request_ref is
+    the id of that comment, and requested_by (if given) must name its author. None = allowed."""
+    ref, R = str(t.get("request_ref") or "").strip(), cfg["governance"]["exit_requesters"]
+    if not ref:
+        return "under a halt, a discretionary exit needs request_ref: the id of Nadia's or Ingrid's comment on the HALT issue"
+    try:
+        issues = halt_issues(cfg, st)
+    except Exception as e:
+        return f"could not read the HALT issues to check request_ref ({e})"
+    for i in issues:
+        try:
+            c = mb.pc("GET", f"/api/issues/{i['id']}/comments/{ref}")
+        except Exception:
+            continue
+        if c.get("issueId") not in (None, i["id"]) or c.get("deletedAt"):
+            continue
+        who = next((n for n, a in R.items() if a == c.get("authorAgentId")), None)
+        if not who:
+            return f"request_ref `{ref}` on {i['identifier']} is not a comment by Nadia or Ingrid"
+        if t.get("requested_by") and str(t["requested_by"]).strip().lower() != who.lower():
+            return f"requested_by {t['requested_by']!r}, but comment `{ref}` is by {who}"
+        return None
+    return f"request_ref `{ref}` is not a comment on an open HALT issue"
+
+
 def ctx_for(cfg, st, touch, inst, now, halted, forecasts_, prev_wake):
     mids = {c: (b + a) / 2 for c, (b, a) in touch.items()}
-    n = nav(st, mids)
-    return dict(nav=n, cash=st["cash"], week_start_nav=st["week"]["nav"], week_cost=st["week"]["cost"],
-                day_loss=1 - n / st["day"]["nav"] if st["day"]["nav"] else 0, halted=halted, touch=touch,
+    n, d, w = nav(st, mids), st["day"]["nav"], st["week"]["nav"]
+    halted = list(halted)
+    if n is None:
+        halted.append("O2: NAV can't be computed (a held coin has no price)")
+    if not d or not w:
+        halted.append("the 00:00 UTC day or week NAV is unknown (D1, D2, L8 can't be measured)")
+    return dict(nav=n, cash=st["cash"], week_start_nav=w, week_cost=st["week"]["cost"],
+                day_loss=1 - n / d if n is not None and d else 0, halted=halted, touch=touch,
                 inst={c: dict(min_qty=i["min_qty"], min_amt=i["min_amt"]) for c, i in inst.items()}, now=now,
                 prev_wake=prev_wake,
                 lots={k: dict(coin=l["coin"], qty=l["qty"], entry_px=l["entry_px"], stop=l["stop"]) for k, l in ex.open_lots(st).items()},
@@ -163,10 +335,13 @@ def score(cfg, st, now):
 
 
 def books_block(cfg, st, mids):
-    n = nav(st, mids)
-    budget = cfg["limits"]["L8_week_cost_nav"] * st["week"]["nav"]
-    s = (f"**Book:** NAV ${n:,.2f} (cash ${st['cash']:,.2f}) · day {st['day']['date']} {n / st['day']['nav'] - 1:+.2%} · "
-         f"week cost ${st['week']['cost']:.2f} of ${budget:.2f} (L8) · failed wakes in a row: {streak(st)}")
+    n, d, w = nav(st, mids), st["day"]["nav"], st["week"]["nav"]
+    budget = f"${cfg['limits']['L8_week_cost_nav'] * w:.2f}" if w else "unknown"
+    s = (f"**Book:** " + (f"NAV ${n:,.2f}" if n is not None else "NAV **unknown** (a held coin has no price)") +
+         f" (cash ${st['cash']:,.2f}) · day {st['day']['date']} " +
+         (f"{n / d - 1:+.2%} from ${d:,.2f} at 00:00" if n is not None and d else "n/a") + (f" ({st['day']['how']})" if
+         st["day"].get("how") not in (None, "00:00 UTC marks") else "") +
+         f" · week cost ${st['week']['cost']:.2f} of {budget} (L8) · failed wakes in a row: {streak(st)}")
     marks = {c + "USDT": p for c, p in mids.items()}
     return s + "\n" + shadow.render(st["shadow"], marks, st["bh"], cfg["sleeve_usdt"])
 
@@ -191,11 +366,11 @@ def cmd_post(cfg, st, a):
         sys.exit(f"the {ex.utc(sched)} wake is already posted (comment `{st['wakes'][-1]['comment_id']}`); post a correction by hand")
     coins = [s[:-4] for s in cfg["universe"]]
     sweep_notes, sweep_orders = [], []
+    roll(st, now)  # before the sweep changes the book
     if ex.open_lots(st):  # stops and targets that filled since the last run, so the review is against the real book
         k = mb.creds(cfg)
         if k:
             touch0, inst0, _ = market(cfg)
-            roll(st, now, nav(st, {c: (b_ + a_) / 2 for c, (b_, a_) in touch0.items()}))
             sweep_notes += ex.sweep(cfg, st, bybit.Demo(*k), inst0, now, sweep_orders, sweep_notes)
         else:
             sweep_notes.append("no Bybit Demo credentials: fired stops not checked")
@@ -220,8 +395,10 @@ def cmd_post(cfg, st, a):
     if missing:
         sys.exit("not posted: no price for " + ", ".join(missing) + " (" + "; ".join(D["errors"] + merr) + "); retry")
     mids = {c: (b + a_) / 2 for c, (b, a_) in touch.items()}
-    roll(st, now, nav(st, mids))
-    halted = halt_reasons(cfg, st, nav(st, mids))
+    n = nav(st, mids)
+    roll(st, now, n)
+    nav_halts(cfg, st, n, now, sweep_notes, sync=not a.dry_run)
+    halted = halt_reasons(cfg, st)
     gate = ex.merged_gate() + ([] if (st.get("stop_test") or {}).get("ok") else ["Demo stop-market test not passed"])
     F = {c: float(w["forecasts"][c]) for c in coins}
     ctx = ctx_for(cfg, st, touch, inst, now, halted, F, st["wakes"][-1]["sched"] if st["wakes"] else None)
@@ -307,8 +484,7 @@ def cmd_post(cfg, st, a):
     for t, (_, plan, bad) in zip(recs, res):
         st["tickets"][t["id"]] = dict(id=t["id"], ticket=t, sha=ex.digest(t), comment_id=c["id"], posted_t=posted, sched=sched,
                                       status="refused" if bad else "pending", result="pre-check: " + "; ".join(bad) if bad else None)
-    if streak(st) >= cfg["limits"]["O1_halt_failed_wakes"] and not st["halted"]:
-        st["halted"] = dict(by="runner", ref=f"O1: {streak(st)} failed wakes in a row; Ingrid reviews, Nadia resumes", t=ex.iso(now))
+    o1(cfg, st, now)
     save_state(st)
     print(f"posted {st['log_issue']} comment {c['id']}: {len(recs)} ticket(s), "
           f"{sum(1 for _, _, b in res if not b)} passed the pre-check")
@@ -319,6 +495,7 @@ def cmd_post(cfg, st, a):
 
 def cmd_execute(cfg, st, a):
     now = time.time()
+    roll(st, now)  # before the sweep or any order changes the book
     W = st["wakes"][-1] if st["wakes"] and not st["wakes"][-1].get("missed") else None
     pend = [st["tickets"][i] for i in (W["tickets"] if W else []) if st["tickets"][i]["status"] == "pending"]
     coins = [s[:-4] for s in cfg["universe"]]
@@ -339,13 +516,18 @@ def cmd_execute(cfg, st, a):
         errs.append("no Bybit Demo credentials while lots are open")
     if bal is not None:
         errs += ex.sweep(cfg, st, demo, inst, now, orders, notes)
-        recon = ex.reconcile(st, demo.balances(), inst, coins, notes)
-        notes.append("Lots vs Demo balances: " + ("; ".join(recon) if recon else "every coin adds up"))
-        if recon and not st["halted"]:
-            st["halted"] = dict(by="runner", ref="O2: lots don't reconcile with the Demo balances; reconcile, then Nadia resumes", t=ex.iso(now))
+        recon = ex.reconcile(st, demo.balances(), inst, coins, notes, cfg["sleeve_usdt"], cfg["limits"]["O2_usdt_tolerance"])
+        notes.append("Lots and cash vs Demo balances: " + ("; ".join(recon) if recon else "every coin and USDT add up"))
+        if recon:
+            latch(cfg, st, "O2", "O2: the ledger doesn't reconcile with the Demo balances", "; ".join(recon), now, notes)
     mids = {c: (b + a_) / 2 for c, (b, a_) in touch.items()}
-    roll(st, now, nav(st, mids))
-    halted = halt_reasons(cfg, st, nav(st, mids))
+    n = nav(st, mids)
+    if n is None:
+        miss = sorted(set(held_qty(st)) - set(mids))
+        latch(cfg, st, "O2-nav", f"O2: NAV can't be computed (no price for {', '.join(miss)})", "; ".join(merr) or "no touch", now, notes)
+    roll(st, now, n)
+    nav_halts(cfg, st, n, now, notes)
+    halted = halt_reasons(cfg, st)
     gate = (ex.merged_gate() + ex.venue_gate(st, demo)) if pend else []
     if pend and bal is None and "no Bybit Demo credentials" not in gate:
         gate.append("Demo balances unreadable")
@@ -363,8 +545,8 @@ def cmd_execute(cfg, st, a):
         except Exception:
             cm = None
         probs, breach = ex.verify(rec, cm)
-        if breach and not st["halted"]:
-            st["halted"] = dict(by="runner", ref=probs[0], t=ex.iso(now))
+        if breach:
+            latch(cfg, st, "O3", probs[0], f"ticket {rec['id']}, log comment `{rec['comment_id']}` on {st['log_issue']}", now, notes)
             ctx["halted"] = ctx["halted"] + [probs[0]]
         if probs:
             rec.update(status="refused", result="; ".join(probs)); out.append((tag, "REFUSED: " + rec["result"])); continue
@@ -373,8 +555,17 @@ def cmd_execute(cfg, st, a):
         ctx["lots"] = {k_: dict(coin=l["coin"], qty=l["qty"], entry_px=l["entry_px"], stop=l["stop"]) for k_, l in ex.open_lots(st).items()}
         ctx["cash"], ctx["week_cost"], ctx["nav"] = st["cash"], st["week"]["cost"], nav(st, mids)
         plan, bad = tickets.check(t, ctx, cfg)
-        if not bad and t["type"] == "exit" and ctx["halted"] and not (t.get("requested_by") and t.get("request_ref")):
-            bad = ["under a halt, a discretionary exit needs requested_by (Nadia or Ingrid) and request_ref"]
+        if not bad and t["type"] == "entry":  # risk-policy.md: the HALT issues are checked before every buy
+            try:
+                hi = [f"open halt issue {i['identifier']} {i['title']}" for i in halt_issues(cfg, st)]
+            except Exception as e:
+                hi = [f"could not check for HALT issues ({e})"]
+            if hi:
+                bad = ["halted: " + "; ".join(hi)]
+        if not bad and t["type"] == "exit" and ctx["halted"]:
+            why = exit_request_problem(cfg, st, t)
+            if why:
+                bad = [why]
         if not bad and t["type"] == "adjust" and ctx["halted"] and "stop" not in plan:
             bad = ["under a halt, only stop tightening is allowed"]
         if bad:
@@ -394,7 +585,10 @@ def cmd_execute(cfg, st, a):
                 b, a_ = touch["BTC"]
                 st["bh"] = dict(qty=cfg["sleeve_usdt"] / a_ * (1 - cfg["execution"]["shadow_fee"]), px=a_, t=ex.iso(now))
         out.append((tag, _order_line(o)))
-    unprotected = ex.ensure_stops(st, demo, inst, notes) if demo and ex.open_lots(st) else (list(ex.open_lots(st)) if ex.open_lots(st) else [])
+    unprotected = ex.ensure_stops(st, demo, inst, notes) if demo and ex.open_lots(st) else []
+    if unprotected:  # no hourly fallback is built, so a lot still without a stop after the retry is an O5 halt
+        latch(cfg, st, "O5:" + ",".join(unprotected), f"O5: {', '.join(unprotected)} without a resting stop after the retry",
+              "; ".join(x for x in notes if "NO resting stop" in x), now, notes)
     moves = []
     if st["shadow"]:
         try:
@@ -406,8 +600,8 @@ def cmd_execute(cfg, st, a):
     failed = bool(errs) or unresolved or bool(unprotected)
     if W:
         W["failed"] = W.get("failed") or failed
-    if streak(st) >= cfg["limits"]["O1_halt_failed_wakes"] and not st["halted"]:
-        st["halted"] = dict(by="runner", ref=f"O1: {streak(st)} failed wakes in a row; Ingrid reviews, Nadia resumes", t=ex.iso(now))
+    o1(cfg, st, now, notes)
+    halt_sync(cfg, st, now, notes)  # retry a halt issue that couldn't be opened earlier
 
     L = [f"**Runner fills for the {ex.utc(W['sched']) if W else '—'} wake** (log `{W['comment_id'] if W else '—'}`) · run {ex.utc(now)}"]
     L += [f"- {tag}: {r}" for tag, r in out] or ["- No tickets to place."]
@@ -418,7 +612,8 @@ def cmd_execute(cfg, st, a):
     if errs:
         L.append("- **Errors:** " + "; ".join(errs))
     if halted or st["halted"]:
-        L.append("- **Halts:** " + "; ".join(halt_reasons(cfg, st, nav(st, mids), check_issues=False) or halted))
+        L.append("- **Halts:** " + "; ".join(halt_reasons(cfg, st, check_issues=False) or halted)
+                 + (f" · halt issue {st['halted']['issue']['identifier']}" if (st["halted"] or {}).get("issue") else ""))
     L += ["", books_block(cfg, st, mids)]
     body = "\n".join(L)
     print(body)
@@ -436,7 +631,7 @@ def cmd_execute(cfg, st, a):
 
 
 def notes_worth(notes):
-    return any(not n.startswith("Lots vs Demo balances: every coin") for n in notes)
+    return any(not n.startswith("Lots and cash vs Demo balances: every coin") for n in notes)
 
 
 def _order_line(o):
@@ -474,6 +669,9 @@ def cmd_test_order(cfg, st, a):
         sys.exit(f"test orders are capped at ${X['max_test_order_usdt']}")
     if ex.open_lots(st):
         sys.exit("lots are open: a test order would disturb the reconciliation")
+    refused = halt_reasons(cfg, st) + ex.merged_gate()  # it places real Demo orders: no halt, and only merged code (O7)
+    if refused:
+        sys.exit("test-order refused: " + "; ".join(refused))
     k = mb.creds(cfg)
     if not k:
         sys.exit("no Bybit Demo credentials")
@@ -625,6 +823,45 @@ def cmd_score(cfg, st, a):
     save_state(st)
 
 
+def cmd_halt(cfg, st, a):
+    notes = []
+    latch(cfg, st, f"manual:{a.ref}", f"manual halt by {a.by}: {a.ref}", a.ref, time.time(), notes, by=a.by)
+    print("\n".join(notes))
+    save_state(st)
+    return cmd_status(cfg, st, a)
+
+
+def cmd_resume(cfg, st, a):
+    """Only Nadia resumes, after Ingrid's written review (risk-policy.md, Halt levels). Refused unless the halt's issue
+    exists, --ref is Nadia's comment on it, and no HALT issue (this one, another runner halt, or HALT — desk) is open."""
+    h, now = st["halted"], time.time()
+    if not h:
+        sys.exit("nothing to resume: the runner isn't halted")
+    halt_sync(cfg, st, now)
+    save_state(st)
+    if not h.get("issue"):
+        sys.exit(f"refused: the halt has no HALT issue yet ({h.get('issue_error')})")
+    try:
+        c = mb.pc("GET", f"/api/issues/{h['issue']['id']}/comments/{a.ref}")
+        still = halt_issues(cfg, st)
+    except Exception as e:
+        sys.exit(f"refused: could not read Paperclip ({e})")
+    if c.get("authorAgentId") != cfg["governance"]["resume_agent_id"] or c.get("deletedAt") or c.get("issueId") not in (None, h["issue"]["id"]):
+        sys.exit(f"refused: comment {a.ref} is not Nadia's comment on {h['issue']['identifier']}")
+    if still:
+        sys.exit("refused: HALT issue(s) still open: " + ", ".join(i["identifier"] for i in still) + ". Nadia closes them after Ingrid's review")
+    if a.rebaseline:
+        k = mb.creds(cfg)
+        if not k:
+            sys.exit("no Bybit Demo credentials: can't rebaseline")
+        st["venue_base"] = ex.venue_base_now(st, bybit.Demo(*k).balances(), [x[:-4] for x in cfg["universe"]], cfg["sleeve_usdt"])
+    st.setdefault("resumed", []).append(dict(t=ex.iso(now), ref=a.ref, halt=h, rebaseline=bool(a.rebaseline)))
+    st["halted"] = None
+    st["streak_reset"] = now  # a resume clears the O1 streak
+    save_state(st)
+    return cmd_status(cfg, st, a)
+
+
 def cmd_status(cfg, st, a):
     print(json.dumps({k: st.get(k) for k in ("cash", "started", "halted", "day", "week", "venue_base", "stop_test", "bh", "dust")}, indent=1))
     print("open lots:", json.dumps({k: {x: l[x] for x in ("coin", "qty", "entry_px", "stop", "target", "time_limit_utc", "ticket")}
@@ -646,10 +883,9 @@ def main():
     b = sub.add_parser("backfill"); b.add_argument("issue"); b.add_argument("--first", default="2026-11-12T00:05Z")
     for c in ("key-check", "score", "status"):
         sub.add_parser(c)
-    for c in ("halt", "resume"):
-        h = sub.add_parser(c); h.add_argument("--by", required=True); h.add_argument("--ref", required=True)
-        if c == "resume":
-            h.add_argument("--rebaseline", action="store_true", help="after a reconciled mismatch: baseline := Demo balances − lots")
+    h = sub.add_parser("halt"); h.add_argument("--by", required=True); h.add_argument("--ref", required=True)
+    r = sub.add_parser("resume"); r.add_argument("--ref", required=True, help="id of Nadia's resume comment on the HALT issue")
+    r.add_argument("--rebaseline", action="store_true", help="after a reconciled mismatch: baseline := Demo balances − lots, USDT − cash change")
     a = ap.parse_args()
     cfg = load_cfg()
     _l = lock()
@@ -657,23 +893,7 @@ def main():
     if a.cmd == "wake":
         rc = cmd_post(cfg, st, a)
         sys.exit(rc if rc or a.dry_run else cmd_execute(cfg, load_state(cfg), a))
-    if a.cmd in ("halt", "resume"):
-        if a.cmd == "halt":
-            st["halted"] = dict(by=a.by, ref=a.ref, t=ex.iso(time.time()))
-        else:
-            if a.by.lower() != "nadia":
-                sys.exit("only Nadia resumes (risk-policy.md, Halt levels)")
-            if a.rebaseline:
-                k = mb.creds(cfg)
-                if not k:
-                    sys.exit("no Bybit Demo credentials: can't rebaseline")
-                bal = bybit.Demo(*k).balances()
-                st["venue_base"] = {c: bal.get(c, 0.0) - sum(l["qty"] for l in ex.open_lots(st).values() if l["coin"] == c) - st["dust"].get(c, 0)
-                                    for c in (s[:-4] for s in cfg["universe"])}
-            st["halted"] = None
-            st["streak_reset"] = time.time()  # a resume clears the O1 streak
-        save_state(st); return cmd_status(cfg, st, a)
-    fn = {"inputs": cmd_inputs, "post": cmd_post, "execute": cmd_execute, "key-check": cmd_key_check, "test-order": cmd_test_order,
+    fn = {"halt": cmd_halt, "resume": cmd_resume, "inputs": cmd_inputs, "post": cmd_post, "execute": cmd_execute, "key-check": cmd_key_check, "test-order": cmd_test_order,
           "score": cmd_score, "status": cmd_status, "backfill": cmd_backfill}[a.cmd]
     sys.exit(fn(cfg, st, a))
 

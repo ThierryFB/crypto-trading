@@ -110,14 +110,14 @@ def check_entry(t, ctx, cfg):
         return None, bad
 
     # L5: one position per coin, add only above the average entry with the existing stop at or above its entry
-    held = coin_lots(ctx, coin)
+    held, avg = coin_lots(ctx, coin), None
     if held:
         q0 = sum(l["qty"] for l in held)
         avg = sum(l["qty"] * l["entry_px"] for l in held) / q0
         if any(l["stop"] < l["entry_px"] for l in held):
             bad.append(f"L5: {coin} is held and its stop is still below its entry")
-        if px < avg:
-            bad.append(f"L5: add at {px:g} is below the average entry {avg:g}")
+        if min(px, ask) < avg:  # an IOC buy can fill anywhere from the ask up to the limit: check the lowest
+            bad.append(f"L5: add at {min(px, ask):g} is below the average entry {avg:g}")
     open_coins = {l["coin"] for l in ctx["lots"].values() if l["qty"] > 0}
     if coin not in open_coins and len(open_coins) + ctx.get("new_coins_this_wake", 0) >= L["L6_max_positions"]:
         bad.append(f"L6: already {len(open_coins)} positions")
@@ -158,7 +158,7 @@ def check_entry(t, ctx, cfg):
     if bad:
         return None, bad
     plan = dict(type="entry", coin=coin, limit=px, qty=qty, value=val, risk=qty * (px - stop), stop=stop,
-                target=float(tgt) if tgt not in (None, "") else None, time_limit_utc=tl or None, est_cost=est, note=note)
+                target=float(tgt) if tgt not in (None, "") else None, time_limit_utc=tl or None, est_cost=est, note=note, add_floor=avg)
     return plan, []
 
 
