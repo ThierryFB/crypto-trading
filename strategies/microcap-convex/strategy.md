@@ -52,19 +52,21 @@ Depth is not what limits this sample; the gate is. None of the five is approved 
 
 ## 1a. Two cohorts: CEX and DEX
 
-DEX tokens are in scope **for paper only**, as a separate cohort (`risk-policy.md` §1a). Everything in this file applies to both cohorts unless a rule is marked CEX or DEX. The chain isn't chosen yet (Hugo's scan), so the DEX rules are written for any single chain that passes the 0.5% fixed-cost test (§6).
+DEX tokens are in scope **for paper only**, as a separate cohort (`risk-policy.md` §1a). Everything in this file applies to both cohorts unless a rule is marked CEX or DEX. The chain is **Solana** and the router is **Jupiter** (Nadia's call on Hugo's scan, THE-293: 16 tokens through the first cut on Solana, 0 on Base). Positions are held in USDC.
 
 - **Own book.** The DEX cohort runs its own **$300** notional book, **outside** the desk's $1,000 sleeve and sized like the CEX book so the two records stay comparable (`desk-risk-policy.md`, Capital). It has its own N (15 target, 15–25), tranches, pace limits and NAV trim (§2, §3), all counted within that book. It is never pooled with the CEX book: neither funds, absorbs or offsets the other, and the two are reported apart.
 - **Cohort assignment.** A token listed on a CEX we use (one where we hold an account, §1) is **CEX cohort**. It is DEX cohort **only if no CEX we use lists it**. The cohort is fixed at tranche 1 for the life of the position:
   - a DEX-cohort token that later lists on one of our CEXs keeps its open position on-chain, and exits there; its next new position, if any, is CEX cohort;
   - a CEX-cohort token delisted by our venue exits under the delisting rule (§5). It doesn't move to the DEX book.
-- **Universe.** Same gate (Hugo's DEX criteria for the chosen chain), same $5M–$50M band.
-- **One chain, one wallet.** Each DEX position is bought, held and sold on the one supported chain, through one router, from one wallet. No bridging; a bridge fails the 0.5% test and adds a contract risk.
-- **DEX depth** is the ±2% bid depth computed from pool state, summed across the pools on the supported chain that the router routes through and that Hugo's gate counts (his LP-lock test, F8). It uses the same median of at least 3 snapshots on different days and the **same $50k floor**. The floor is there to screen out hollow markets, and that matters more on a DEX, not less. If too few tokens clear it, the cohort retires on supply (`risk-policy.md` §4); I don't lower the floor to fill a book.
+- **Universe.** Same gate (Hugo's DEX criteria for Solana), same $5M–$50M band.
+- **One chain, one wallet.** Each DEX position is bought, held and sold on Solana, through Jupiter, from one wallet. No bridging; a bridge fails the 0.5% test and adds a contract risk.
+- **DEX depth** is the largest sell of the token that Jupiter quotes at ≤2% price impact (the order-placement skill finds it by binary search). It replaces a ±2% depth computed from decoded pool state, for the reason in §6. A quote can't be limited to the pools Hugo's gate counts, so unlocked liquidity can be in the figure; his LP-lock test (F8) still applies at the gate. It uses the same median of at least 3 snapshots on different days and the **same $50k floor**. The floor is there to screen out hollow markets, and that matters more on a DEX, not less. If too few tokens clear it, the cohort retires on supply (`risk-policy.md` §4); I don't lower the floor to fill a book.
 - **Terms.** For the DEX cohort, "credible depth" and "credible volume" everywhere in this file mean DEX depth (this section) and organic volume (§2). That includes the depth floor and eligibility (§1, §2), the depth cap (§3), and the liquidity-collapse and dead-token rules (§5).
 - **No venue minimum.** DEX swaps have no minimum order. The 0.5% fixed-cost test (§6) plays that role.
 
 ## 2. Entry
+
+**A decision is a ticket I file** with the order-placement skill: token, cohort, action (buy tranche 1 or 2, stage sell, exit, trim, or skip), the rule it rests on, my rationale and the time (spec §2, THE-267). The skill checks it against this file and `risk-policy.md` and refuses a buy that fails eligibility or a limit. Exits this file requires (§4, §5) are filed automatically; I can add a rationale but can't block them. The triggers below stay as the frame: a buy ticket still needs one of them to fire. Every trigger that fires is also booked to a **rules-only shadow**, whether or not I act on it (§7).
 
 ### Eligibility (all must hold at **each** entry tranche)
 1. Approved on the merged watchlist, not suspended by Hugo, and strategy not halted.
@@ -92,7 +94,7 @@ DEX volume is cheap to fake: a wallet can trade with itself at the cost of the p
   - **confirmation:** the next daily close also above the prior 90-day high. This costs one day of the move. Painting one daily close is cheap on a DEX; painting two in a row is not.
   - **Tranche 1 is bought on the confirmation close**, not the breakout close. At that close the 2.5×-of-90-day-low cap and the "not a trigger" price rules (up more than 100% in 14 days, more than 3× the 90-day low) are checked again, on the confirmation close's price. If any fails, there's no entry: the extra day doesn't let in a token that has already run. Tranche 2 counts its day ≥5 from the confirmation close.
 - **Listing date** for the 14-day exclusion is the token's first pool creation on any chain.
-- **Sell check at each buy.** Before each DEX tranche, the router must also quote a sell of the full target position. If the sell won't quote, or shows a transfer tax, there's no buy, and the token goes to Hugo as a possible honeypot.
+- **Sell check at each buy.** Before each DEX tranche, Jupiter must also quote a sell of the full target position back to USDC (§6). If the sell won't quote, or shows a transfer tax, there's no buy, and the token goes to Hugo as a possible honeypot.
 
 ### Not a trigger
 - Price up more than 100% in 14 days, or more than 3× its 90-day low. I don't chase.
@@ -142,7 +144,7 @@ What $300 means per order (N = 15, 2 entry tranches; same figures for the DEX bo
 
 ## 4. Staged exits on gains
 
-Multiples are on the position's **average cost including fees** (on DEX that includes pool fee, gas and the MEV allowance). A level counts as hit on an **hourly close** on the main credible venue (DEX: the pool's time-weighted close, §2), not on a wick. The ladder, trail and stops are the same for both cohorts. DEX sells go through the same router as the buys. Tranche sizes are fractions of the original quantity.
+Multiples are on the position's **average cost including fees** (on DEX that includes pool fee, network fee and the MEV allowance). A level counts as hit on an **hourly close** on the main credible venue (DEX: the pool's time-weighted close, §2), not on a wick. The ladder, trail and stops are the same for both cohorts. DEX sells go through the same router as the buys. Tranche sizes are fractions of the original quantity.
 
 | Stage | At | Sell | Cumulative proceeds (× cost) | Still held |
 |---|---|---|---|---|
@@ -197,26 +199,26 @@ Once T1 has filled, the time stop no longer applies; the trailing rule governs.
 
 Paper has to be at least as hard as live, or it will flatter the strategy.
 
-- **Fills walk the real book.** At each decision, capture the venue's L2 order book (CEX) or pool state (DEX) at least 60 seconds after the decision. The fill is the VWAP walking down the levels from best price; there are no mid-price fills, and orders larger than displayed depth inside the limit fill partially. Store the snapshot reference in the decision log.
+- **Fills walk the real book.** At each decision, capture the venue's L2 order book at least 60 seconds after the decision. The fill is the VWAP walking down the levels from best price; there are no mid-price fills, and orders larger than displayed depth inside the limit fill partially. Store the snapshot reference in the decision log. DEX fills use Jupiter quotes instead (below).
 - **No reused snapshots.** Two sells never fill against the same snapshot. The next sell uses a fresh one at least 1 hour later, so depth isn't double-counted.
 - **Only our venues.** Paper fills only on venues where we'd actually hold accounts (§1), never on a venue we couldn't use live.
 - **Resting limit orders** fill only if trades print *through* the level, not merely touch it.
-- **Fees at our real tier:** taker fees per venue, with no VIP tiers assumed. On DEX: pool fee, gas at the block's price, and a MEV/sandwich allowance of 0.5% unless a private route is specified.
+- **Fees at our real tier:** taker fees per venue, with no VIP tiers assumed. On DEX: pool fee (inside the quote), the network fee, and a MEV/sandwich allowance of 0.5% unless a private route is specified.
 - **Forced exits use actual liquidity.** If a venue delists or a pool is drained, the paper position exits at whatever was really there, down to zero.
 - **No look-ahead:** signals use only data available at the decision time, and daily/weekly closes only after the close.
 - **No survivorship bias:** dead and delisted tokens stay in the record at their real outcome.
 - **Venue minimum orders.** A sell below the venue's minimum order for the pair doesn't fill. The residual is carried as **dust** and marked at **zero** once it's unsellable. That is what would happen live. (A pair is traded on a venue only if its minimum is ≤ half an entry tranche, about $5; §3 and `risk-policy.md` §1.)
 - **Fixed costs per order.** If any fixed cost of an order (gas, priority fee, transfer, withdrawal) is above **0.5% of the order's value**, the order isn't placed, on paper or live. At $10 a tranche that's about **$0.05**, half the old limit. This rules out **Ethereum-mainnet DEX** at this size, and any chain whose swap plus priority fee doesn't reliably stay under $0.05; DEX orders are allowed only on chains where a swap clears the test. A DEX tranche that fails it is skipped, as under the 50% rule (§2).
 - **No transfers per position.** Each position stays on one venue (§3). The sleeve is funded once per venue, and that one-off conversion and transfer cost is charged to paper at the start.
-- **DEX fills** (DEX cohort):
-  - At each decision, capture a **pool-state snapshot** of every counted pool and a **router quote for our exact size**, both at least 60 seconds after the decision and from the same block. Both references go in the decision log.
-  - Two fills are computed: the walk through the snapshot, net of the pool fee, and the router quote. **The worse of the two is the scored fill.** The pool fee is charged once (the quote already includes it).
-  - On top: gas and priority fee at that block's price, and the **0.5% MEV allowance** unless the order uses a private route that the order-placement skill specifies.
+- **DEX fills** (DEX cohort, Solana, Jupiter):
+  - **Quote 1:** a Jupiter quote for our exact size, at least 60 seconds after the decision. **Quote 2:** the same quote 30 seconds later. **The worse of the two is the scored fill.** The pool fee is already in the quote and isn't charged again. Both quotes go in the decision log, with their route and slot.
+  - **No pool-state walk.** Earlier drafts also walked a snapshot of decoded pool state and kept the worse of that and the quote. Jupiter prices from the same on-chain state, and decoding every Solana pool type is the costliest part of the build for little gain. The 30-second re-quote and the real-trade check replace it: within 24 hours, every fill is compared with real same-side trades in the pool, and a fill that beats their median is flagged (order-placement spec §4–§5, THE-267).
+  - **Sell quote at every buy:** in the same pass as a buy, a Jupiter quote to sell the full target position back to USDC. If it fails, there's no buy (§2).
+  - On top: the **network fee** (base fee plus priority fee, at the SOL price from the same pass), and the **0.5% MEV allowance** on every scored fill, buys and sells, unless the order uses a private route that the order-placement skill specifies.
   - Every DEX order is a swap at the router. There are no resting orders, so the resting-limit rule above doesn't apply.
-  - The impact caps (§3) are measured on the scored fill against the pool's pre-trade price. A swap whose scored fill breaks its cap isn't placed; it's split over time, as on CEX.
-  - **Dust:** a sell whose gas and priority fee fail the 0.5% test is treated like a CEX sell below the venue minimum. The residual is carried as dust and marked at zero once unsellable. If it later regains enough value to pass the test, it's sold under the normal exit rules.
-  - The sell check at each buy (§2) uses the same quote source, logged with the buy.
-- **Slippage audit:** keep a running comparison of modelled vs book-walked slippage, so the live/paper gap can be measured at promotion.
+  - The impact caps (§3) are measured on the scored fill against a small reference quote (USD 1) taken in the same pass. A swap whose scored fill breaks its cap isn't placed; it's split over time, as on CEX.
+  - **Dust:** a sell whose network fee fails the 0.5% test is treated like a CEX sell below the venue minimum. The residual is carried as dust and marked at zero once unsellable. If it later regains enough value to pass the test, it's sold under the normal exit rules.
+- **Slippage audit:** keep a running comparison of modelled vs book-walked slippage (DEX: scored fill vs the real-trade check), so the live/paper gap can be measured at promotion.
 
 **Record-keeping gap:** the Crypto Book v1 allows one exit per entry, in full, with no partial exits. Staged exits don't fit that. I propose asking for partial-exit support in the Crypto Book (Nadia → David). Until then, the full tranche history lives in the order-placement log, and the Crypto Book gets the lot structure that skill defines.
 
@@ -230,7 +232,7 @@ I made the exit changes the backtest supports (§4, §5) and did not redesign fu
 
 1. **Selection adds nothing.** Our T1 rate isn't clearly above the 5-draw random shadow control on the same dates. That is the core question; §0 shows the book only works if selection beats random. → `risk-policy.md` P5, and retirement §4.
 2. **Hit rate below break-even.** Too few resolved entries reach T1 for the book to pay at today's payoffs, or the rate is below the random-entry base rate. → P4, and retirement §4.
-3. **The ladder is destroying value.** The same entries do clearly better with no ladder. → the no-ladder shadow, pre-registered in `risk-policy.md` §2; reported, not pass/fail. As reported diagnostics I also track the same entries under alternative multiples (2×/4×/8×).
+3. **The ladder is destroying value.** The same entries do clearly better with no ladder. → the no-ladder shadow, pre-registered in `risk-policy.md` §2; reported, not pass/fail. The shadow holds 100% of each real entry, with the same fills, and has no T1–T4 sells. **Its 40% trail starts at the first 3×**: once an hourly close reaches 3× cost (the close that would have filled T1, §4), it exits on a weekly close at or below 60% of the highest weekly close since entry. Before that, the §5 exits apply. This matches Sam's "no ladder, same trail" variant (THE-273, trail switching on at 3×), so the only difference from the real book is the ladder sales. Sam armed it on a weekly close; arming on the hourly close keeps the shadow in step with the real T1. As reported diagnostics I also track the same entries under alternative multiples (2×/4×/8×).
 4. **One lucky ticket.** The result turns negative without the best one or two positions. That is luck so far, not evidence. → P6.
 5. **Winners that couldn't be sold.** Stage sells that weren't fillable at the logged size within the impact cap. → P7, and retirement §4.
 6. **Costs eat the edge.** Average cost per side too high, or modelled slippage consistently below book-walked slippage. → P8. As a diagnostic I also report the share of gross gains taken by fees and slippage.
@@ -249,4 +251,4 @@ A material change to this file resets the paper clock for the part it touches (`
 - **Sizing assumptions:** venue minimums about USD 5–10 per order, checked for every watchlisted pair at paper start; at $300 only pairs at ≤ $5 qualify. If the sub-sleeve changes from $300, §3 and §6 are re-checked before paper or live.
 - **What going to 2 tranches costs:** one fewer eligibility re-check, and one fewer chance to stop adding to a position that has already run (the 50% rule now acts once). Nothing in the evidence is lost: the backtest bought each position in one go, so the tranche count was never tested (above).
 - **Drawdown and the minimum:** `risk-policy.md` L1 sizes against the lower of sleeve and NAV. Below about $150 NAV a tranche falls under $5 and isn't placed, so a deep drawdown stops new buys on its own. That is Ingrid's design, stated here so it isn't a surprise.
-- **Open:** the DEX chain and router (Hugo's scan), and with them Hugo's DEX gate, whether enough tokens clear the $50k floor on pool depth, and whether a swap clears $0.05 of fixed cost; `risk-policy.md` L1 from 5% to 1/15 (Ingrid, PR #3); venues and the live mandate (THE-270); where idle cash sits (risk policy / mandate); the 20%/15% NAV trim (Ingrid); partial exits in the Crypto Book (Nadia with David).
+- **Open:** Hugo's DEX gate for Solana (PR #12) and whether enough tokens clear the $50k floor on DEX depth; `risk-policy.md` L1 from 5% to 1/15 (Ingrid, PR #3); venues and the live mandate (THE-270); where idle cash sits (risk policy / mandate); the 20%/15% NAV trim (Ingrid); partial exits in the Crypto Book (Nadia with David).
