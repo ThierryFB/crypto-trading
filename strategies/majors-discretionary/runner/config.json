@@ -1,0 +1,68 @@
+{
+  "strategy": "majors-discretionary",
+  "phase": "paper",
+  "universe": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "XRPUSDT",
+    "DOGEUSDT",
+    "ADAUSDT"
+  ],
+  "sleeve_usdt": 2000,
+  "wakes_utc": [
+    "00:05",
+    "08:05",
+    "14:35"
+  ],
+  "limits_source": "strategies/majors-discretionary/risk-policy.md",
+  "limits_note": "Ids follow risk-policy.md (merged cd4767c). All shares are of sleeve NAV. Changing any value here, or the gate code (tickets.py, execute.py, the gates, halts and resume in mdisc.py, governance below), is a risk-policy change (Runner independence): PR with Ingrid's approval.",
+  "limits": {
+    "L2_risk_per_trade_nav": 0.0075,
+    "L4_max_coin_nav": 0.25,
+    "L4_min_entry_nav": 0.02,
+    "L6_max_positions": 4,
+    "L7_max_entries_per_wake": 2,
+    "L8_week_cost_nav": 0.002,
+    "D1_day_pause_nav": 0.04,
+    "D2_day_halt_nav": 0.1,
+    "D3_halt_nav_usdt": 1600,
+    "O1_halt_failed_wakes": 2,
+    "forecast_min": 0.05,
+    "forecast_max": 0.95,
+    "halt_issue_titles": [
+      "HALT — majors-discretionary",
+      "HALT — desk"
+    ],
+    "O2_usdt_tolerance": 0.05
+  },
+  "execution": {
+    "touch_offset": 0.001,
+    "est_cost_per_side": 0.0015,
+    "exit_attempts": 3,
+    "shadow_fee": 0.0015,
+    "max_test_order_usdt": 20,
+    "resting_target": false,
+    "resting_target_note": "Off. A resting PostOnly limit sell is not an order type L9 allows, so switching this on needs an L9 amendment to risk-policy.md (Ingrid's approval), not just this flag and the Demo test. Until then a target is taken at a wake."
+  },
+  "governance": {
+    "note": "Halts (risk-policy.md, Halt levels): a runner halt opens a HALT issue in this project assigned to Nadia; resume needs that issue closed, no open HALT issue, a written review by Ingrid on it after the last halt reason, and a later resume comment by Nadia on it. A discretionary exit under a halt needs a comment by Nadia or Ingrid on an open HALT issue.",
+    "project_id": "7ff13205-a364-47b0-baee-9178951c6edc",
+    "halt_title": "HALT — majors-discretionary",
+    "resume_agent_id": "61d8dff6-02c6-4a36-b985-22a5ffb4d96d",
+    "review_agent_id": "20e2608c-49d2-407a-97f1-47280f505ea6",
+    "exit_requesters": {
+      "Nadia": "61d8dff6-02c6-4a36-b985-22a5ffb4d96d",
+      "Ingrid": "20e2608c-49d2-407a-97f1-47280f505ea6"
+    }
+  },
+  "log_issue": "THE-334",
+  "crypto_book_url": "http://asset-management.asset-management.svc.cluster.local",
+  "trader": "agent:leo",
+  "credentials": {
+    "env_key": "BYBIT_API_KEY",
+    "env_secret": "BYBIT_API_SECRET",
+    "paperclip_secret_key": "bybit_api_key",
+    "paperclip_secret_secret": "bybit_api_secret"
+  }
+}
