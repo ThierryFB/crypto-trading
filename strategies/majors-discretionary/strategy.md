@@ -8,8 +8,8 @@ Where this file and `risk-policy.md` disagree on a number, `risk-policy.md` wins
 
 ## 1. Universe and venue
 
-- BTC, ETH, SOL, XRP, DOGE, ADA, each against USDT, **spot only**: long or cash, no leverage, no shorts.
-- Bybit Demo (`api-demo.bybit.com`), $2,000 paper sleeve. Crypto Book `book` = `majors-discretionary`.
+- BTC, ETH, SOL, XRP, DOGE, ADA, each against USDC, **spot only**: long or cash, no leverage, no shorts.
+- Bybit EU Demo (`api-demo.bybit.eu`; it lists no USDT spot pairs, `risk-policy.md` L1), $2,000 paper sleeve. Crypto Book `book` = `majors-discretionary`.
 
 ## 2. Wake procedure
 
@@ -97,7 +97,9 @@ These are proposed until `risk-policy.md` merges ([THE-320](/THE/issues/THE-320)
 
 ## 6. Shadow book (rules only)
 
-The merged 3-speed breakout (`strategies/majors-breakout/strategy.md`) runs on a virtual $2,000 from the first wake, at the backtest's cost of 0.15% per side, filled at 8h candle closes. It never places an order. Its positions and levels are printed in every log so I can see them, but they are one input among others, not a signal I must follow.
+The merged 3-speed breakout (`strategies/majors-breakout/strategy.md`) runs on a virtual $2,000 from the first strategy order (`risk-policy.md` §2), filled at 8h candle closes. It pays the same cost per side as my book: the runner's `execution.est_cost_per_side` (0.3% today: the 0.25% Demo taker fee plus slippage). It reads that one value and keeps no copy of its own, so a cost change moves both books. If it paid less, "net P&L ≥ the shadow book" would be biased against me by the difference on every round trip.
+
+The breakout's backtest figures in `strategies/majors-breakout/` (2.96x and the rest) assume 0.15% per side. They are not comparable to this shadow book's results. It never places an order. Its positions and levels are printed in every log so I can see them, but they are one input among others, not a signal I must follow.
 
 ## 7. Scoring
 

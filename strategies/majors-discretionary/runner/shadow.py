@@ -1,7 +1,7 @@
 """Rules-only shadow book (strategy.md §6, risk-policy.md L11) and the buy-and-hold BTC benchmark. Places no orders.
 
 The merged 3-speed breakout (`strategies/majors-breakout/`), one virtual book per slice from a third of $2,000,
-filled at 8h candle closes at 0.15% per side, sized as the breakout runner sizes (its config.json), with the
+filled at 8h candle closes at est_cost_per_side (config.json, the sleeve's own cost), sized as the breakout runner sizes (its config.json), with the
 catastrophe stop at entry − 4×ATR checked on each closed candle's low. It starts with paper (the first strategy
 order, risk-policy.md §2) and acts on every 8h close after that, catching up closes between wakes.
 """

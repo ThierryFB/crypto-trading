@@ -41,7 +41,6 @@
     "touch_offset": 0.001,
     "est_cost_per_side": 0.003,
     "exit_attempts": 3,
-    "shadow_fee": 0.0015,
     "max_test_order_quote": 20,
     "resting_target": false,
     "resting_target_note": "Off. A resting PostOnly limit sell is not an order type L9 allows, so switching this on needs an L9 amendment to risk-policy.md (Ingrid's approval), not just this flag and the Demo test. Until then a target is taken at a wake.",
