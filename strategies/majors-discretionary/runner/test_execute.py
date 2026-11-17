@@ -72,7 +72,7 @@ class Venue:
         if not o or not o["fill"]:
             return []
         fee, cur = (o["fill"] * 0.001, sym[:-4]) if o["side"] == "Buy" else (o["fill"] * o["px"] * 0.001, Q)
-        return [(o["fill"], o["px"], fee, cur)]
+        return [(o["fill"], o["px"], fee, cur, f"x-{oid}")]
 
     def stop_sell(self, sym, qty, trigger, link):
         if V.reject_stop:
@@ -258,6 +258,8 @@ def main():
     rc, st = run("execute")
     check("L-0001" not in st["lots"] and st["closed"][-1]["exit_why"].startswith("stop"), "stop fill closes the lot")
     check(CB[-1]["side"] == "exit" and CB[-1]["entry_trade_id"] == "cb1", "Crypto Book exit linked to its entry")
+    check(any(f"First stop-out** L-0001 SOL: stop `{sid}`" in p and f"execIds `x-{sid}`" in p and "bp vs trigger" in p for p in POSTS),
+          "first stop-out logged with stop id, execIds and fill vs trigger (THE-385 a)")
     check(not live(), "nothing left resting")
 
     # 3. exit ticket: the lot's own stop is cancelled first, then the IOC sell

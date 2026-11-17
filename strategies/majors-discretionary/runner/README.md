@@ -8,7 +8,7 @@ Bybit EU Demo (`config.json` `venue`: `rest_base` `https://api-demo.bybit.eu`, T
 - **No USDT spot pairs**, only USDC and EUR. `quote` is `USDC`, as `risk-policy.md` L1, the sleeve and NAV say since PR #20 (`db0e5b3`). If a coin has no venue price, it's unpriced: no ticket on it, and a held coin with no price is an O2 halt.
 - **No balance routes** (`wallet-balance`, `query-account-coin(s)-balance`, `query-api` all 404). The key check is `/v5/account/info`. O2 reconciles the ledger with the account's own executions (below).
 
-**No other runner, and no hand trade, may use this Demo account** (Ingrid, PR #19 S4). Its fills are the runner's only view of the account, so any fill it didn't place halts the runner (O4). The Majors Breakout runner must stay off this key (`bybit_api_key_2` / `bybit_api_secret_2`), which is the one this runner reads (`config.json` `credentials`). Both runners read the env vars `BYBIT_API_KEY` / `BYBIT_API_SECRET` first, so they must not be set at agent level.
+**No other runner, and no hand trade, may use this Demo account** (Ingrid, PR #19 S4). Its fills are the runner's only view of the account, so any fill it didn't place halts the runner (O4). The Majors Breakout runner must stay off this key (`bybit_api_key_2` / `bybit_api_secret_2`), which is the one this runner reads (`config.json` `credentials`). This runner reads the env vars `BYBIT_API_KEY` / `BYBIT_API_SECRET` first (the project env maps them to the `_2` secrets); the Breakout runner reads its own `BYBIT_BREAKOUT_API_KEY` / `BYBIT_BREAKOUT_API_SECRET`, so it can't pick up this key from the env.
 
 ## A wake
 
@@ -69,7 +69,7 @@ The fills come in a second comment because the ticket must be in the log before 
 | `forecasts.py` | Forecast store, resolution, Brier, bootstrap, calibration. |
 | `test_tickets.py`, `test_execute.py` | 33 + 58 offline checks (fake Demo and fake Paperclip; no network). |
 
-The Bybit client and helpers are shared with `../../majors-breakout/runner/` (`bybit.py`, `runner.py`, `engine.py`). State lives in `$MD_STATE_DIR` (default: Leo's persistent workspace), never in the repo. The Bybit key is read from the env or the Paperclip secrets `bybit_api_key` / `bybit_api_secret`, and is never printed or stored.
+The Bybit client and helpers are shared with `../../majors-breakout/runner/` (`bybit.py`, `runner.py`, `engine.py`). State lives in `$MD_STATE_DIR` (default: Leo's persistent workspace), never in the repo. The Bybit key is read from the env or the Paperclip secrets `bybit_api_key_2` / `bybit_api_secret_2`, and is never printed or stored.
 
 ## Not built, and why
 

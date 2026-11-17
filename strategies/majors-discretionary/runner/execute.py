@@ -247,6 +247,11 @@ def sweep(cfg, st, demo, inst, now, orders, notes):
             st["week"]["cost"] += book_sell(st, lot, q, cost, fee_q, o["px"])
             orders.append(dict(kind="exit", lot=lid, coin=lot["coin"], why=why, filled=q, avg=cost / q, fee_usdt=fee_q,
                                status=(rec or {}).get("orderStatus")))
+            if k == "stop_order":  # Ingrid THE-385 (a): she checks each stop-out against execution/list
+                n_out = st["stop_outs"] = st.get("stop_outs", 0) + 1
+                xids = ", ".join(f"`{f[4]}`" for f in F if len(f) > 4 and f[4]) or "none returned"
+                notes.append(f"**{'First stop-out' if n_out == 1 else 'Stop-out'}** {lid} {lot['coin']}: stop `{o['id']}`, trigger {o['px']:g}, "
+                             f"filled {q:g} @ {cost / q:g} ({(cost / q / o['px'] - 1) * 1e4:+.1f} bp vs trigger), execIds {xids}")
             other = "target_order" if k == "stop_order" else "stop_order"
             if lot.get(other):  # the other resting order would now oversell: cancel it; ensure_stops re-places a stop
                 try:
@@ -280,7 +285,7 @@ def fills_sync(cfg, st, demo, now):
     missed. Raises if Bybit can't be read (the caller fails closed)."""
     F, now_ms = st.get("venue_fills"), int(now * 1000)
     if F is None:
-        if any(held_qty(st).values()) or abs(st["cash"] - cfg["sleeve_usdt"]) > 1e-9:
+        if any(held_qty(st).values()) or abs(st["cash"] - cfg["sleeve_quote"]) > 1e-9:
             raise RuntimeError("no fill baseline while the sleeve holds coins or its cash has moved")
         F = dict(since_ms=now_ms, upto_ms=now_ms, seen={}, offset={})
     for e in demo.executions(max(F["since_ms"], F["upto_ms"] - 3600 * 1000), now_ms):
@@ -329,7 +334,7 @@ def ledger_want(cfg, st):
     """What the sleeve's fills must add up to: each coin's lots and dust, and the quote coin's change in sleeve cash."""
     w = {c: 0.0 for c in (s[:-4] for s in cfg["universe"])}
     w.update(held_qty(st))
-    w[cfg["venue"]["quote"]] = st["cash"] - cfg["sleeve_usdt"]
+    w[cfg["venue"]["quote"]] = st["cash"] - cfg["sleeve_quote"]
     return w
 
 
@@ -344,7 +349,7 @@ def reconcile(cfg, st, inst, notes):
     fees, less sells); for the quote coin, the sleeve cash change equals the fills' proceeds less costs and fees. A fee
     in any other coin is a mismatch too. Returns (mismatches, [(execId, fill)] not placed by the sleeve and not yet
     reviewed at a resume: O4, the caller halts on them)."""
-    F, q, tol = st["venue_fills"], cfg["venue"]["quote"], cfg["limits"]["O2_usdt_tolerance"]
+    F, q, tol = st["venue_fills"], cfg["venue"]["quote"], cfg["limits"]["O2_quote_tolerance"]
     net, foreign, bad = fills_net(cfg, F, test_order_ids(st))
     for a_, want in ledger_want(cfg, st).items():
         got = net.get(a_, 0.0) + F["offset"].get(a_, 0.0)
