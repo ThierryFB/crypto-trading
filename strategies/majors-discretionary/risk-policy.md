@@ -12,8 +12,8 @@ Owner: Ingrid, with capital and promotion criteria from Nadia. Merges only with 
 
 ### Definitions
 
-- **Sleeve:** a virtual **$2,000** in USDT on Bybit Demo, tracked by the runner whatever the demo balance is.
-- **NAV:** USDT plus every position marked at mid on Bybit spot. Unless stated otherwise, it is measured at each wake and at 00:00 UTC.
+- **Sleeve:** a virtual **$2,000** in USDC on Bybit EU Demo (`api-demo.bybit.eu`), tracked by the runner whatever the demo balance is.
+- **NAV:** USDC plus every position marked at mid on its USDC spot pair on Bybit EU Demo. Unless stated otherwise, it is measured at each wake and at 00:00 UTC.
 - **Day:** a UTC day. Day P&L is NAV against NAV at 00:00 UTC.
 - **Week:** Monday 00:00 UTC to Sunday 24:00 UTC.
 - **HWM:** the highest daily NAV since the first trade.
@@ -26,7 +26,7 @@ Owner: Ingrid, with capital and promotion criteria from Nadia. Merges only with 
 
 | # | Limit | Level | Why |
 |---|---|---|---|
-| L1 | Instruments | **Spot only:** BTC, ETH, SOL, XRP, DOGE, ADA against USDT on Bybit Demo. Long or cash. No leverage, margin, borrowing, perps, shorting, lending or earn products. Cash is never negative. Perp data (funding, open interest) is an **input only**. | The universe is the one the shadow book and the null model use. Perp data is the obvious route to a "small hedge". It isn't allowed. |
+| L1 | Instruments | **Spot only:** BTC, ETH, SOL, XRP, DOGE, ADA against USDC on Bybit EU Demo. (The signals, the shadow book and the null model use Bybit mainnet USDT data; that is an input, not an instrument.) Long or cash. No leverage, margin, borrowing, perps, shorting, lending or earn products. Cash is never negative. Perp data (funding, open interest) is an **input only**. | The universe is the one the shadow book and the null model use. USDC, not USDT: Bybit EU Demo (Thierry's account) lists no USDT spot pairs. On 17 Nov all six USDC pairs were listed there, with last prices within ±0.14% of mainnet USDT, which is small next to a 1.5–3× ATR stop. USDC is also the desk's cash (C4). Perp data is the obvious route to a "small hedge". It isn't allowed. |
 | L2 | Risk per trade | ≤ **0.75% of NAV** to the ticket's stop (about $15). | This is the same total open risk as my 3-speed ruling: 4 × 0.75% here against 12 × 0.25% there, 3% of NAV in both. Zero-skill null model, 13 weeks: median max DD −11 to −12%, p5 −20 to −21%, and NAV ≤ $1,600 in **3–4%** of windows. At 0.5% that is 0.3–0.5%, which would make the floor almost unreachable for a trader with no edge. At 0.75% it stays a real alarm, which is what it's for. |
 | L3 | Stop | Every entry carries a stop price on its ticket. Right after the fill, the runner places it on Bybit as a **resting stop-market sell** for the full quantity. The stop may only move **towards** the price, never away from it. It is cancelled only as part of closing the position. | The stop is what makes L2 true. A stop-limit can skip through a fast market, and a stop that gets widened later makes L2 meaningless. |
 | L4 | Per coin | ≤ **25% of NAV** in one coin, measured at entry. A buy that would cross the cap is **shrunk to fit**, or skipped if what's left is under 2% of NAV. There is no forced trim after entry. | Same rule as the 3-speed book. With a tight stop, L2 alone would allow far more than 25%. |
@@ -103,7 +103,7 @@ Leo trades the book and also writes the runner that limits him. So:
 - **Strategy and phase:** Majors Discretionary, definition. No orders placed.
 - **Inputs:** Nadia's THE-319 revision (9 Nov 16:26Z) and her THE-320 note. My null model ran on Bybit spot 4h candles fetched 9 Nov, built into 8h bars over 21 Oct 2021 → 9 Nov 2026 (the dates all six pairs have data), with 126 start dates two weeks apart × 3 seeds = 378 windows.
 - **Not verified:** the null model fills stops at the stop price, or at the open if price gapped through. Real stop-market fills in a crash will be worse. Bybit Demo's handling of resting spot stops is untested. Demo fill quality against the real book is untested. The null model can't show what a skilled trader, or one whose judgement is consistently wrong, does. That's what D3 and the drift check are for.
-- **Desk fit (needs Nadia and David):** the merged desk policy covers a $1,000 sleeve across three other strategies. For paper I treat this $2,000 sleeve as **outside desk NAV**, while the desk operational halts (DO1–DO4) and the kill switch still apply. Cash in USDT rather than USDC (desk C4) is accepted for paper only.
+- **Desk fit (needs Nadia and David):** the merged desk policy covers a $1,000 sleeve across three other strategies. For paper I treat this $2,000 sleeve as **outside desk NAV**, while the desk operational halts (DO1–DO4) and the kill switch still apply. Cash is in USDC, as desk C4 requires.
 - **Review:** when `strategy.md` merges, after the first 10 fills, and at the 4-week review (about 11 Dec).
 
 ## Capital and promotion criteria
@@ -118,7 +118,7 @@ Majors Trend is tested on its backtest, and its paper period only checks that th
 
 - **$2,000 virtual sleeve** on Bybit Demo (THE-319), tracked by the runner whatever the demo balance is. For paper it sits **outside desk NAV**, as Ingrid assumes above. Desk operational halts and the kill switch still apply. David confirms this when he merges.
 - **No top-ups, no refills.** Gains and losses stay in the sleeve. A halt resets nothing. A book that draws down trades smaller, as it would live.
-- **Cash in USDT** is accepted for paper only (desk C4).
+- **Cash in USDC**, as desk C4 requires (on Bybit EU Demo, which has no USDT spot pairs).
 - **Capital doesn't change during paper.** Any change is a PR to this file.
 
 ### 2. Pre-registration (fixed before the first strategy order)
