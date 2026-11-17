@@ -545,10 +545,14 @@ def cmd_execute(cfg, st, a):
               f"lots {', '.join(ex.open_lots(st))} at {ex.utc(now)}", now, notes)
     if fills is not None:
         errs += ex.sweep(cfg, st, demo, inst, now, orders, notes)
-        recon = ex.reconcile(cfg, st, inst, notes)
+        recon, foreign = ex.reconcile(cfg, st, inst, notes)
         notes.append("Lots and cash vs Demo fills: " + ("; ".join(recon) if recon else f"every coin and {cfg['venue']['quote']} add up"))
         if recon:
             latch(cfg, st, "O2", "O2: the ledger doesn't reconcile with the Demo fills", "; ".join(recon), now, notes)
+        if foreign:  # Ingrid decides on a kill from the HALT issue; the runner doesn't kill
+            st["halt_execs"] = sorted(set(st.get("halt_execs", [])) | {x for x, _ in foreign})
+            latch(cfg, st, "O4-fill:" + ",".join(sorted(x for x, _ in foreign))[:200], "O4: fill on the Demo account with no ticket",
+                  "execIds: " + "; ".join(d for _, d in foreign), now, notes)
     mids = {c: (b + a_) / 2 for c, (b, a_) in touch.items()}
     n = nav(st, mids)
     if n is None:
@@ -710,8 +714,16 @@ def cmd_test_order(cfg, st, a):
     demo, s, base = ex.demo_client(cfg, k), a.symbol, ex.vbase(cfg)
     I = bybit.instrument(s, base=base)
     c = I["base"]; q_coin = s[len(c):]
+    if q_coin not in ("USDT", "USDC"):  # the cap is counted in the quote coin: a dollar stablecoin only
+        sys.exit(f"test orders run on a USDT or USDC pair only, not {s}")
     ledger = lambda: {x: demo.cash_balance(x) for x in (q_coin, c)}
-    R, live = dict(t=ex.iso(time.time()), host=base, symbol=s, usdt=a.usdt, steps=[]), []
+    R, live = dict(t=ex.iso(time.time()), host=base, symbol=s, usdt=a.usdt, steps=[], order_ids=[]), []
+    st["test_orders"].append(R)  # saved with each orderId as it's created: only these fills are exempt from O4
+
+    def rec(oid):
+        if oid:
+            R["order_ids"].append(oid); save_state(st)
+        return oid
 
     def step(name, fn):
         try:
@@ -724,19 +736,20 @@ def cmd_test_order(cfg, st, a):
     px = mb.limit_px("Buy", bid, ask, I, X["touch_offset"])
     q = mb.rnd(a.usdt / float(px), I["step"], ROUND_DOWN)
     b = mb.place(demo, s, "Buy", q, px, f"md-test-{int(time.time())}-b", q_coin)
+    rec(b.get("order_id"))
     R["buy"] = dict(bid=bid, ask=ask, limit=float(px), qty=float(q), **b)
     net = mb.rnd(b["filled"] - b["fee_base"], I["step"], ROUND_DOWN)
     stop_ok = False
     if net > 0:
         tag = int(time.time())
         trig = mb.rnd(bid * 0.7, I["tick"], ROUND_DOWN)
-        sid = step("place stop-market sell", lambda: demo.stop_sell(s, format(net, "f"), format(trig, "f"), f"md-test-{tag}-s"))
+        sid = step("place stop-market sell", lambda: rec(demo.stop_sell(s, format(net, "f"), format(trig, "f"), f"md-test-{tag}-s")))
         if sid:
             live.append((sid, True))
             st1 = step("read back stop", lambda: (demo.stop_status(s, sid) or {}).get("orderStatus"))
             R["log_with_stop"] = step("transaction-log balances with the stop", ledger)
-            tid = step("place resting target next to it", lambda: demo.limit_sell(
-                s, format(net, "f"), format(mb.rnd(ask * 1.5, I["tick"], ROUND_DOWN), "f"), f"md-test-{tag}-t"))
+            tid = step("place resting target next to it", lambda: rec(demo.limit_sell(
+                s, format(net, "f"), format(mb.rnd(ask * 1.5, I["tick"], ROUND_DOWN), "f"), f"md-test-{tag}-t")))
             if tid:
                 live.append((tid, False))
                 step("read back target", lambda: (demo.stop_status(s, tid) or {}).get("orderStatus"))
@@ -762,15 +775,15 @@ def cmd_test_order(cfg, st, a):
         if extra <= 0 or float(extra) < I["min_qty"] or float(extra) * bid < I["min_amt"]:
             break
         x = mb.place(demo, s, "Sell", extra, mb.limit_px("Sell", bid, ask, I, X["touch_offset"]), f"md-test-{int(time.time())}-f{i}", q_coin)
+        rec(x.get("order_id"))
         R["flatten"].append(dict(bid=bid, ask=ask, qty=float(extra), **x))
         sold += Decimal(str(x["filled"]))
     R["left_over"] = float(Decimal(str(b["filled"] - b["fee_base"])) - sold)
     R["log_after"] = step("transaction-log balances after", ledger)
     R["ok"] = stop_ok and not R["left_resting"]
-    st["test_orders"].append(R)
     if R["ok"]:
         st["stop_test"] = dict(t=R["t"], ok=True, host=base, symbol=s, target_coexists=R.get("target_coexists"), amend_ok=R.get("amend_ok"))
-    save_state(st)  # test fills carry md-test- link ids: the sleeve's fill reconciliation leaves them out
+    save_state(st)  # O2 and O4 leave out fills of the orderIds recorded in R["order_ids"]
     print(json.dumps(R, indent=1, default=str))
     return 0 if R["ok"] else 1
 
@@ -896,7 +909,10 @@ def cmd_resume(cfg, st, a):
         if not st.get("venue_fills"):
             sys.exit("no fill baseline yet: nothing to rebaseline")
         ex.rebaseline(cfg, st)
-    st.setdefault("resumed", []).append(dict(t=ex.iso(now), ref=a.ref, halt=h, rebaseline=bool(a.rebaseline)))
+    if st.get("venue_fills") and st.get("halt_execs"):  # O4 fills listed on the halt issue are reviewed: they don't halt again
+        st["venue_fills"]["reviewed"] = sorted(set(st["venue_fills"].get("reviewed", [])) | set(st["halt_execs"]))
+    st.setdefault("resumed", []).append(dict(t=ex.iso(now), ref=a.ref, halt=h, rebaseline=bool(a.rebaseline),
+                                             reviewed_execs=st.pop("halt_execs", [])))
     st["halted"] = None
     st["streak_reset"] = now  # a resume clears the O1 streak
     save_state(st)

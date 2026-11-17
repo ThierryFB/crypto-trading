@@ -77,11 +77,14 @@ def vbase(cfg):
     return cfg["venue"]["rest_base"]
 
 
+DEMO_HOSTS = ("https://api-demo.bybit.eu", "https://api-demo.bybit.com")
+
+
 def demo_client(cfg, k):
     """The signed client on the configured host. In phase paper only a Bybit Demo host is accepted, so a config edit
     can't point paper orders at a live account."""
     b = vbase(cfg)
-    if cfg["phase"] == "paper" and not b.startswith("https://api-demo."):
+    if cfg["phase"] == "paper" and b not in DEMO_HOSTS:
         raise RuntimeError(f"phase paper but venue.rest_base {b} is not a Bybit Demo host")
     return bybit.Demo(*k, base=b)
 
@@ -283,7 +286,7 @@ def fills_sync(cfg, st, demo, now):
     for e in demo.executions(max(F["since_ms"], F["upto_ms"] - 3600 * 1000), now_ms):
         F["seen"].setdefault(e["execId"], [e["symbol"], e["side"], float(e["execQty"]), float(e["execPrice"]),
                                            float(e.get("execFee") or 0), e.get("feeCurrency") or "", e.get("orderLinkId") or "",
-                                           int(e["execTime"])])
+                                           int(e["execTime"]), e.get("orderId") or ""])
     F["upto_ms"] = now_ms
     st["venue_fills"] = F
     return F
@@ -294,20 +297,32 @@ def held_qty(st):
             for c in {l["coin"] for l in st["lots"].values()} | set(st["dust"])}
 
 
-def fills_net(cfg, F):
-    """({asset: change} from the sleeve's own fills, [foreign fills]). The sleeve's orders carry an orderLinkId starting
-    md-; test orders (md-test-) and anything placed by hand are foreign: reported, not booked."""
-    q, coins, net, foreign = cfg["venue"]["quote"], {s[:-4] for s in cfg["universe"]}, {}, []
-    for sym, side, qty, px, fee, fc, link, t in F["seen"].values():
+def test_order_ids(st):
+    """The orderIds test-order recorded: its fills are the only ones on the account the sleeve didn't place that don't halt."""
+    return {o for R in st.get("test_orders", []) for o in R.get("order_ids", [])}
+
+
+def fills_net(cfg, F, test_ids=frozenset()):
+    """({asset: change} from the sleeve's own fills, [(execId, fill) not placed by the sleeve], [fees in another coin]).
+    The sleeve's orders carry an orderLinkId starting md- (not md-test-). Test-order fills are exempt by their recorded
+    orderId, not by link id: anyone can type md-test- on a hand order. A hand order typed md- is booked here and then
+    fails O2, since no lot accounts for it."""
+    q, coins, net, foreign, odd_fee = cfg["venue"]["quote"], {s[:-4] for s in cfg["universe"]}, {}, [], []
+    for xid, (sym, side, qty, px, fee, fc, link, t, *oid) in F["seen"].items():
+        oid = oid[0] if oid else ""
         c = sym[:-len(q)] if sym.endswith(q) else None
+        if oid and oid in test_ids:
+            continue
         if not link.startswith("md-") or link.startswith("md-test-") or c not in coins:
-            foreign.append(f"{sym} {side} {qty:g} @ {px:g} ({link or 'no link id'})"); continue
+            foreign.append((xid, f"{sym} {side} {qty:g} @ {px:g} ({link or 'no link id'}, exec {xid})")); continue
         sg = 1 if side == "Buy" else -1
         net[c] = net.get(c, 0.0) + sg * qty
         net[q] = net.get(q, 0.0) - sg * qty * px
-        if fc:
+        if fc in (c, q):
             net[fc] = net.get(fc, 0.0) - fee
-    return net, foreign
+        elif fc or fee:
+            odd_fee.append(f"{sym} exec {xid}: fee {fee:g} in {fc or 'no coin'}, neither {c} nor {q}")
+    return net, foreign, odd_fee
 
 
 def ledger_want(cfg, st):
@@ -320,26 +335,28 @@ def ledger_want(cfg, st):
 
 def rebaseline(cfg, st):
     """After a reconciled mismatch (resume --rebaseline): the ledger is taken as right and the fill offset absorbs the gap."""
-    net, _ = fills_net(cfg, st["venue_fills"])
+    net, _, _ = fills_net(cfg, st["venue_fills"], test_order_ids(st))
     st["venue_fills"]["offset"] = {a: x - net.get(a, 0.0) for a, x in ledger_want(cfg, st).items()}
 
 
 def reconcile(cfg, st, inst, notes):
     """O2 ("any quantity or cash"): for each coin, the lots and dust equal the sleeve's net fills (buys less base-coin
-    fees, less sells); for the quote coin, the sleeve cash change equals the fills' proceeds less costs and fees. Returns
-    the mismatches. Fills not placed by the sleeve are listed in the notes."""
+    fees, less sells); for the quote coin, the sleeve cash change equals the fills' proceeds less costs and fees. A fee
+    in any other coin is a mismatch too. Returns (mismatches, [(execId, fill)] not placed by the sleeve and not yet
+    reviewed at a resume: O4, the caller halts on them)."""
     F, q, tol = st["venue_fills"], cfg["venue"]["quote"], cfg["limits"]["O2_usdt_tolerance"]
-    net, foreign = fills_net(cfg, F)
-    bad = []
+    net, foreign, bad = fills_net(cfg, F, test_order_ids(st))
     for a_, want in ledger_want(cfg, st).items():
         got = net.get(a_, 0.0) + F["offset"].get(a_, 0.0)
         step = tol if a_ == q else float(inst[a_]["step"]) if a_ in inst else 1e-8
         if abs(got - want) > max(1e-6 * max(abs(want), abs(got)), step):
             bad.append(f"{a_}: sleeve fills {got:g} ≠ ledger {want:g}")
-    if foreign:
-        notes.append(f"{len(foreign)} Demo fill(s) not placed by the sleeve since {utc(F['since_ms'] / 1000)} (not booked): "
-                     + "; ".join(foreign[-5:]))
-    return bad
+    reviewed = set(F.setdefault("reviewed", []))
+    new = [x for x in foreign if x[0] not in reviewed]
+    if new:
+        notes.append(f"**{len(new)} Demo fill(s) with no ticket** since {utc(F['since_ms'] / 1000)} (O4): "
+                     + "; ".join(d for _, d in new[-5:]))
+    return bad, new
 
 
 # ---------- the three ticket kinds ----------
