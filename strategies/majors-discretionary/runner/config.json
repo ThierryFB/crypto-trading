@@ -69,7 +69,7 @@
   },
   "venue": {
     "rest_base": "https://api-demo.bybit.eu",
-    "quote": "USDT",
-    "note": "Bybit EU Demo (Thierry's account is Bybit EU; THE-376). Every signed and venue-public call goes to rest_base, never a hard-coded host; in phase paper the runner accepts only https://api-demo.bybit.eu or https://api-demo.bybit.com. EU Demo lists no USDT spot pairs, only USDC and EUR, so with quote USDT every coin is unpriced and every ticket refused. Switching quote to USDC is an L1 change to risk-policy.md (Ingrid, David), not a runner change. EU Demo serves no wallet-balance: O2 reconciles the ledger with the account's executions (execute.py, fills_sync / reconcile)."
+    "quote": "USDC",
+    "note": "Bybit EU Demo (Thierry's account is Bybit EU; THE-376). Every signed and venue-public call goes to rest_base, never a hard-coded host; in phase paper the runner accepts only https://api-demo.bybit.eu or https://api-demo.bybit.com. EU Demo lists no USDT spot pairs, only USDC and EUR: quote is USDC since risk-policy.md L1, sleeve and NAV moved to USDC (PR #20, db0e5b3). EU Demo serves no wallet-balance: O2 reconciles the ledger with the account's executions (execute.py, fills_sync / reconcile)."
   }
 }
