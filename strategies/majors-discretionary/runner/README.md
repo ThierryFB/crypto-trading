@@ -2,6 +2,12 @@
 
 Ticket-driven runner for `strategies/majors-discretionary/` (THE-321). **No ticket, no order.** Limits come from [`../risk-policy.md`](../risk-policy.md) (`limits_source` in `config.json`). The gate code (`tickets.py`, `execute.py`, the gates, halts and resume in `mdisc.py`) and `config.json` `limits` and `governance` are risk policy: changing them needs Ingrid's approval (risk-policy.md, Runner independence).
 
+## Venue
+
+Bybit EU Demo (`config.json` `venue`: `rest_base` `https://api-demo.bybit.eu`, THE-376). Every signed call, and the touch and instrument data the orders use, go to `rest_base`. In phase paper the runner refuses a `rest_base` that isn't an `api-demo.` host. Orders use `coin + venue.quote`. The 8h candles, shadow book, day marks and forecast reference prices stay on Bybit mainnet public USDT data. EU Demo differs from bybit.com Demo in two ways:
+- **No USDT spot pairs**, only USDC and EUR. With `quote` = `USDT` every coin is unpriced on the venue, so the order gate is not met and no ticket is placed. Forecast-only wakes still post. Switching to `USDC` is an L1 change to `risk-policy.md` (Ingrid, David), not a runner change.
+- **No balance routes** (`wallet-balance`, `query-account-coin(s)-balance`, `query-api` all 404). The key check is `/v5/account/info`. O2 reconciles the ledger with the account's own executions (below).
+
 ## A wake
 
 ```
@@ -15,7 +21,8 @@ mdisc.py wake WAKE.json         # = post, then execute
    - It is placed within 60 min of its comment, or it expires.
    - **Order gate** (Nadia, 11 Nov):
      - `strategy.md`, `risk-policy.md` and this runner are on `origin/master`, and the local runner is byte-identical to master (O7). If `git fetch` fails, this counts as not met;
-     - the Demo key passes `query-api`;
+     - the Demo key passes a signed `/v5/account/info` on `rest_base`;
+     - the account's executions could be read this run (`Demo fills unreadable` otherwise);
      - the stop-market test has passed.
    - It is **re-checked** against every limit at the current touch, with the cash, positions, week cost and entries of this wake up to date (`tickets.py`).
    - **Under a halt:** no entries; an adjust may only tighten the stop; a discretionary exit runs only if `request_ref` is the id of a comment by Nadia or Ingrid on an open HALT issue (checked against the comment's author; `requested_by`, if given, must match).
@@ -24,7 +31,7 @@ mdisc.py wake WAKE.json         # = post, then execute
    - **Exit:** it cancels only this lot's stop and target, then makes up to 3 IOC sells at the bid − 0.1%. A remainder gets its stop back. A lot that fully closes queues its Crypto Book exit (one exit per entry, at the VWAP of all its sells).
    - **Adjust:** it amends the stop upwards. If Bybit refuses the amend, it places the new stop first and then cancels the old one, so the lot is never without a stop. It never loosens a stop (L3).
 
-   Then, on every run: it checks every open lot has its stop resting (O5: retry once; a lot still without a stop **halts**, because the hourly fallback isn't built), reconciles lots + dust + the baseline with each coin's Demo balance and the USDT baseline + (sleeve cash − $2,000) with the Demo USDT (O2: a mismatch halts), runs the shadow book, flushes the Crypto Book queue and posts the fills comment.
+   Then, on every run: it checks every open lot has its stop resting (O5: retry once; a lot still without a stop **halts**, because the hourly fallback isn't built), reconciles the ledger with the Demo fills (O2: a mismatch halts). The fills are every spot execution on the account since the fill baseline (taken at the first venue read, with an empty book), read from `/v5/execution/list` in 7-day windows and kept by `execId`. The sleeve's own fills (`orderLinkId` starting `md-`, not `md-test-`) must add up to each coin's lots + dust and to the quote coin's sleeve cash − $2,000. Fills placed by anything else (a test order, a trade by hand) are listed in the fills comment, not booked. If the executions can't be read, no ticket is placed and the wake fails, runs the shadow book, flushes the Crypto Book queue and posts the fills comment.
 
 ## Halts
 
@@ -42,11 +49,11 @@ The fills come in a second comment because the ticket must be in the log before 
 
 | Command | What |
 |---|---|
-| `key-check` | Read-only `/v5/user/query-api` on Demo; prints only `readOnly` and `permissions` (order gate item 3). |
-| `test-order [--usdt 18]` | Order gate item 4, outside the sleeve. **Refused** while any halt holds or a HALT issue is open (or Paperclip can't be read), and unless the runner is merged and identical to `origin/master` (O7). It buys ≤ $20 DOGE and places a resting stop-market sell. It reads the stop back, places a resting target next to it (does Bybit accept both on one coin?), and amends the stop up. It cancels both and reads them back, then flattens to the pre-test balance. It leaves no lot, no Crypto Book row and nothing resting. A pass sets `stop_test` in the state. |
+| `key-check` | Read-only signed `/v5/account/info` on `rest_base`; prints the host and the account status, never the key (order gate item 3). It shows no permissions: `test-order` is what proves the key can trade spot. |
+| `test-order [--usdt 18]` | Order gate item 4, outside the sleeve. **Refused** while any halt holds or a HALT issue is open (or Paperclip can't be read), and unless the runner is merged and identical to `origin/master` (O7). It buys ≤ $20 of `execution.test_symbol` (DOGEUSDC: the test isn't a strategy trade, so L1's USDT doesn't bind it) and places a resting stop-market sell. It reads the stop back, places a resting target next to it (does Bybit accept both on one coin?), and amends the stop up. It cancels both and reads them back, then sells back what the buy left (net of its fee), tracked from its own fills since there is no balance route. At each step it records the transaction log's cash balance, to learn whether EU Demo fills that log. It leaves no lot, no Crypto Book row and nothing resting. A pass sets `stop_test` in the state. |
 | `backfill THE-334` | Runs once, when this merges. It loads the forecasts of the hand-posted forecast-only wakes since Thu 12 Nov 00:05Z (the 11 Nov 14:35Z rehearsal is left out) into the store, with their on-time/late flags. Base rates missing from the first three logs are recomputed from Bybit 8h candles as of each wake. |
 | `score` / `status` | Brier score (by-day bootstrap, calibration) / the state. |
-| `halt --by X --ref Y` / `resume --ref NADIAS_COMMENT_ID [--rebaseline]` | See Halts. `--rebaseline` resets the venue baseline (coins and USDT) after a reconciled O2. |
+| `halt --by X --ref Y` / `resume --ref NADIAS_COMMENT_ID [--rebaseline]` | See Halts. `--rebaseline` sets the fill offset so the fills match the ledger, after an O2 mismatch has been explained. |
 
 ## Files
 

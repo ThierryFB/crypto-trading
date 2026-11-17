@@ -36,7 +36,10 @@ def touch(sym, base=DEMO):
 
 
 def instrument(sym, base=DEMO):
-    i = public("/v5/market/instruments-info", base, category="spot", symbol=sym)["list"][0]
+    L = public("/v5/market/instruments-info", base, category="spot", symbol=sym)["list"]
+    if not L:
+        raise BybitError(f"{sym} is not a spot instrument on {base}")
+    i = L[0]
     f = i["lotSizeFilter"]
     return dict(base=i["baseCoin"], tick=i["priceFilter"]["tickSize"], step=f["basePrecision"],
                 min_qty=float(f["minOrderQty"]), min_amt=float(f["minOrderAmt"]), status=i["status"])
@@ -89,8 +92,38 @@ class Demo:
         return None
 
     def query_api(self):
-        """Read-only: the key's own record (permissions, readOnly flag). Callers must not print the key."""
+        """Read-only: the key's own record (permissions, readOnly flag). Callers must not print the key.
+        Not served on Bybit EU Demo (404): use account_info there."""
         return self._signed("GET", "/v5/user/query-api", {})
+
+    def account_info(self):
+        """Read-only signed check that works on Bybit EU Demo: the account's margin mode and status."""
+        return self._signed("GET", "/v5/account/info", {})
+
+    def executions(self, start_ms, end_ms, category="spot"):
+        """Every execution on the account in [start_ms, end_ms], oldest window first. Bybit allows 7 days per query, so
+        the range is walked in 7-day windows, each paged by cursor. Raises on any error (callers fail closed)."""
+        out, week = [], 7 * 86400 * 1000 - 1
+        t = start_ms
+        while t <= end_ms:
+            e, cur = min(t + week, end_ms), None
+            while True:
+                q = {"category": category, "startTime": str(t), "endTime": str(e), "limit": "100"}
+                if cur:
+                    q["cursor"] = cur
+                r = self._signed("GET", "/v5/execution/list", q)
+                out += r.get("list", [])
+                cur = r.get("nextPageCursor")
+                if not cur or not r.get("list"):
+                    break
+            t = e + 1
+        return out
+
+    def cash_balance(self, coin):
+        """The coin's balance after its latest entry in the unified transaction log, or None if the log has no entry.
+        Read-only. Bybit EU Demo serves no wallet-balance route; whether it fills this log is what test-order finds out."""
+        L = self._signed("GET", "/v5/account/transaction-log", {"accountType": "UNIFIED", "currency": coin, "limit": "1"}).get("list", [])
+        return float(L[0]["cashBalance"]) if L and L[0].get("cashBalance") not in (None, "") else None
 
     def amend_stop(self, sym, order_id, trigger):
         """Move a resting conditional order's trigger price."""

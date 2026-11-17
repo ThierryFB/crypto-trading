@@ -11,7 +11,9 @@ import mdisc, execute as ex, tickets, shadow, inputs  # noqa: E402
 from inputs import bybit, engine  # noqa: E402
 import runner as mb  # noqa: E402
 
-MERGED = ex.merged_gate  # the real one, before setup() fakes it
+MERGED = ex.merged_gate  # the real ones, before setup() fakes them
+REAL_DEMO = bybit.Demo
+BASE = [None]
 
 CLOCK = [tickets.ts("2026-11-16T08:06Z")]
 PX = {"BTC": 64000.0, "ETH": 1800.0, "SOL": 70.0, "XRP": 0.9, "DOGE": 0.057, "ADA": 0.147}
@@ -19,18 +21,31 @@ F6 = {"BTC": 0.48, "ETH": 0.47, "SOL": 0.6, "XRP": 0.46, "DOGE": 0.47, "ADA": 0.
 
 
 class Venue:
-    def __init__(self, *a):
-        pass
+    """Fake Bybit EU Demo: no balance route, executions carry the order's link id."""
+    def __init__(self, *a, **k):
+        BASE[0] = k.get("base")
 
     def reset(self):
         self.bal = {"USDT": 50000.0, "DOGE": 3.0}
         self.orders, self.cond, self.reject_stop, self.reject_amend, self.fill_ratio = {}, {}, False, False, 1.0
+        self.execs, self.exec_down = [], False
+        BASE[0] = None
 
-    def query_api(self):
-        return {"readOnly": 0, "permissions": {"Spot": ["SpotTrade"]}}
+    def account_info(self):
+        return {"unifiedMarginStatus": 3, "marginMode": "REGULAR_MARGIN"}
 
-    def balances(self, detail=False):
-        return dict(V.bal)
+    def executions(self, start_ms, end_ms):
+        if V.exec_down:
+            raise OSError("execution/list timeout")
+        return [dict(e) for e in V.execs if start_ms <= e["execTime"] <= end_ms]
+
+    def cash_balance(self, coin):
+        return None
+
+    def _exec(self, sym, side, qty, px, link):
+        fee, cur = (qty * 0.001, sym[:-4]) if side == "Buy" else (qty * px * 0.001, "USDT")
+        V.execs.append(dict(execId=f"e{len(V.execs)}", symbol=sym, side=side, execQty=str(qty), execPrice=str(px), execFee=str(fee),
+                            feeCurrency=cur, orderLinkId=link, execTime=int(CLOCK[0] * 1000)))
 
     def ioc_limit(self, sym, side, qty, price, link):
         c, q, p = sym[:-4], float(qty), float(price)
@@ -42,6 +57,8 @@ class Venue:
         else:
             V.bal[c] -= fill; V.bal["USDT"] += fill * px * 0.999
         oid = f"o{len(V.orders)}"
+        if fill:
+            self._exec(sym, side, fill, px, link)
         V.orders[oid] = dict(sym=sym, side=side, qty=q, fill=fill, px=px, status="Filled" if fill == q else "Cancelled" if not fill else "PartiallyFilledCanceled")
         return oid
 
@@ -60,12 +77,12 @@ class Venue:
         if V.reject_stop:
             raise bybit.BybitError("retCode 170130 not supported")
         oid = f"s{len(V.cond)}"
-        V.cond[oid] = dict(sym=sym, side="Sell", qty=float(qty), trig=float(trigger), status="Untriggered", fill=0.0, px=None, stop=True)
+        V.cond[oid] = dict(sym=sym, side="Sell", qty=float(qty), trig=float(trigger), status="Untriggered", fill=0.0, px=None, stop=True, link=link)
         return oid
 
     def limit_sell(self, sym, qty, price, link):
         oid = f"t{len(V.cond)}"
-        V.cond[oid] = dict(sym=sym, side="Sell", qty=float(qty), trig=float(price), status="New", fill=0.0, px=None, stop=False)
+        V.cond[oid] = dict(sym=sym, side="Sell", qty=float(qty), trig=float(price), status="New", fill=0.0, px=None, stop=False, link=link)
         return oid
 
     def amend_stop(self, sym, oid, trigger):
@@ -90,6 +107,7 @@ V = Venue()
 def fire(oid, px):
     o = V.cond[oid]; o.update(status="Filled" if o["stop"] else "Filled", fill=o["qty"], px=px)
     c = o["sym"][:-4]; V.bal[c] -= o["qty"]; V.bal["USDT"] += o["qty"] * px * 0.999
+    V._exec(o["sym"], "Sell", o["qty"], px, o["link"])
 
 
 def live(coin=None):
@@ -318,12 +336,52 @@ def main():
     rc, st = run("execute")
     check(not st["lots"] and not live(), "halt: an exit Nadia asked for on the HALT issue runs")
 
-    # 10. O2: a balance that doesn't add up halts the runner
+    # 10. O2: a sleeve fill the ledger doesn't have halts the runner
     setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()])); at("2026-11-16T08:07Z"); run("execute")
-    V.bal["SOL"] += 0.5
+    V._exec("SOLUSDT", "Buy", 0.5, 70.0, "md-T-20261116-0805-1")
     at("2026-11-16T14:36Z"); run("post", wake(review={"L-0001": "hold"}))
     rc, st = run("execute")
-    check(st["halted"] and "O2" in st["halted"]["ref"], "O2 mismatch halts")
+    check(st["halted"] and "O2" in st["halted"]["ref"] and "SOL" in st["halted"]["evidence"], "O2: a fill missing from the ledger halts")
+
+    # 10b. fills not placed by the sleeve (a test order, a trade by hand) are noted, not booked, and don't halt
+    setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()])); at("2026-11-16T08:07Z"); run("execute")
+    V._exec("DOGEUSDT", "Buy", 300.0, 0.057, "md-test-1-b"); V._exec("SOLUSDT", "Buy", 1.0, 70.0, "")
+    at("2026-11-16T14:36Z"); run("post", wake(review={"L-0001": "hold"}))
+    rc, st = run("execute")
+    check(not st["halted"] and "2 Demo fill(s) not placed by the sleeve" in POSTS[-1], "foreign fills: reported, not booked, no halt")
+
+    # 10c. execution/list unreadable: no order (fail closed) and the wake fails
+    setup(); V.exec_down = True
+    at("2026-11-16T08:06Z"); run("post", wake([entry()])); at("2026-11-16T08:07Z")
+    rc, st = run("execute")
+    check(not V.orders and "Demo fills unreadable" in st["tickets"]["T-20261116-0805-1"]["result"] and st["wakes"][-1]["failed"],
+          "fills unreadable: no order, failed wake")
+
+    # 10d. the venue host comes from config; phase paper refuses a non-demo host
+    setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()])); at("2026-11-16T08:07Z"); run("execute")
+    check(BASE[0] == "https://api-demo.bybit.eu", "signed client built on venue.rest_base")
+    cfg_ = mdisc.load_cfg(); cfg_["venue"]["rest_base"] = "https://api.bybit.eu"
+    try:
+        ex.demo_client(cfg_, ("k", "s")); ok_ = False
+    except RuntimeError:
+        ok_ = True
+    check(ok_, "phase paper: a live host is refused")
+
+    # 10f. a symbol the host quotes but doesn't list is unpriced (EU Demo answers BTCUSDT tickers, lists no USDT pair)
+    setup(); good_i = bybit.instrument
+    bybit.instrument = lambda s_, base=None: (_ for _ in ()).throw(bybit.BybitError(f"{s_} is not a spot instrument"))
+    touch_, inst_, errs_ = mdisc.market(mdisc.load_cfg())
+    bybit.instrument = good_i
+    check(not touch_ and not inst_ and len(errs_) == 6, "market: no touch without a listed instrument")
+
+    # 10e. no venue price (EU Demo lists no USDT pairs): the forecast-only wake still posts, at the input block's mid,
+    # and the order gate says why; a ticket isn't placed
+    setup(); good = bybit.touch
+    bybit.touch = lambda s_, base=None: (_ for _ in ()).throw(bybit.BybitError("retCode 10001 Not supported symbols"))
+    at("2026-11-16T08:06Z"); rc, st = run("post", wake([entry()]))
+    bybit.touch = good
+    check(len(st["forecasts"]) == 6 and "no price on https://api-demo.bybit.eu for BTCUSDT" in POSTS[-1]
+          and next(r for r in st["forecasts"] if r["coin"] == "BTC")["px0"] == PX["BTC"], "unpriced venue: forecasts posted at the input mid; the gate names the host")
 
     # 11. O5: a refused stop leaves the lot flagged and the wake failed
     setup(); V.reject_stop = True
@@ -362,10 +420,10 @@ def main():
 
     # 16. D3 latches: it holds after NAV recovers and after the day rolls over
     setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()])); at("2026-11-16T08:07Z"); run("execute")
-    st = mdisc.load_state(mdisc.load_cfg()); st["cash"] -= 450; st["venue_base"]["USDT"] += 450; mdisc.save_state(st)  # NAV ≈ $1,550
+    st = mdisc.load_state(mdisc.load_cfg()); st["cash"] -= 450; st["venue_fills"]["offset"]["USDT"] = -450; mdisc.save_state(st)  # NAV ≈ $1,550
     at("2026-11-16T14:36Z"); run("post", wake(review={"L-0001": "hold"})); rc, st = run("execute")
     check(st["halted"] and st["halted"]["code"] == "D3" and st["halted"]["issue"], "D3: NAV ≤ $1,600 halts and opens the issue")
-    st["cash"] += 450; st["venue_base"]["USDT"] -= 450; mdisc.save_state(st)  # NAV back near $2,000
+    st["cash"] += 450; st["venue_fills"]["offset"]["USDT"] = 0.0; mdisc.save_state(st)  # NAV back near $2,000
     at("2026-11-17T00:06Z"); run("post", wake([entry(coin="BTC", stop=62000.0, target=70000.0, forecast_24h=0.55)], review={"L-0001": "hold"},
                                                forecasts_=dict(F6, BTC=0.55)))
     rc, st = run("execute")
@@ -436,7 +494,7 @@ def main():
 
     # 19. O2 cash: a USDT balance that doesn't add up halts
     setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()])); at("2026-11-16T08:07Z"); run("execute")
-    V.bal["USDT"] += 5.0
+    st = mdisc.load_state(mdisc.load_cfg()); st["cash"] += 5.0; mdisc.save_state(st)  # cash the fills don't explain
     at("2026-11-16T14:36Z"); run("post", wake(review={"L-0001": "hold"})); rc, st = run("execute")
     check(st["halted"] and st["halted"]["code"] == "O2" and "USDT" in st["halted"]["evidence"], "O2: a USDT mismatch halts")
 
@@ -476,6 +534,28 @@ def main():
     check("could not check for HALT" in test_order() and not V.orders, "test-order: refused if Paperclip can't be read")
     setup(); ex.merged_gate = lambda: ["O7: runner differs from origin/master"]
     check("O7" in test_order() and not V.orders, "test-order: refused from unmerged code")
+    setup()
+    import io, contextlib
+    with contextlib.redirect_stdout(io.StringIO()):
+        test_order()
+    st = mdisc.load_state(cfg); R_ = st["test_orders"][-1]
+    sells = [e for e in V.execs if e["side"] == "Sell"]
+    check(st["stop_test"]["ok"] and not live() and R_["left_over"] < 0.1 and sells and R_["host"] == "https://api-demo.bybit.eu",
+          "test-order without a balance route: stop placed, read, cancelled; bought qty sold back from its own fills")
+    check(all(e["orderLinkId"].startswith("md-test-") for e in V.execs), "test-order fills carry md-test- link ids (left out of O2)")
+
+    # 22b. Demo.executions walks 7-day windows and pages each by cursor
+    calls = []
+    cli = REAL_DEMO("k", "s", base="https://api-demo.bybit.eu")
+    def fake_signed(m, path, q):
+        calls.append(q)
+        if q.get("cursor") is None and q["startTime"] == "0":
+            return {"list": [{"execId": "a"}], "nextPageCursor": "c1"}
+        return {"list": [{"execId": q["startTime"] + (q.get("cursor") or "")}], "nextPageCursor": ""}
+    cli._signed = fake_signed
+    got = cli.executions(0, 15 * 86400 * 1000)
+    check(len(calls) == 4 and len(got) == 4 and all(int(c["endTime"]) - int(c["startTime"]) < 7 * 86400 * 1000 for c in calls),
+          "executions: 3 windows of ≤ 7 days, cursor paged")
 
     # 23. the HALT issues are re-read before every buy: a halt opened after the first entry stops the second
     setup(); at("2026-11-16T08:06Z")

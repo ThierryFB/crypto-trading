@@ -9,6 +9,7 @@
     "DOGEUSDT",
     "ADAUSDT"
   ],
+  "universe_note": "Signal symbols: 8h candles, shadow book and day marks come from Bybit mainnet public USDT klines. Orders go to venue.rest_base as coin + venue.quote.",
   "sleeve_usdt": 2000,
   "wakes_utc": [
     "00:05",
@@ -43,7 +44,8 @@
     "shadow_fee": 0.0015,
     "max_test_order_usdt": 20,
     "resting_target": false,
-    "resting_target_note": "Off. A resting PostOnly limit sell is not an order type L9 allows, so switching this on needs an L9 amendment to risk-policy.md (Ingrid's approval), not just this flag and the Demo test. Until then a target is taken at a wake."
+    "resting_target_note": "Off. A resting PostOnly limit sell is not an order type L9 allows, so switching this on needs an L9 amendment to risk-policy.md (Ingrid's approval), not just this flag and the Demo test. Until then a target is taken at a wake.",
+    "test_symbol": "DOGEUSDC"
   },
   "governance": {
     "note": "Halts (risk-policy.md, Halt levels): a runner halt opens a HALT issue in this project assigned to Nadia; resume needs that issue closed, no open HALT issue, a written review by Ingrid on it after the last halt reason, and a later resume comment by Nadia on it. A discretionary exit under a halt needs a comment by Nadia or Ingrid on an open HALT issue.",
@@ -64,5 +66,10 @@
     "env_secret": "BYBIT_API_SECRET",
     "paperclip_secret_key": "bybit_api_key",
     "paperclip_secret_secret": "bybit_api_secret"
+  },
+  "venue": {
+    "rest_base": "https://api-demo.bybit.eu",
+    "quote": "USDT",
+    "note": "Bybit EU Demo (Thierry's account is Bybit EU; THE-376). Every signed and venue-public call goes to rest_base, never a hard-coded host; in phase paper the runner refuses a rest_base that isn't an api-demo host. EU Demo lists no USDT spot pairs, only USDC and EUR, so with quote USDT every coin is unpriced and every ticket refused. Switching quote to USDC is an L1 change to risk-policy.md (Ingrid, David), not a runner change. EU Demo serves no wallet-balance: O2 reconciles the ledger with the account's executions (execute.py, fills_sync / reconcile)."
   }
 }

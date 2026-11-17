@@ -184,15 +184,15 @@ def limit_px(side, bid, ask, inst, off):
     return min(rnd(bid * (1 - off), inst["tick"], ROUND_UP), Decimal(str(bid)))
 
 
-def place(demo, sym, side, qty, px, link):
-    """IOC limit; returns dict(filled, avg, fee_usdt, fee_coin_qty, order_id, status, ms)."""
+def place(demo, sym, side, qty, px, link, quote="USDT"):
+    """IOC limit; returns dict(filled, avg, fee_usdt, fee_coin_qty, order_id, status, ms). fee_usdt is in the quote coin."""
     t0 = time.time()
     oid = demo.ioc_limit(sym, side, format(Decimal(qty), "f"), format(Decimal(px), "f"), link)
     o = demo.order(sym, oid)
     F = demo.fills(sym, oid)
     if F:
         q = sum(f[0] for f in F); cost = sum(f[0] * f[1] for f in F)
-        fee_base = sum(f[2] for f in F if f[3] and f[3] != "USDT"); fee_q = sum(f[2] for f in F if f[3] == "USDT")
+        fee_base = sum(f[2] for f in F if f[3] and f[3] != quote); fee_q = sum(f[2] for f in F if f[3] == quote)
     else:
         q = float(o.get("cumExecQty") or 0); cost = float(o.get("cumExecValue") or 0); fee = float(o.get("cumExecFee") or 0)
         fee_base, fee_q = (fee, 0.0) if side == "Buy" else (0.0, fee)  # Bybit spot: buy fees in base coin, sell fees in quote
