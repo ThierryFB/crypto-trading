@@ -8,7 +8,7 @@ Bybit EU Demo (`config.json` `venue`: `rest_base` `https://api-demo.bybit.eu`, T
 - **No USDT spot pairs**, only USDC and EUR. `quote` is `USDC`, as `risk-policy.md` L1, the sleeve and NAV say since PR #20 (`db0e5b3`). If a coin has no venue price, it's unpriced: no ticket on it, and a held coin with no price is an O2 halt.
 - **No balance routes** (`wallet-balance`, `query-account-coin(s)-balance`, `query-api` all 404). The key check is `/v5/account/info`. O2 reconciles the ledger with the account's own executions (below).
 
-**No other runner, and no hand trade, may use this Demo account** (Ingrid, PR #19 S4). Its fills are the runner's only view of the account, so any fill it didn't place halts the runner (O4). The Majors Breakout runner must stay off this key (`bybit_api_key_2` / `bybit_api_secret_2`).
+**No other runner, and no hand trade, may use this Demo account** (Ingrid, PR #19 S4). Its fills are the runner's only view of the account, so any fill it didn't place halts the runner (O4). The Majors Breakout runner must stay off this key (`bybit_api_key_2` / `bybit_api_secret_2`), which is the one this runner reads (`config.json` `credentials`). Both runners read the env vars `BYBIT_API_KEY` / `BYBIT_API_SECRET` first, so they must not be set at agent level.
 
 ## A wake
 

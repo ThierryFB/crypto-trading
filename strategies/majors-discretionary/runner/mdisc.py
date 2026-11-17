@@ -17,7 +17,7 @@ WAKE.json: {"read": "...", "news": "...", "forecasts": {"BTC": 0.55, ...all six}
             "tickets": [ticket, ...], "no_trade": "reason (when there are no tickets)"}; tickets per strategy.md §4.
 State lives in $MD_STATE_DIR (default: Leo's persistent workspace), never in the repo.
 """
-import argparse, datetime as dt, fcntl, json, os, re, sys, time
+import argparse, datetime as dt, fcntl, hashlib, json, os, re, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -551,7 +551,8 @@ def cmd_execute(cfg, st, a):
             latch(cfg, st, "O2", "O2: the ledger doesn't reconcile with the Demo fills", "; ".join(recon), now, notes)
         if foreign:  # Ingrid decides on a kill from the HALT issue; the runner doesn't kill
             st["halt_execs"] = sorted(set(st.get("halt_execs", [])) | {x for x, _ in foreign})
-            latch(cfg, st, "O4-fill:" + ",".join(sorted(x for x, _ in foreign))[:200], "O4: fill on the Demo account with no ticket",
+            ids = ",".join(sorted(x for x, _ in foreign))  # code keyed on the full id set: each new set posts its own reason
+            latch(cfg, st, "O4-fill:" + hashlib.sha256(ids.encode()).hexdigest()[:16], "O4: fill on the Demo account with no ticket",
                   "execIds: " + "; ".join(d for _, d in foreign), now, notes)
     mids = {c: (b + a_) / 2 for c, (b, a_) in touch.items()}
     n = nav(st, mids)

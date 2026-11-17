@@ -64,8 +64,8 @@
   "credentials": {
     "env_key": "BYBIT_API_KEY",
     "env_secret": "BYBIT_API_SECRET",
-    "paperclip_secret_key": "bybit_api_key",
-    "paperclip_secret_secret": "bybit_api_secret"
+    "paperclip_secret_key": "bybit_api_key_2",
+    "paperclip_secret_secret": "bybit_api_secret_2"
   },
   "venue": {
     "rest_base": "https://api-demo.bybit.eu",

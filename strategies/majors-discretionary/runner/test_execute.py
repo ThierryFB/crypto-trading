@@ -354,6 +354,12 @@ def main():
           and all(x in st["halt_execs"] for x in ("e1", "e2")) and "2 Demo fill(s) with no ticket" in POSTS[-1],
           "O4: foreign fills (md-test- prefix too) halt, open the HALT issue and list the execIds")
     check(not any(o["side"] == "Buy" for o in list(V.orders.values())[2:]), "O4: no new order after the halt")
+    for i_ in range(8):  # many more foreign fills while halted, with Bybit-length execIds: each new set is its own reason
+        V._exec("ADA" + Q, "Buy", 10.0, 0.147, "", f"hand-x{i_}"); V.execs[-1]["execId"] = f"{i_:02d}-0000-4000-8000-{i_:012d}"
+        rc, st = run("execute")
+    h = st["halted"]
+    check(len(h["also"]) == 8 and len(st["halt_execs"]) == 10 and all("ADA" in x["evidence"] for x in h["also"]),
+          "O4: every later foreign fill is added to the HALT issue, never folded into an earlier reason")
     # resume marks the listed execIds reviewed: the same fills don't halt again, a new one does
     hid = h["issue"]["id"]; ISSUES[hid]["status"] = "done"
     at("2026-11-16T14:40Z"); comment(hid, "Review: hand trade, no kill", INGRID)
