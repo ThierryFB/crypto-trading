@@ -154,9 +154,9 @@ class Demo:
         raise BybitError(f"order {order_id} not final after {tries} polls")
 
     def fills(self, sym, order_id):
-        """[(qty, price, fee, fee_coin)] for an order; falls back to the order's cum fields if executions are empty."""
+        """[(qty, price, fee, fee_coin, execId)] for an order; falls back to the order's cum fields if executions are empty."""
         try:
             L = self._signed("GET", "/v5/execution/list", {"category": "spot", "symbol": sym, "orderId": order_id}).get("list", [])
         except BybitError:
             L = []
-        return [(float(e["execQty"]), float(e["execPrice"]), float(e["execFee"] or 0), e.get("feeCurrency", "")) for e in L]
+        return [(float(e["execQty"]), float(e["execPrice"]), float(e["execFee"] or 0), e.get("feeCurrency", ""), e.get("execId", "")) for e in L]

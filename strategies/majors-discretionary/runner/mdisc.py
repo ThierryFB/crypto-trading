@@ -37,7 +37,7 @@ def load_cfg():
 def load_state(cfg):
     p = os.path.join(STATE_DIR, "state.json")
     st = json.load(open(p)) if os.path.exists(p) else {}
-    for k, v in dict(version=2, cash=float(cfg["sleeve_usdt"]), lots={}, closed=[], dust={}, next_lot=1, forecasts=[], week=None,
+    for k, v in dict(version=2, cash=float(cfg["sleeve_quote"]), lots={}, closed=[], dust={}, next_lot=1, forecasts=[], week=None,
                      day=None, halted=None, wakes=[], tickets={}, cb_pending=[], venue_fills=None, stop_test=None, test_orders=[],
                      started=None, shadow=None, bh=None, log_issue=cfg["log_issue"]).items():
         st.setdefault(k, v)
@@ -260,8 +260,8 @@ def nav_halts(cfg, st, n, now, notes=None, sync=True):
     L, d = cfg["limits"], (st["day"] or {}).get("nav")
     if n is None:
         return
-    if n <= L["D3_halt_nav_usdt"]:
-        latch(cfg, st, "D3", f"D3: NAV ${n:.2f} ≤ ${L['D3_halt_nav_usdt']}; Ingrid escalates to David",
+    if n <= L["D3_halt_nav_quote"]:
+        latch(cfg, st, "D3", f"D3: NAV ${n:.2f} ≤ ${L['D3_halt_nav_quote']}; Ingrid escalates to David",
               f"NAV ${n:.2f} at {ex.utc(now)}", now, notes, sync=sync)
     if d and 1 - n / d >= L["D2_day_halt_nav"]:
         latch(cfg, st, "D2", f"D2: day loss {1 - n / d:.1%} ≥ {L['D2_day_halt_nav']:.0%}",
@@ -364,7 +364,7 @@ def books_block(cfg, st, mids, shadow_mids=None):
          st["day"].get("how") not in (None, "00:00 UTC marks") else "") +
          f" · week cost ${st['week']['cost']:.2f} of {budget} (L8) · failed wakes in a row: {streak(st)}")
     marks = {c + "USDT": p for c, p in (shadow_mids or mids).items()}  # the shadow book places no orders: any price marks it
-    return s + "\n" + shadow.render(st["shadow"], marks, st["bh"], cfg["sleeve_usdt"])
+    return s + "\n" + shadow.render(st["shadow"], marks, st["bh"], cfg["sleeve_quote"])
 
 
 def post_comment(st, body):
@@ -615,9 +615,9 @@ def cmd_execute(cfg, st, a):
             W["entries"] += 1; ctx["entries_this_wake"] += 1; ctx["coins_this_wake"].add(plan["coin"])
             if not st["started"]:  # paper starts at the first strategy order; the benchmarks start with it
                 st["started"] = ex.iso(now)
-                st["shadow"] = shadow.new(cfg["sleeve_usdt"], int(now // engine.BAR) * engine.BAR - engine.BAR, ex.iso(now))
+                st["shadow"] = shadow.new(cfg["sleeve_quote"], int(now // engine.BAR) * engine.BAR - engine.BAR, ex.iso(now))
                 b, a_ = touch["BTC"]
-                st["bh"] = dict(qty=cfg["sleeve_usdt"] / a_ * (1 - cfg["execution"]["shadow_fee"]), px=a_, t=ex.iso(now))
+                st["bh"] = dict(qty=cfg["sleeve_quote"] / a_ * (1 - cfg["execution"]["shadow_fee"]), px=a_, t=ex.iso(now))
         out.append((tag, _order_line(o)))
     unprotected = ex.ensure_stops(cfg, st, demo, inst, notes) if demo and ex.open_lots(st) else []
     if unprotected:  # no hourly fallback is built, so a lot still without a stop after the retry is an O5 halt
@@ -702,8 +702,8 @@ def cmd_test_order(cfg, st, a):
     its own fills, and records the transaction log's cash balance at each step to see whether that log is filled."""
     from decimal import Decimal, ROUND_DOWN
     X = cfg["execution"]
-    if a.usdt > X["max_test_order_usdt"]:
-        sys.exit(f"test orders are capped at ${X['max_test_order_usdt']}")
+    if a.usdt > X["max_test_order_quote"]:
+        sys.exit(f"test orders are capped at ${X['max_test_order_quote']}")
     if ex.open_lots(st):
         sys.exit("lots are open: a test order would disturb the reconciliation")
     refused = halt_reasons(cfg, st) + ex.merged_gate()  # it places real Demo orders: no halt, and only merged code (O7)

@@ -10,7 +10,7 @@
     "ADAUSDT"
   ],
   "universe_note": "Signal symbols: 8h candles, shadow book and day marks come from Bybit mainnet public USDT klines. Orders go to venue.rest_base as coin + venue.quote.",
-  "sleeve_usdt": 2000,
+  "sleeve_quote": 2000,
   "wakes_utc": [
     "00:05",
     "08:05",
@@ -27,7 +27,7 @@
     "L8_week_cost_nav": 0.002,
     "D1_day_pause_nav": 0.04,
     "D2_day_halt_nav": 0.1,
-    "D3_halt_nav_usdt": 1600,
+    "D3_halt_nav_quote": 1600,
     "O1_halt_failed_wakes": 2,
     "forecast_min": 0.05,
     "forecast_max": 0.95,
@@ -35,14 +35,14 @@
       "HALT — majors-discretionary",
       "HALT — desk"
     ],
-    "O2_usdt_tolerance": 0.05
+    "O2_quote_tolerance": 0.05
   },
   "execution": {
     "touch_offset": 0.001,
-    "est_cost_per_side": 0.0015,
+    "est_cost_per_side": 0.003,
     "exit_attempts": 3,
     "shadow_fee": 0.0015,
-    "max_test_order_usdt": 20,
+    "max_test_order_quote": 20,
     "resting_target": false,
     "resting_target_note": "Off. A resting PostOnly limit sell is not an order type L9 allows, so switching this on needs an L9 amendment to risk-policy.md (Ingrid's approval), not just this flag and the Demo test. Until then a target is taken at a wake.",
     "test_symbol": "DOGEUSDC"
