@@ -45,7 +45,7 @@ Every runner halt **latches**: O1, O4 (a fill with no ticket), O2 (a ledger mism
 
 The fills come in a second comment because the ticket must be in the log before its order (O3), and comments can't be edited.
 
-**Paper starts at the first strategy order** (risk-policy.md §2). The shadow book (`shadow.py`: the merged 3-speed breakout, virtual, at 8h closes, 0.15%/side, catastrophe stop at entry − 4×ATR) and BTC buy-and-hold start at that run, from the same $2,000.
+**Paper starts at the first strategy order** (risk-policy.md §2). The shadow book (`shadow.py`: the merged 3-speed breakout, virtual, at 8h closes, at `execution.est_cost_per_side` per side like the sleeve, catastrophe stop at entry − 4×ATR) and BTC buy-and-hold start at that run, from the same $2,000.
 
 ## Other commands
 

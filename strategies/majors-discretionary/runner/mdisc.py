@@ -617,7 +617,7 @@ def cmd_execute(cfg, st, a):
                 st["started"] = ex.iso(now)
                 st["shadow"] = shadow.new(cfg["sleeve_quote"], int(now // engine.BAR) * engine.BAR - engine.BAR, ex.iso(now))
                 b, a_ = touch["BTC"]
-                st["bh"] = dict(qty=cfg["sleeve_quote"] / a_ * (1 - cfg["execution"]["shadow_fee"]), px=a_, t=ex.iso(now))
+                st["bh"] = dict(qty=cfg["sleeve_quote"] / a_ * (1 - cfg["execution"]["est_cost_per_side"]), px=a_, t=ex.iso(now))
         out.append((tag, _order_line(o)))
     unprotected = ex.ensure_stops(cfg, st, demo, inst, notes) if demo and ex.open_lots(st) else []
     if unprotected:  # no hourly fallback is built, so a lot still without a stop after the retry is an O5 halt
@@ -627,7 +627,7 @@ def cmd_execute(cfg, st, a):
     if st["shadow"]:
         try:
             bars = {s: engine.bars8h(bybit.klines4h(s), now) for s in cfg["universe"]}
-            moves = shadow.step(st["shadow"], bars, cfg["execution"]["shadow_fee"])
+            moves = shadow.step(st["shadow"], bars, cfg["execution"]["est_cost_per_side"])
         except Exception as e:
             errs.append(f"shadow book: {e}")
     ex.cb_flush(cfg, st, notes)
