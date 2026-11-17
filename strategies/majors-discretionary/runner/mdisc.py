@@ -9,15 +9,15 @@ ticket, no order. Each wake is two steps, so every ticket is in the decision log
                                        current touch, place what passes; sweep fired stops, keep every stop resting,
                                        reconcile with Demo, run the shadow book, Crypto Book rows; post the fills
   mdisc.py wake WAKE.json              post, then execute
-  mdisc.py key-check                   read-only /v5/user/query-api: permissions and read-only flag, never the key
-  mdisc.py test-order [--usdt 18]      the Demo stop-market test (order gate item 4); outside the sleeve
+  mdisc.py key-check                   read-only signed /v5/account/info on venue.rest_base, never the key
+  mdisc.py test-order [--usdt 18]      the Demo stop-market test (order gate item 4); outside the sleeve (DOGEUSDC)
   mdisc.py score | status | backfill THE-334 | halt --by X --ref Y | resume --ref NADIAS_COMMENT_ID [--rebaseline]
 
 WAKE.json: {"read": "...", "news": "...", "forecasts": {"BTC": 0.55, ...all six}, "review": {"L-0001": "..."},
             "tickets": [ticket, ...], "no_trade": "reason (when there are no tickets)"}; tickets per strategy.md §4.
 State lives in $MD_STATE_DIR (default: Leo's persistent workspace), never in the repo.
 """
-import argparse, datetime as dt, fcntl, json, os, re, sys, time
+import argparse, datetime as dt, fcntl, hashlib, json, os, re, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -38,7 +38,7 @@ def load_state(cfg):
     p = os.path.join(STATE_DIR, "state.json")
     st = json.load(open(p)) if os.path.exists(p) else {}
     for k, v in dict(version=2, cash=float(cfg["sleeve_usdt"]), lots={}, closed=[], dust={}, next_lot=1, forecasts=[], week=None,
-                     day=None, halted=None, wakes=[], tickets={}, cb_pending=[], venue_base=None, stop_test=None, test_orders=[],
+                     day=None, halted=None, wakes=[], tickets={}, cb_pending=[], venue_fills=None, stop_test=None, test_orders=[],
                      started=None, shadow=None, bh=None, log_issue=cfg["log_issue"]).items():
         st.setdefault(k, v)
     return st
@@ -325,13 +325,16 @@ def ctx_for(cfg, st, touch, inst, now, halted, forecasts_, prev_wake):
 
 
 def market(cfg):
-    """Demo touch and instrument data for every coin; a coin that fails is left out (and its tickets refused)."""
+    """Demo touch and instrument data for every coin, on the venue host in the venue quote; a coin that fails is left
+    out (and its tickets refused)."""
     touch, inst, errs = {}, {}, []
     for s in cfg["universe"]:
+        c, v = s[:-4], ex.vsym(cfg, s[:-4])
         try:
-            touch[s[:-4]] = bybit.touch(s); inst[s[:-4]] = bybit.instrument(s)
+            i = bybit.instrument(v, base=ex.vbase(cfg))  # first: a host can quote a symbol it doesn't list
+            touch[c], inst[c] = bybit.touch(v, base=ex.vbase(cfg)), i
         except Exception as e:
-            errs.append(f"{s[:-4]} touch: {e}")
+            errs.append(f"{v} touch: {e}")
     return touch, inst, errs
 
 
@@ -352,7 +355,7 @@ def score(cfg, st, now):
     return forecasts.score_block(st["forecasts"])
 
 
-def books_block(cfg, st, mids):
+def books_block(cfg, st, mids, shadow_mids=None):
     n, d, w = nav(st, mids), st["day"]["nav"], st["week"]["nav"]
     budget = f"${cfg['limits']['L8_week_cost_nav'] * w:.2f}" if w else "unknown"
     s = (f"**Book:** " + (f"NAV ${n:,.2f}" if n is not None else "NAV **unknown** (a held coin has no price)") +
@@ -360,7 +363,7 @@ def books_block(cfg, st, mids):
          (f"{n / d - 1:+.2%} from ${d:,.2f} at 00:00" if n is not None and d else "n/a") + (f" ({st['day']['how']})" if
          st["day"].get("how") not in (None, "00:00 UTC marks") else "") +
          f" · week cost ${st['week']['cost']:.2f} of {budget} (L8) · failed wakes in a row: {streak(st)}")
-    marks = {c + "USDT": p for c, p in mids.items()}
+    marks = {c + "USDT": p for c, p in (shadow_mids or mids).items()}  # the shadow book places no orders: any price marks it
     return s + "\n" + shadow.render(st["shadow"], marks, st["bh"], cfg["sleeve_usdt"])
 
 
@@ -389,7 +392,7 @@ def cmd_post(cfg, st, a):
         k = mb.creds(cfg)
         if k:
             touch0, inst0, _ = market(cfg)
-            sweep_notes += ex.sweep(cfg, st, bybit.Demo(*k), inst0, now, sweep_orders, sweep_notes)
+            sweep_notes += ex.sweep(cfg, st, ex.demo_client(cfg, k), inst0, now, sweep_orders, sweep_notes)
         else:
             sweep_notes.append("no Bybit Demo credentials: fired stops not checked")
     problems = []
@@ -409,15 +412,19 @@ def cmd_post(cfg, st, a):
 
     D = inputs.collect(cfg["universe"], now)
     touch, inst, merr = market(cfg)
-    missing = [c for c in coins if c not in D["coins"] or c not in touch]
+    missing = [c for c in coins if c not in D["coins"]]
     if missing:
-        sys.exit("not posted: no price for " + ", ".join(missing) + " (" + "; ".join(D["errors"] + merr) + "); retry")
-    mids = {c: (b + a_) / 2 for c, (b, a_) in touch.items()}
+        sys.exit("not posted: no price for " + ", ".join(missing) + " (" + "; ".join(D["errors"]) + "); retry")
+    fmids = {c: D["coins"][c]["mid"] for c in coins}  # forecast reference: the input block's mid, as every wake since 12 Nov
+    mids = {c: (b + a_) / 2 for c, (b, a_) in touch.items()}  # the venue's: NAV, tickets
+    unpriced = [ex.vsym(cfg, c) for c in coins if c not in touch]
     n = nav(st, mids)
     roll(st, now, n)
     nav_halts(cfg, st, n, now, sweep_notes, sync=not a.dry_run)
     halted = halt_reasons(cfg, st)
     gate = ex.merged_gate() + ([] if (st.get("stop_test") or {}).get("ok") else ["Demo stop-market test not passed"])
+    if unpriced:
+        gate.append(f"no price on {ex.vbase(cfg)} for {', '.join(unpriced)}")
     F = {c: float(w["forecasts"][c]) for c in coins}
     ctx = ctx_for(cfg, st, touch, inst, now, halted, F, st["wakes"][-1]["sched"] if st["wakes"] else None)
     _, res = tickets.check_wake({"forecasts": F, "tickets": T}, ctx, cfg)
@@ -449,7 +456,7 @@ def cmd_post(cfg, st, a):
     L += ["", f"### Forecasts: P(higher at the {ex.utc(rt)} 8h close than the mid at this wake)",
           "| " + " | ".join(coins) + " |", "|" + "---|" * len(coins),
           "| " + " | ".join(f"{F[c]:.2f}" for c in coins) + " |",
-          "| " + " | ".join(fmt(mids[c]) for c in coins) + " |"]
+          "| " + " | ".join(fmt(fmids[c]) for c in coins) + " |"]
     if str(w.get("forecast_note", "")).strip():
         L.append(w["forecast_note"].strip())
     L += ["", "### Position review"]
@@ -459,15 +466,17 @@ def cmd_post(cfg, st, a):
         L += ["| Lot | Coin | Qty | Entry | Mid | P&L | Stop (resting) | Target | Time limit |", "|---|---|---|---|---|---|---|---|---|"]
         for lid, l in lots.items():
             so = l.get("stop_order")
-            L.append(f"| {lid} | {l['coin']} | {l['qty']:g} | {fmt(l['entry_px'])} | {fmt(mids[l['coin']])} | "
-                     f"{(mids[l['coin']] - l['entry_px']) * l['qty']:+.2f} | {fmt(l['stop'])} ({'yes' if so else '**NO**'}) | "
+            m = mids.get(l["coin"])
+            pnl = f"{(m - l['entry_px']) * l['qty']:+.2f}" if m else "n/a"
+            L.append(f"| {lid} | {l['coin']} | {l['qty']:g} | {fmt(l['entry_px'])} | {fmt(m) if m else '**none**'} | {pnl} | "
+                     f"{fmt(l['stop'])} ({'yes' if so else '**NO**'}) | "
                      f"{fmt(l['target']) if l['target'] else '—'} | {l['time_limit_utc'] or '—'} |")
         for lid, l in lots.items():
             flags = []
             if l["time_limit_utc"] and tickets.ts(l["time_limit_utc"]) <= now and not any(
                     t.get("lot") == lid and (t["type"] == "exit" or t.get("time_limit_utc")) for t in T):
                 flags.append("**past its time limit with no exit and no new time limit** (drift check 6)")
-            if l["target"] and mids[l["coin"]] >= l["target"] and not l.get("target_order"):
+            if l["target"] and mids.get(l["coin"], 0) >= l["target"] and not l.get("target_order"):
                 flags.append("at or above its target")
             L.append(f"- **{lid} {l['coin']}** ({l['ticket']}): {review[lid].strip()}" + (" · " + "; ".join(flags) if flags else ""))
     else:
@@ -486,7 +495,7 @@ def cmd_post(cfg, st, a):
         L.append("The runner re-checks each ticket at the touch when it places it; the fills follow in the next comment.")
     else:
         L.append(f"**No trade:** {w['no_trade'].strip()}")
-    L += ["", "### Books and score", books_block(cfg, st, mids), score(cfg, st, now)]
+    L += ["", "### Books and score", books_block(cfg, st, mids, {**fmids, **mids}), score(cfg, st, now)]
     body = "\n".join(L)
     if a.dry_run:
         print(body); return 0
@@ -494,7 +503,7 @@ def cmd_post(cfg, st, a):
         save_state(st)  # the fills are booked even if the post fails
     c = post_comment(st, body)
     posted = tickets.ts(c["createdAt"]) if c.get("createdAt") else now
-    st["forecasts"].extend(forecasts.record(now, F, mids, {c_: D["coins"][c_]["up24_90d"] for c_ in coins}))
+    st["forecasts"].extend(forecasts.record(now, F, fmids, {c_: D["coins"][c_]["up24_90d"] for c_ in coins}))
     for s in missed:
         st["wakes"].append(dict(sched=s, failed=True, missed=True))
     W = dict(sched=sched, posted_t=posted, comment_id=c["id"], failed=late, tickets=[t["id"] for t in recs], forecasts=F, entries=0)
@@ -520,26 +529,31 @@ def cmd_execute(cfg, st, a):
     notes, orders, errs, out = [], [], [], []
     venue = bool(pend or ex.open_lots(st) or st["shadow"])  # nothing to trade or hold: forecast-only, no venue reads
     k = mb.creds(cfg) if venue else None
-    demo = bybit.Demo(*k) if k else None
+    demo = ex.demo_client(cfg, k) if k else None
     touch, inst, merr = market(cfg)
     if venue:
         errs += merr
-    bal = None
+    fills = None
     if demo:
         try:
-            bal = demo.balances()
+            fills = ex.fills_sync(cfg, st, demo, now)
         except Exception as e:
-            errs.append(f"Demo balances: {e}")
+            errs.append(f"Demo fills: {e}")
     elif ex.open_lots(st):  # the resting stops can't be checked: O5, not just a failed wake
         errs.append("no Bybit Demo credentials while lots are open")
         latch(cfg, st, "O5-creds", "O5: no Bybit Demo credentials while lots are open, so their stops can't be checked",
               f"lots {', '.join(ex.open_lots(st))} at {ex.utc(now)}", now, notes)
-    if bal is not None:
+    if fills is not None:
         errs += ex.sweep(cfg, st, demo, inst, now, orders, notes)
-        recon = ex.reconcile(st, demo.balances(), inst, coins, notes, cfg["sleeve_usdt"], cfg["limits"]["O2_usdt_tolerance"])
-        notes.append("Lots and cash vs Demo balances: " + ("; ".join(recon) if recon else "every coin and USDT add up"))
+        recon, foreign = ex.reconcile(cfg, st, inst, notes)
+        notes.append("Lots and cash vs Demo fills: " + ("; ".join(recon) if recon else f"every coin and {cfg['venue']['quote']} add up"))
         if recon:
-            latch(cfg, st, "O2", "O2: the ledger doesn't reconcile with the Demo balances", "; ".join(recon), now, notes)
+            latch(cfg, st, "O2", "O2: the ledger doesn't reconcile with the Demo fills", "; ".join(recon), now, notes)
+        if foreign:  # Ingrid decides on a kill from the HALT issue; the runner doesn't kill
+            st["halt_execs"] = sorted(set(st.get("halt_execs", [])) | {x for x, _ in foreign})
+            ids = ",".join(sorted(x for x, _ in foreign))  # code keyed on the full id set: each new set posts its own reason
+            latch(cfg, st, "O4-fill:" + hashlib.sha256(ids.encode()).hexdigest()[:16], "O4: fill on the Demo account with no ticket",
+                  "execIds: " + "; ".join(d for _, d in foreign), now, notes)
     mids = {c: (b + a_) / 2 for c, (b, a_) in touch.items()}
     n = nav(st, mids)
     if n is None:
@@ -549,8 +563,8 @@ def cmd_execute(cfg, st, a):
     nav_halts(cfg, st, n, now, notes)
     halted = halt_reasons(cfg, st)
     gate = (ex.merged_gate() + ex.venue_gate(st, demo)) if pend else []
-    if pend and bal is None and "no Bybit Demo credentials" not in gate:
-        gate.append("Demo balances unreadable")
+    if pend and fills is None and "no Bybit Demo credentials" not in gate:
+        gate.append("Demo fills unreadable")
     ctx = ctx_for(cfg, st, touch, inst, now, halted, W["forecasts"] if W else {},
                   st["wakes"][-2]["sched"] if len(st["wakes"]) > 1 else None)
     ctx["entries_this_wake"] = W["entries"] if W else 0
@@ -605,7 +619,7 @@ def cmd_execute(cfg, st, a):
                 b, a_ = touch["BTC"]
                 st["bh"] = dict(qty=cfg["sleeve_usdt"] / a_ * (1 - cfg["execution"]["shadow_fee"]), px=a_, t=ex.iso(now))
         out.append((tag, _order_line(o)))
-    unprotected = ex.ensure_stops(st, demo, inst, notes) if demo and ex.open_lots(st) else []
+    unprotected = ex.ensure_stops(cfg, st, demo, inst, notes) if demo and ex.open_lots(st) else []
     if unprotected:  # no hourly fallback is built, so a lot still without a stop after the retry is an O5 halt
         latch(cfg, st, "O5:" + ",".join(unprotected), f"O5: {', '.join(unprotected)} without a resting stop after the retry",
               "; ".join(x for x in notes if "NO resting stop" in x), now, notes)
@@ -651,7 +665,7 @@ def cmd_execute(cfg, st, a):
 
 
 def notes_worth(notes):
-    return any(not n.startswith("Lots and cash vs Demo balances: every coin") for n in notes)
+    return any(not n.startswith("Lots and cash vs Demo fills: every coin") for n in notes)
 
 
 def _order_line(o):
@@ -672,17 +686,20 @@ def cmd_key_check(cfg, st, a):
     if not k:
         sys.exit("no Bybit Demo credentials readable")
     try:
-        r = bybit.Demo(*k).query_api()
+        r = ex.demo_client(cfg, k).account_info()
     except Exception as e:
-        print(f"key check FAILED: {e}"); return 1
-    print(json.dumps({"readOnly": r.get("readOnly"), "permissions": r.get("permissions")}, indent=1))
+        print(f"key check FAILED on {ex.vbase(cfg)}: {e}"); return 1
+    print(json.dumps({"host": ex.vbase(cfg), "route": "/v5/account/info", "retCode": 0,
+                      **{x: r.get(x) for x in ("unifiedMarginStatus", "marginMode", "spotHedgingStatus", "isMasterTrader")}}, indent=1))
+    print("account/info shows no permissions; test-order is what proves the key can trade spot")
     return 0
 
 
 def cmd_test_order(cfg, st, a):
     """Order gate item 4 (Ingrid's precondition): a resting stop-market sell placed, read back, cancelled and read back
     again on a ≤ $20 lot, plus whether a resting target can sit next to it. Outside the sleeve: no lot, no Crypto Book
-    row, nothing left resting, the coin flattened back to its pre-test balance."""
+    row, nothing left resting, and what the test bought is sold back. EU Demo has no balance route, so the test tracks
+    its own fills, and records the transaction log's cash balance at each step to see whether that log is filled."""
     from decimal import Decimal, ROUND_DOWN
     X = cfg["execution"]
     if a.usdt > X["max_test_order_usdt"]:
@@ -695,10 +712,19 @@ def cmd_test_order(cfg, st, a):
     k = mb.creds(cfg)
     if not k:
         sys.exit("no Bybit Demo credentials")
-    demo, s = bybit.Demo(*k), a.symbol
-    I, c = bybit.instrument(s), a.symbol[:-4]
-    bals = lambda: {x: v for x, v in demo.balances(detail=True).items() if x in ("USDT", c)}
-    R, live = dict(t=ex.iso(time.time()), symbol=s, usdt=a.usdt, steps=[], balances_before=bals()), []
+    demo, s, base = ex.demo_client(cfg, k), a.symbol, ex.vbase(cfg)
+    I = bybit.instrument(s, base=base)
+    c = I["base"]; q_coin = s[len(c):]
+    if q_coin not in ("USDT", "USDC"):  # the cap is counted in the quote coin: a dollar stablecoin only
+        sys.exit(f"test orders run on a USDT or USDC pair only, not {s}")
+    ledger = lambda: {x: demo.cash_balance(x) for x in (q_coin, c)}
+    R, live = dict(t=ex.iso(time.time()), host=base, symbol=s, usdt=a.usdt, steps=[], order_ids=[]), []
+    st["test_orders"].append(R)  # saved with each orderId as it's created: only these fills are exempt from O4
+
+    def rec(oid):
+        if oid:
+            R["order_ids"].append(oid); save_state(st)
+        return oid
 
     def step(name, fn):
         try:
@@ -706,28 +732,29 @@ def cmd_test_order(cfg, st, a):
         except Exception as e:
             R["steps"].append(dict(step=name, ok=False, error=str(e))); return None
 
-    bid, ask = bybit.touch(s)
+    R["log_before"] = step("transaction-log balances before", ledger)
+    bid, ask = bybit.touch(s, base=base)
     px = mb.limit_px("Buy", bid, ask, I, X["touch_offset"])
     q = mb.rnd(a.usdt / float(px), I["step"], ROUND_DOWN)
-    b = mb.place(demo, s, "Buy", q, px, f"md-test-{int(time.time())}-b")
+    b = mb.place(demo, s, "Buy", q, px, f"md-test-{int(time.time())}-b", q_coin)
+    rec(b.get("order_id"))
     R["buy"] = dict(bid=bid, ask=ask, limit=float(px), qty=float(q), **b)
     net = mb.rnd(b["filled"] - b["fee_base"], I["step"], ROUND_DOWN)
     stop_ok = False
     if net > 0:
         tag = int(time.time())
         trig = mb.rnd(bid * 0.7, I["tick"], ROUND_DOWN)
-        sid = step("place stop-market sell", lambda: demo.stop_sell(s, format(net, "f"), format(trig, "f"), f"md-test-{tag}-s"))
+        sid = step("place stop-market sell", lambda: rec(demo.stop_sell(s, format(net, "f"), format(trig, "f"), f"md-test-{tag}-s")))
         if sid:
             live.append((sid, True))
             st1 = step("read back stop", lambda: (demo.stop_status(s, sid) or {}).get("orderStatus"))
-            R["balances_with_stop"] = step("balances with the stop", bals)
-            tid = step("place resting target next to it", lambda: demo.limit_sell(
-                s, format(net, "f"), format(mb.rnd(ask * 1.5, I["tick"], ROUND_DOWN), "f"), f"md-test-{tag}-t"))
+            R["log_with_stop"] = step("transaction-log balances with the stop", ledger)
+            tid = step("place resting target next to it", lambda: rec(demo.limit_sell(
+                s, format(net, "f"), format(mb.rnd(ask * 1.5, I["tick"], ROUND_DOWN), "f"), f"md-test-{tag}-t")))
             if tid:
                 live.append((tid, False))
                 step("read back target", lambda: (demo.stop_status(s, tid) or {}).get("orderStatus"))
                 step("read back stop with target", lambda: (demo.stop_status(s, sid) or {}).get("orderStatus"))
-                R["balances_with_stop_and_target"] = step("balances with stop and target", bals)
                 if step("cancel target", lambda: demo.cancel(s, tid) and "cancelled") is not None:
                     live.remove((tid, False))
             R["target_coexists"] = bool(tid)
@@ -742,21 +769,22 @@ def cmd_test_order(cfg, st, a):
             live.remove((oid, is_stop))
     R["left_resting"] = [o for o, _ in live]
     R["flatten"] = []
-    before = Decimal(str((R["balances_before"].get(c) or {}).get("wallet", 0)))
-    for i in range(3):
-        bid, ask = bybit.touch(s)
-        extra = mb.rnd(Decimal(str((bals().get(c) or {}).get("wallet", 0))) - before, I["step"], ROUND_DOWN)
+    sold = Decimal(0)
+    for i in range(3):  # sell back what the buy left in the account (net of its base-coin fee), from the test's own fills
+        bid, ask = bybit.touch(s, base=base)
+        extra = mb.rnd(Decimal(str(b["filled"] - b["fee_base"])) - sold, I["step"], ROUND_DOWN)
         if extra <= 0 or float(extra) < I["min_qty"] or float(extra) * bid < I["min_amt"]:
             break
-        x = mb.place(demo, s, "Sell", extra, mb.limit_px("Sell", bid, ask, I, X["touch_offset"]), f"md-test-{int(time.time())}-f{i}")
+        x = mb.place(demo, s, "Sell", extra, mb.limit_px("Sell", bid, ask, I, X["touch_offset"]), f"md-test-{int(time.time())}-f{i}", q_coin)
+        rec(x.get("order_id"))
         R["flatten"].append(dict(bid=bid, ask=ask, qty=float(extra), **x))
-    R["balances_after"] = bals()
+        sold += Decimal(str(x["filled"]))
+    R["left_over"] = float(Decimal(str(b["filled"] - b["fee_base"])) - sold)
+    R["log_after"] = step("transaction-log balances after", ledger)
     R["ok"] = stop_ok and not R["left_resting"]
-    st["test_orders"].append(R)
     if R["ok"]:
-        st["stop_test"] = dict(t=R["t"], ok=True, target_coexists=R.get("target_coexists"), amend_ok=R.get("amend_ok"))
-    st["venue_base"] = None  # the next run re-reads what the account holds outside the sleeve
-    save_state(st)
+        st["stop_test"] = dict(t=R["t"], ok=True, host=base, symbol=s, target_coexists=R.get("target_coexists"), amend_ok=R.get("amend_ok"))
+    save_state(st)  # O2 and O4 leave out fills of the orderIds recorded in R["order_ids"]
     print(json.dumps(R, indent=1, default=str))
     return 0 if R["ok"] else 1
 
@@ -879,11 +907,13 @@ def cmd_resume(cfg, st, a):
     if still:
         sys.exit("refused: HALT issue(s) still open: " + ", ".join(i["identifier"] for i in still) + ". Nadia closes them after Ingrid's review")
     if a.rebaseline:
-        k = mb.creds(cfg)
-        if not k:
-            sys.exit("no Bybit Demo credentials: can't rebaseline")
-        st["venue_base"] = ex.venue_base_now(st, bybit.Demo(*k).balances(), [x[:-4] for x in cfg["universe"]], cfg["sleeve_usdt"])
-    st.setdefault("resumed", []).append(dict(t=ex.iso(now), ref=a.ref, halt=h, rebaseline=bool(a.rebaseline)))
+        if not st.get("venue_fills"):
+            sys.exit("no fill baseline yet: nothing to rebaseline")
+        ex.rebaseline(cfg, st)
+    if st.get("venue_fills") and st.get("halt_execs"):  # O4 fills listed on the halt issue are reviewed: they don't halt again
+        st["venue_fills"]["reviewed"] = sorted(set(st["venue_fills"].get("reviewed", [])) | set(st["halt_execs"]))
+    st.setdefault("resumed", []).append(dict(t=ex.iso(now), ref=a.ref, halt=h, rebaseline=bool(a.rebaseline),
+                                             reviewed_execs=st.pop("halt_execs", [])))
     st["halted"] = None
     st["streak_reset"] = now  # a resume clears the O1 streak
     save_state(st)
@@ -891,7 +921,9 @@ def cmd_resume(cfg, st, a):
 
 
 def cmd_status(cfg, st, a):
-    print(json.dumps({k: st.get(k) for k in ("cash", "started", "halted", "day", "week", "venue_base", "stop_test", "bh", "dust")}, indent=1))
+    print(json.dumps({k: st.get(k) for k in ("cash", "started", "halted", "day", "week", "stop_test", "bh", "dust")}, indent=1))
+    F = st.get("venue_fills")
+    print("venue fills:", f"{len(F['seen'])} since {ex.utc(F['since_ms'] / 1000)}, offset {F['offset']}" if F else "no baseline yet")
     print("open lots:", json.dumps({k: {x: l[x] for x in ("coin", "qty", "entry_px", "stop", "target", "time_limit_utc", "ticket")}
                                     for k, l in ex.open_lots(st).items()}, indent=1))
     print(f"wakes {len(st['wakes'])}, failed streak {streak(st)}, forecasts {len(st['forecasts'])}, closed lots {len(st['closed'])}, "
@@ -907,13 +939,13 @@ def main():
     sub.add_parser("execute")
     for c in ("execute", "wake"):
         sub.choices[c].add_argument("--no-post", action="store_true")
-    t = sub.add_parser("test-order"); t.add_argument("--symbol", default="DOGEUSDT"); t.add_argument("--usdt", type=float, default=18)
+    t = sub.add_parser("test-order"); t.add_argument("--symbol", default=load_cfg()["execution"]["test_symbol"]); t.add_argument("--usdt", type=float, default=18)
     b = sub.add_parser("backfill"); b.add_argument("issue"); b.add_argument("--first", default="2026-11-12T00:05Z")
     for c in ("key-check", "score", "status"):
         sub.add_parser(c)
     h = sub.add_parser("halt"); h.add_argument("--by", required=True); h.add_argument("--ref", required=True)
     r = sub.add_parser("resume"); r.add_argument("--ref", required=True, help="id of Nadia's resume comment on the HALT issue")
-    r.add_argument("--rebaseline", action="store_true", help="after a reconciled mismatch: baseline := Demo balances − lots, USDT − cash change")
+    r.add_argument("--rebaseline", action="store_true", help="after a reconciled mismatch: the fill offset absorbs the gap, the ledger is taken as right")
     a = ap.parse_args()
     cfg = load_cfg()
     _l = lock()
