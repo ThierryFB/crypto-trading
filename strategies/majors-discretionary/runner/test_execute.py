@@ -118,12 +118,19 @@ def live(coin=None):
 COMMENTS, POSTS, CB, ISSUES = {}, [], [], {}
 LEO, NADIA, INGRID = "leo-id", "61d8dff6-02c6-4a36-b985-22a5ffb4d96d", "20e2608c-49d2-407a-97f1-47280f505ea6"
 PC_DOWN = [False]
+LIST_FAILS = []  # per issue-list call, in order: an exception to raise instead of answering (None = answer)
+LIST_LIMITS = []  # the timeout of each issue-list call
 
 
-def fake_pc(m, path, body=None):
-    """Fake Paperclip: comments on any issue, issue create / read / search. PC_DOWN makes every call fail."""
+def fake_pc(m, path, body=None, timeout=20):
+    """Fake Paperclip: comments on any issue, issue create / read / list. PC_DOWN makes every call fail."""
     if PC_DOWN[0]:
         raise OSError("Paperclip unreachable")
+    if "/issues?" in path and "/comments" not in path:
+        LIST_LIMITS.append(timeout)
+        e = LIST_FAILS.pop(0) if LIST_FAILS else None
+        if e:
+            raise e
     t = mdisc.ex.iso(CLOCK[0]).replace("+00:00", ".000Z")
     if m == "POST" and path.endswith("/issues"):
         iid = f"i{len(ISSUES)}"
@@ -131,10 +138,11 @@ def fake_pc(m, path, body=None):
         return ISSUES[iid]
     if m == "POST":
         return comment(path.split("/")[3], body["body"], LEO)
-    if "/issues?q=" in path:  # paged like Paperclip: limit / offset
+    if "/issues?" in path and "/comments" not in path:  # paged like Paperclip: limit / offset; status filter
         q = dict(x.split("=") for x in path.split("?")[1].split("&"))
         o, n = int(q.get("offset", 0)), int(q.get("limit", 10 ** 6))
-        return [dict(i) for i in ISSUES.values()][o:o + n]
+        ok = q["status"].split(",") if "status" in q else None
+        return [dict(i) for i in ISSUES.values() if ok is None or i.get("status") in ok][o:o + n]
     if "/comments?" in path:  # oldest first; after includes the cursor comment, as the real API does
         q = dict(x.split("=") for x in path.split("?")[1].split("&"))
         cs = [c for c in COMMENTS.values() if c["issueId"] == path.split("/")[3]]
@@ -189,7 +197,7 @@ def setup():
     inputs.render = lambda D: "(inputs)"
     for f in os.listdir(os.environ["MD_STATE_DIR"]):
         os.remove(os.path.join(os.environ["MD_STATE_DIR"], f))
-    COMMENTS.clear(); POSTS.clear(); CB.clear(); ISSUES.clear(); PC_DOWN[0] = False
+    COMMENTS.clear(); POSTS.clear(); CB.clear(); ISSUES.clear(); PC_DOWN[0] = False; LIST_FAILS.clear(); LIST_LIMITS.clear()
     json.dump({"stop_test": {"ok": True}}, open(os.path.join(os.environ["MD_STATE_DIR"], "state.json"), "w"))
 
 
@@ -631,6 +639,40 @@ def main():
             "### Forecasts\n| BTC | ETH | SOL | XRP | DOGE | ADA |\n|---|---|---|---|---|---|\n| 0.48 | 0.47 | 0.47 | 0.46 | 0.47 | 0.46 |\n")
     t, F, mids, base = mdisc.parse_wake(body, "2026")
     check(t == tickets.ts("2026-11-15T00:05Z") and F["BTC"] == 0.48 and mids["BTC"] == 64047.6 and base["XRP"] == 0.45, "backfill parse")
+
+    # 25. HALT check (THE-419): a slow list is retried once with the long limit; a second failure refuses, never "assume clean"
+    slow, bad = lambda: TimeoutError("timed out"), lambda: OSError("HTTP Error 502: Bad Gateway")
+    T1 = "T-20261116-0805-1"
+    setup(); at("2026-11-16T08:06Z"); LIST_FAILS[:] = [slow()]
+    run("post", wake([entry()]))
+    check(LIST_LIMITS == [mdisc.HALT_TIMEOUTS[0], mdisc.HALT_TIMEOUTS[1]] and "HALT-issue check:** answered on the retry" in POSTS[-1]
+          and "Halts:** none" in POSTS[-1] and "Pre-check: OK" in POSTS[-1], "HALT check: timeout, then the retry answers: header says retry, no halt")
+    at("2026-11-16T08:07Z"); LIST_FAILS[:] = [slow(), None, slow()]  # the run's check and the check before the buy both time out once
+    rc, st = run("execute")
+    check(st["tickets"][T1]["status"] == "placed" and "L-0001" in st["lots"], "HALT check: timeout then success: the entry is placed")
+    setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()]))
+    check("HALT-issue check:** answered on the first attempt" in POSTS[-1] and LIST_LIMITS == [mdisc.HALT_TIMEOUTS[0]],
+          "HALT check: first attempt answers: header says first, no retry")
+    for name, second in (("timeout then timeout", slow), ("timeout then error", bad)):
+        setup(); at("2026-11-16T08:06Z"); LIST_FAILS[:] = [slow(), second()]
+        run("post", wake([entry()]))
+        check("HALT-issue check:** **failed** on both attempts" in POSTS[-1] and "could not check for HALT issues" in POSTS[-1]
+              and "Entries refused" in POSTS[-1], f"HALT check: {name} at post: header says failed, entries refused")
+        at("2026-11-16T08:07Z"); LIST_FAILS[:] = [slow(), second()]
+        rc, st = run("execute")
+        check(st["tickets"][T1]["status"] == "refused" and not st["lots"] and not V.orders, f"HALT check: {name} at execute: entry refused")
+        setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()]))
+        at("2026-11-16T08:07Z"); LIST_FAILS[:] = [None, slow(), second()]  # the run's check answers; the one before the buy fails
+        rc, st = run("execute")
+        check("could not check for HALT issues" in st["tickets"][T1]["result"] and not st["lots"] and not V.orders,
+              f"HALT check: {name} before the buy: entry refused")
+    setup(); ISSUES["old"] = dict(id="old", identifier="THE-1", title="HALT — desk: old", status="done"); desk = halt_issue()
+    ISSUES["q"] = dict(id="q", identifier="THE-2", title="Review of HALT — desk", status="todo")
+    for s_ in ("backlog", "todo", "in_progress", "in_review", "blocked"):
+        ISSUES[desk]["status"] = s_
+        check([i["id"] for i in mdisc.halt_issues(mdisc.load_cfg())] == [desk], f"HALT check: an open HALT issue in {s_} is found")
+    check(set(mdisc.OPEN_STATUSES.split(",")) == {"backlog", "todo", "in_progress", "in_review", "blocked", "done", "cancelled"} - {"done", "cancelled"},
+          "HALT check: the status filter is every Paperclip status but done and cancelled")
     print(f"{N[0]} execution checks pass")
 
 

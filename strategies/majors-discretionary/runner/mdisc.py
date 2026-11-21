@@ -156,20 +156,39 @@ def nav(st, mids):
 
 # ---------- halts (risk-policy.md, Halt levels: a halt is an open HALT issue; only Nadia resumes) ----------
 
-def halt_issues(cfg, st=None):
-    """Open 'HALT — majors-discretionary' / 'HALT — desk' issues as dicts. Raises if Paperclip can't be read (callers
-    fail closed). The runner's own halt issue is also read directly, so a search miss can't hide it."""
+HALT_TIMEOUTS = (20, 240)  # s per request: first attempt, then one retry. 2 × 260 s worst case fits the 60 min O1 window
+OPEN_STATUSES = "backlog,todo,in_progress,in_review,blocked"  # every Paperclip status but done and cancelled
+
+
+def halt_issues(cfg, st=None, how=None):
+    """Open 'HALT — majors-discretionary' / 'HALT — desk' issues as dicts. One attempt with a short limit per request,
+    then on any error one retry with a long one; if the retry fails too, raises (callers fail closed: there is no
+    'assume clean'). how, if given, gets attempt = first / retry / failed and the errors seen."""
+    errs = []
+    for k, limit in enumerate(HALT_TIMEOUTS):
+        try:
+            out = halt_scan(cfg, st, limit)
+        except Exception as e:
+            errs.append(f"{limit} s: {e}")
+            continue
+        if how is not None:
+            how.update(attempt=("first", "retry")[k], errors=errs)
+        return out
+    if how is not None:
+        how.update(attempt="failed", errors=errs)
+    raise OSError("; ".join(errs))
+
+
+def halt_scan(cfg, st, limit):
+    """Every open issue in the company, matched on title here. Paperclip's q= text search takes ~35 s; the status-filtered
+    list ~1.5 s, and it holds every open issue the search returned (checked 2026-11-21). The runner's own halt issue is
+    also read directly, so a list miss can't hide it."""
     norm = lambda t: " ".join(t.lower().replace("–", "—").replace(" - ", " — ").split())
     want = [norm(t) for t in cfg["limits"]["halt_issue_titles"]]
     seen, out, page = set(), {}, 100
-    while True:  # every page of the search, so a HALT issue past the first page isn't missed
-        for i in range(2):  # the search is slow at times: one retry before failing closed
-            try:
-                d = mb.pc("GET", f"/api/companies/{os.environ['PAPERCLIP_COMPANY_ID']}/issues?q=HALT&limit={page}&offset={len(seen)}")
-                break
-            except Exception:
-                if i:
-                    raise
+    while True:  # every page, so a HALT issue past the first page isn't missed
+        d = mb.pc("GET", f"/api/companies/{os.environ['PAPERCLIP_COMPANY_ID']}/issues?status={OPEN_STATUSES}"
+                         f"&limit={page}&offset={len(seen)}", timeout=limit)
         d = d if isinstance(d, list) else d["issues"]
         new = [i for i in d if i["id"] not in seen]
         seen.update(i["id"] for i in new)
@@ -179,7 +198,7 @@ def halt_issues(cfg, st=None):
             break
     own = ((st or {}).get("halted") or {}).get("issue")
     if own and own["id"] not in out:
-        i = mb.pc("GET", f"/api/issues/{own['id']}")
+        i = mb.pc("GET", f"/api/issues/{own['id']}", timeout=limit)
         if i.get("status") not in ("done", "cancelled"):
             out[i["id"]] = dict(id=i["id"], identifier=i.get("identifier") or i["id"], title=i["title"])
     return list(out.values())
@@ -268,7 +287,15 @@ def nav_halts(cfg, st, n, now, notes=None, sync=True):
               f"NAV ${n:.2f} at {ex.utc(now)} against ${d:.2f} at 00:00 UTC ({st['day'].get('how')})", now, notes, sync=sync)
 
 
-def halt_reasons(cfg, st, check_issues=True):
+def halt_check_line(how):
+    """The wake header's record of which HALT-check attempt answered."""
+    a, e = how.get("attempt"), "; ".join(how.get("errors") or [])
+    return {"first": f"answered on the first attempt ({HALT_TIMEOUTS[0]} s limit).",
+            "retry": f"answered on the retry ({HALT_TIMEOUTS[1]} s limit; first attempt: {e}).",
+            "failed": f"**failed** on both attempts ({e}), so entries are refused."}.get(a, "not run.")
+
+
+def halt_reasons(cfg, st, check_issues=True, how=None):
     L, out, h = cfg["limits"], [], st["halted"]
     if h:
         out.append(f"halted by {h['by']} ({h['ref']}" + "".join(f"; also {x['ref']}" for x in h.get("also", [])) + ")")
@@ -276,7 +303,7 @@ def halt_reasons(cfg, st, check_issues=True):
         out.append(f"O1: {streak(st)} failed wakes in a row")
     if check_issues:
         try:
-            out += [f"open halt issue {i['identifier']} {i['title']}" for i in halt_issues(cfg, st)]
+            out += [f"open halt issue {i['identifier']} {i['title']}" for i in halt_issues(cfg, st, how)]
         except Exception as e:
             out.append(f"could not check for HALT issues ({e})")
     return out
@@ -421,7 +448,8 @@ def cmd_post(cfg, st, a):
     n = nav(st, mids)
     roll(st, now, n)
     nav_halts(cfg, st, n, now, sweep_notes, sync=not a.dry_run)
-    halted = halt_reasons(cfg, st)
+    hc = {}
+    halted = halt_reasons(cfg, st, how=hc)
     gate = ex.merged_gate() + ([] if (st.get("stop_test") or {}).get("ok") else ["Demo stop-market test not passed"])
     if unpriced:
         gate.append(f"no price on {ex.vbase(cfg)} for {', '.join(unpriced)}")
@@ -447,6 +475,7 @@ def cmd_post(cfg, st, a):
               + (f" **Missed wakes:** {', '.join(ex.utc(s) for s in missed)} (each counts as failed)." if missed else ""))
     L.append("**Halts:** " + ("; ".join(halted) + ". Entries refused; exits only as risk-policy.md allows." if halted else
                               "none (no open `HALT — majors-discretionary` / `HALT — desk` issue, no runner halt)."))
+    L.append("**HALT-issue check:** " + halt_check_line(hc))
     L.append("**Order gate:** " + ("met." if not gate else "not met: " + "; ".join(gate) + ". No ticket is placed."))
     L += ["", f"### Inputs (runner, {ex.utc(D['t'])[11:]})", inputs.render(D)]
     if str(w.get("news", "")).strip():
