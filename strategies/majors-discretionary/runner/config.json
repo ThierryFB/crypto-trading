@@ -58,7 +58,11 @@
       "Ingrid": "20e2608c-49d2-407a-97f1-47280f505ea6"
     }
   },
-  "log_issue": "THE-334",
+  "log": {
+    "parent": "THE-334",
+    "wake_routine_id": "d815eb73-cae0-47a4-aa10-0a33aaac3572",
+    "issue_slack_s": 600
+  },
   "crypto_book_url": "http://asset-management.asset-management.svc.cluster.local",
   "trader": "agent:leo",
   "credentials": {

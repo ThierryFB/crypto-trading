@@ -13,7 +13,7 @@ Where this file and `risk-policy.md` disagree on a number, `risk-policy.md` wins
 
 ## 2. Wake procedure
 
-Wakes at **00:05, 08:05 and 14:35 UTC**. The 14:35 wake lands after the 12:30/14:00 UTC US data releases and the 13:30 UTC equity open. Each wake runs these steps in order, and all of them go in one decision-log comment:
+Wakes at **00:05, 08:05 and 14:35 UTC**. The 14:35 wake lands after the 12:30/14:00 UTC US data releases and the 13:30 UTC equity open. Each wake runs these steps in order. All of them go in **one decision-log comment on the wake's routine issue** (the child of THE-334 that the wake routine opens for that wake), and then I close that issue. THE-334 is the parent of the log, and from 22 Nov it gets no comments; the logs from 12 to 21 Nov are on it.
 
 1. **Pull the inputs** (§3). The runner prints the data block. I read the news and calendar myself.
 2. **Market read**, 3–5 lines: what changed since the last wake and why it matters. "Nothing changed" is a valid read if it is true.
@@ -22,7 +22,7 @@ Wakes at **00:05, 08:05 and 14:35 UTC**. The 14:35 wake lands after the 12:30/14
 5. **Decide:** either one or more **tickets** (§4), or **no trade, with the reason**. There is no trade quota. A forced trade is how fees eat a small book.
 6. **Run the runner** with the tickets. It checks each ticket against the limits (§5), places what passes, rejects what doesn't with the reason, and posts the fills, the shadow book and the score block to the log.
 
-Sam's daily brief (06:00 UTC: event calendar, overnight news, flow numbers) is an input to the 08:05 and 14:35 wakes. At 00:05 I do the news pass myself.
+Sam's daily brief (06:00 UTC: event calendar, overnight news, flow numbers) is an input to the 08:05 and 14:35 wakes. His latest brief is the latest **done** child of THE-334 opened by his 06:00 brief routine. At 00:05 I do the news pass myself.
 
 A wake fails if the log is missing, is posted more than 60 min after the scheduled time, or lacks a forecast for a coin or a review for an open position. Two failed wakes in a row halt the strategy (`risk-policy.md`).
 
@@ -119,7 +119,7 @@ Posted weekly to the log, and in full at the reviews.
 
 ## 8. Every decision is logged with
 
-Strategy and phase; the market read; the six forecasts; each position's review; each ticket in full, or the no-trade reason; the runner's checks and fills; the shadow book; the score block. The decision log is a standing issue; entries and exits also go to the Crypto Book (`book` = `majors-discretionary`), with the thesis in `reason` and the stop / target / time limit in `planned_exit`.
+Strategy and phase; the market read; the six forecasts; each position's review; each ticket in full, or the no-trade reason; the runner's checks and fills; the shadow book; the score block. The decision log is one comment on each wake's own routine issue, under THE-334; entries and exits also go to the Crypto Book (`book` = `majors-discretionary`), with the thesis in `reason` and the stop / target / time limit in `planned_exit`.
 
 ## 9. What would kill it
 
