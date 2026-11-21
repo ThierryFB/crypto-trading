@@ -14,12 +14,14 @@ Bybit EU Demo (`config.json` `venue`: `rest_base` `https://api-demo.bybit.eu`, T
 
 ```
 mdisc.py inputs                 # step 1: the §3 data block; I add the news pass and write WAKE.json
-mdisc.py wake WAKE.json         # = post, then execute
+mdisc.py wake WAKE.json         # = post, then execute; --issue THE-nnn (default $PAPERCLIP_TASK_ID)
 ```
 
-1. **`post`** (steps 2–5). It checks WAKE.json and refuses to post (so I fix it inside the hour) if any of these is missing: the market read, all six forecasts in 0.05–0.95, a review for every open lot, tickets or a no-trade reason. It sweeps resting stops and targets that filled since the last run, so the review is written against the real book. Then it posts **one decision-log comment** on THE-334 with the halts, the order gate, the inputs, the read, the forecasts and their resolution time, the position review, each ticket as a fenced JSON block with its id (`T-YYYYMMDD-HHMM-n`) and its pre-check at the touch, and the book, shadow book and score block. The six forecasts are recorded at the mid when the comment is posted. Each wake posts once only. A wake whose log comes more than 60 min after its slot, or a slot with no log at all, counts as failed (O1).
+1. **`post`** (steps 2–5). It checks WAKE.json and refuses to post (so I fix it inside the hour) if any of these is missing: the market read, all six forecasts in 0.05–0.95, a review for every open lot, tickets or a no-trade reason. It sweeps resting stops and targets that filled since the last run, so the review is written against the real book. Then it posts **one decision-log comment** on the wake's own issue (below) with a `Decision log:` line linking that issue and its parent THE-334, the halts, the order gate, the inputs, the read, the forecasts and their resolution time, the position review, each ticket as a fenced JSON block with its id (`T-YYYYMMDD-HHMM-n`) and its pre-check at the touch, and the book, shadow book and score block. The six forecasts are recorded at the mid when the comment is posted. Each wake posts once only. A wake whose log comes more than 60 min after its slot, or a slot with no log at all, counts as failed (O1).
+
+   **Which issue.** The wake routine (`config.json` `log.wake_routine_id`) opens a run issue under THE-334 for each wake. `post` takes it from `--issue THE-nnn`, or else `PAPERCLIP_TASK_ID` (the routine run's own issue). It refuses to post, so nothing is recorded, if neither is set, or if the issue isn't a child of THE-334 opened by that routine, was opened more than 10 min before this wake's slot, or already has another wake's log. It never falls back to THE-334. The issue is stored on the wake and on each ticket (`issue`, next to `comment_id`). Records from before this change (12–21 Nov) have no `issue`, and their log is on THE-334, so they're read from there.
 2. **`execute`** (step 6). For each pending ticket of the last wake:
-   - **L10 / O3:** it re-reads the log comment and refuses the ticket unless the comment is there, is neither edited (`updatedAt` = `createdAt`) nor deleted, and contains the same ticket (SHA-256 of the canonical JSON). An edited or changed ticket **halts** the runner.
+   - **L10 / O3:** it re-reads the log comment **from the ticket's own issue** (THE-334 for a record with no `issue`) and refuses the ticket unless the comment is there, is neither edited (`updatedAt` = `createdAt`) nor deleted, and contains the same ticket (SHA-256 of the canonical JSON). An edited or changed ticket **halts** the runner.
    - It is placed within 60 min of its comment, or it expires.
    - **Order gate** (Nadia, 11 Nov):
      - `strategy.md`, `risk-policy.md` and this runner are on `origin/master`, and the local runner is byte-identical to master (O7). If `git fetch` fails, this counts as not met;
@@ -43,7 +45,7 @@ Every runner halt **latches**: O1, O4 (a fill with no ticket), O2 (a ledger mism
 
 **Day and week NAV** (D1, D2, L8) are NAV at 00:00 UTC: the book as it stands at the first run of the day, before that run changes anything, marked at the opens of the Bybit 4h candles starting at 00:00. Between runs only resting stops and targets trade, and they're swept after this. A missed or late 00:05 wake therefore doesn't move the reference. **Not covered:** a stop that filled between the last run and 00:00 is marked at the 00:00 open rather than at its fill. If the candles can't be read, the first NAV seen is used and the book line says so; with neither, entries are refused.
 
-The fills come in a second comment because the ticket must be in the log before its order (O3), and comments can't be edited.
+The fills come in a second comment, on the same wake issue as the log, because the ticket must be in the log before its order (O3), and comments can't be edited.
 
 **Paper starts at the first strategy order** (risk-policy.md §2). The shadow book (`shadow.py`: the merged 3-speed breakout, virtual, at 8h closes, 0.15%/side, catastrophe stop at entry − 4×ATR) and BTC buy-and-hold start at that run, from the same $2,000.
 
@@ -53,8 +55,8 @@ The fills come in a second comment because the ticket must be in the log before 
 |---|---|
 | `key-check` | Read-only signed `/v5/account/info` on `rest_base`; prints the host and the account status, never the key (order gate item 3). It shows no permissions: `test-order` is what proves the key can trade spot. |
 | `test-order [--usdt 18]` | Order gate item 4, outside the sleeve. **Refused** while any halt holds or a HALT issue is open (or Paperclip can't be read), and unless the runner is merged and identical to `origin/master` (O7). Refused on a pair not quoted in USDT or USDC (the $20 cap is counted in the quote coin). It buys ≤ $20 of `execution.test_symbol` (DOGEUSDC) and places a resting stop-market sell. It reads the stop back, places a resting target next to it (does Bybit accept both on one coin?), and amends the stop up. It cancels both and reads them back, then sells back what the buy left (net of its fee), tracked from its own fills since there is no balance route. At each step it records the transaction log's cash balance, to learn whether EU Demo fills that log. It records each orderId as it's created (only those fills are exempt from O4). It leaves no lot, no Crypto Book row and nothing resting. A pass sets `stop_test` in the state. |
-| `backfill THE-334` | Runs once, when this merges. It loads the forecasts of the hand-posted forecast-only wakes since Thu 12 Nov 00:05Z (the 11 Nov 14:35Z rehearsal is left out) into the store, with their on-time/late flags. Base rates missing from the first three logs are recomputed from Bybit 8h candles as of each wake. |
-| `score` / `status` | Brier score (by-day bootstrap, calibration) / the state. |
+| `backfill THE-334` | **Historical, already run** (16 Nov, 15 wakes / 90 forecasts); it refuses once the store has forecasts. It ran once, when #17 merged. It loads the forecasts of the hand-posted forecast-only wakes since Thu 12 Nov 00:05Z (the 11 Nov 14:35Z rehearsal is left out) into the store, with their on-time/late flags. Base rates missing from the first three logs are recomputed from Bybit 8h candles as of each wake. |
+| `score` / `status` | Brier score (by-day bootstrap, calibration) / the state. Both read only the local state (and Bybit candles to resolve forecasts), never a Paperclip comment, so the move off THE-334 doesn't change them. |
 | `halt --by X --ref Y` / `resume --ref NADIAS_COMMENT_ID [--rebaseline]` | See Halts. `--rebaseline` sets the fill offset so the fills match the ledger, after an O2 mismatch has been explained. |
 
 ## Files
@@ -67,7 +69,7 @@ The fills come in a second comment because the ticket must be in the log before 
 | `shadow.py` | Rules-only shadow book and the BTC benchmark (L11: no orders). |
 | `inputs.py` | `strategy.md` §3 data block (keyless). |
 | `forecasts.py` | Forecast store, resolution, Brier, bootstrap, calibration. |
-| `test_tickets.py`, `test_execute.py` | 33 + 58 offline checks (fake Demo and fake Paperclip; no network). |
+| `test_tickets.py`, `test_execute.py` | 33 + 93 offline checks (fake Demo and fake Paperclip; no network). |
 
 The Bybit client and helpers are shared with `../../majors-breakout/runner/` (`bybit.py`, `runner.py`, `engine.py`). State lives in `$MD_STATE_DIR` (default: Leo's persistent workspace), never in the repo. The Bybit key is read from the env or the Paperclip secrets `bybit_api_key_2` / `bybit_api_secret_2`, and is never printed or stored.
 

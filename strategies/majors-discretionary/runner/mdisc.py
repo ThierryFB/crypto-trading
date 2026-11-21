@@ -3,12 +3,14 @@
 ticket, no order. Each wake is two steps, so every ticket is in the decision log before its order (L10, O3):
 
   mdisc.py inputs                      print the §3 data block (step 1)
-  mdisc.py post WAKE.json              steps 2-5: check WAKE.json, record the six forecasts, post the decision log
-                                       (read, forecasts, position review, tickets with ids and their pre-check)
+  mdisc.py post WAKE.json [--issue THE-nnn]
+                                       steps 2-5: check WAKE.json, record the six forecasts, post the decision log on
+                                       this wake's routine issue (--issue, default $PAPERCLIP_TASK_ID): read, forecasts,
+                                       position review, tickets with ids and their pre-check
   mdisc.py execute                     step 6: re-read the posted log, verify each ticket (O3), re-check it at the
                                        current touch, place what passes; sweep fired stops, keep every stop resting,
                                        reconcile with Demo, run the shadow book, Crypto Book rows; post the fills
-  mdisc.py wake WAKE.json              post, then execute
+  mdisc.py wake WAKE.json [--issue X]  post, then execute
   mdisc.py key-check                   read-only signed /v5/account/info on venue.rest_base, never the key
   mdisc.py test-order [--usdt 18]      the Demo stop-market test (order gate item 4); outside the sleeve (DOGEUSDC)
   mdisc.py score | status | backfill THE-334 | halt --by X --ref Y | resume --ref NADIAS_COMMENT_ID [--rebaseline]
@@ -39,8 +41,9 @@ def load_state(cfg):
     st = json.load(open(p)) if os.path.exists(p) else {}
     for k, v in dict(version=2, cash=float(cfg["sleeve_quote"]), lots={}, closed=[], dust={}, next_lot=1, forecasts=[], week=None,
                      day=None, halted=None, wakes=[], tickets={}, cb_pending=[], venue_fills=None, stop_test=None, test_orders=[],
-                     started=None, shadow=None, bh=None, log_issue=cfg["log_issue"]).items():
+                     started=None, shadow=None, bh=None).items():
         st.setdefault(k, v)
+    st.pop("log_issue", None)  # every wake and ticket carries its own issue now (rec_issue)
     return st
 
 
@@ -197,12 +200,14 @@ def issue_comments(issue_id):
         after = d[-1]["id"]
 
 
-def halt_body(st, h):
+def halt_body(cfg, st, h):
     lots = ex.open_lots(st)
+    W = last_wake(st)
     return "\n".join([
         f"**Runner halt: {h['ref']}**", "",
         f"Strategy: majors-discretionary, phase {'paper' if st.get('started') else 'definition'}. Latched {h['t']} by {h['by']}. "
-        f"Decision log: [{st['log_issue']}](/{st['log_issue'].split('-')[0]}/issues/{st['log_issue']}).", "",
+        f"Decision log: {link(rec_issue(cfg, W)) if W else '(no wake posted yet)'} (the last wake's issue; parent "
+        f"{link(cfg['log']['parent'])}).", "",
         "**Evidence:** " + (h.get("evidence") or "(none recorded)"), "",
         f"**Book:** cash ${st['cash']:.2f}; open lots: " + (", ".join(
             f"{k} {l['coin']} {l['qty']:g}, stop {l['stop']:g} ({'resting' if l.get('stop_order') else '**NOT resting**'})"
@@ -223,7 +228,7 @@ def halt_sync(cfg, st, now, notes=None):
     try:
         if not h.get("issue"):
             r = mb.pc("POST", f"/api/companies/{os.environ['PAPERCLIP_COMPANY_ID']}/issues", dict(
-                title=f"{G['halt_title']}: {h['ref'][:90]}", description=halt_body(st, h), projectId=G["project_id"],
+                title=f"{G['halt_title']}: {h['ref'][:90]}", description=halt_body(cfg, st, h), projectId=G["project_id"],
                 assigneeAgentId=G["resume_agent_id"], priority="critical", status="todo", parentId=None))
             h["issue"] = dict(id=r["id"], identifier=r.get("identifier") or r["id"])
             if notes is not None:
@@ -367,10 +372,47 @@ def books_block(cfg, st, mids, shadow_mids=None):
     return s + "\n" + shadow.render(st["shadow"], marks, st["bh"], cfg["sleeve_quote"])
 
 
-def post_comment(st, body):
-    if not st["log_issue"]:
-        raise RuntimeError("no log issue in config.json")
-    return mb.pc("POST", f"/api/issues/{st['log_issue']}/comments", {"body": body})
+# ---------- the decision log: one comment on each wake's own routine issue, a child of THE-334 ----------
+
+def link(ident):
+    return f"[{ident}](/{ident.split('-')[0]}/issues/{ident})"
+
+
+def rec_issue(cfg, rec):
+    """The issue a wake's or ticket's log comment is on. Records from before the per-wake issues (no `issue`) are on
+    the parent, THE-334, so the history since 12 Nov still checks."""
+    return rec.get("issue") or cfg["log"]["parent"]
+
+
+def last_wake(st):
+    return next((w for w in reversed(st["wakes"]) if not w.get("missed")), None)
+
+
+def wake_issue(cfg, st, ref, sched):
+    """The issue this wake posts on: a child of THE-334 opened by the wake routine, for this slot, not used by another
+    wake. Exits (nothing posted) otherwise; there is no fallback to THE-334."""
+    L = cfg["log"]
+    if not ref:
+        sys.exit("not posted: no wake issue (give --issue THE-nnn, or run inside the wake's routine run with PAPERCLIP_TASK_ID)")
+    try:
+        i, parent = mb.pc("GET", f"/api/issues/{ref}"), mb.pc("GET", f"/api/issues/{L['parent']}")
+    except Exception as e:
+        sys.exit(f"not posted: could not read issue {ref} or {L['parent']} ({e}); retry")
+    ident = i.get("identifier") or i["id"]
+    if i.get("parentId") != parent["id"]:
+        sys.exit(f"not posted: {ident} is not a child of {L['parent']}")
+    if i.get("originKind") != "routine_execution" or i.get("originId") != L["wake_routine_id"]:
+        sys.exit(f"not posted: {ident} was not opened by the wake routine ({L['wake_routine_id'][:8]}…)")
+    used = next((w for w in st["wakes"] if w.get("issue") == ident), None)
+    if used:
+        sys.exit(f"not posted: {ident} already has the {ex.utc(used['sched'])} wake's log (comment `{used['comment_id']}`)")
+    if i.get("createdAt") and tickets.ts(i["createdAt"]) < sched - L["issue_slack_s"]:
+        sys.exit(f"not posted: {ident} was opened {i['createdAt'][:16]}Z, before the {ex.utc(sched)} wake")
+    return ident
+
+
+def post_comment(issue, body):
+    return mb.pc("POST", f"/api/issues/{issue}/comments", {"body": body})
 
 
 # ---------- post (steps 2-5) ----------
@@ -384,7 +426,9 @@ def cmd_post(cfg, st, a):
     now = time.time()
     sched = sched_for(cfg, now)
     if st["wakes"] and st["wakes"][-1]["sched"] >= sched:
-        sys.exit(f"the {ex.utc(sched)} wake is already posted (comment `{st['wakes'][-1]['comment_id']}`); post a correction by hand")
+        sys.exit(f"the {ex.utc(sched)} wake is already posted (comment `{st['wakes'][-1]['comment_id']}` on "
+                 f"{rec_issue(cfg, st['wakes'][-1])}); post a correction by hand")
+    issue = wake_issue(cfg, st, a.issue or os.environ.get("PAPERCLIP_TASK_ID"), sched)
     coins = [s[:-4] for s in cfg["universe"]]
     sweep_notes, sweep_orders = [], []
     roll(st, now)  # before the sweep changes the book
@@ -442,6 +486,7 @@ def cmd_post(cfg, st, a):
 
     phase = "paper" if not gate else "definition (forecast-only)"
     L = [f"## Wake {stamp:%a %d %b %H:%M}Z: Majors Discretionary · phase: {phase}", ""]
+    L.append(f"Decision log: {link(issue)}, this wake's issue (parent {link(cfg['log']['parent'])}).")
     L.append((f"**LATE:** posted {(now - sched) / 60:.0f} min after the scheduled time, so this wake fails O1." if late else
               f"**On time** (posted {ex.utc(now)[11:]}).")
               + (f" **Missed wakes:** {', '.join(ex.utc(s) for s in missed)} (each counts as failed)." if missed else ""))
@@ -501,19 +546,19 @@ def cmd_post(cfg, st, a):
         print(body); return 0
     if sweep_orders:
         save_state(st)  # the fills are booked even if the post fails
-    c = post_comment(st, body)
+    c = post_comment(issue, body)
     posted = tickets.ts(c["createdAt"]) if c.get("createdAt") else now
     st["forecasts"].extend(forecasts.record(now, F, fmids, {c_: D["coins"][c_]["up24_90d"] for c_ in coins}))
     for s in missed:
         st["wakes"].append(dict(sched=s, failed=True, missed=True))
-    W = dict(sched=sched, posted_t=posted, comment_id=c["id"], failed=late, tickets=[t["id"] for t in recs], forecasts=F, entries=0)
+    W = dict(sched=sched, posted_t=posted, issue=issue, comment_id=c["id"], failed=late, tickets=[t["id"] for t in recs], forecasts=F, entries=0)
     st["wakes"].append(W)
     for t, (_, plan, bad) in zip(recs, res):
-        st["tickets"][t["id"]] = dict(id=t["id"], ticket=t, sha=ex.digest(t), comment_id=c["id"], posted_t=posted, sched=sched,
+        st["tickets"][t["id"]] = dict(id=t["id"], ticket=t, sha=ex.digest(t), issue=issue, comment_id=c["id"], posted_t=posted, sched=sched,
                                       status="refused" if bad else "pending", result="pre-check: " + "; ".join(bad) if bad else None)
     o1(cfg, st, now)
     save_state(st)
-    print(f"posted {st['log_issue']} comment {c['id']}: {len(recs)} ticket(s), "
+    print(f"posted {issue} comment {c['id']}: {len(recs)} ticket(s), "
           f"{sum(1 for _, _, b in res if not b)} passed the pre-check")
     return 0
 
@@ -575,12 +620,12 @@ def cmd_execute(cfg, st, a):
         if now - rec["posted_t"] > ex.TICKET_TTL:
             rec.update(status="expired", result=f"not placed within {ex.TICKET_TTL // 60} min of its log comment"); out.append((tag, rec["result"])); continue
         try:
-            cm = mb.pc("GET", f"/api/issues/{st['log_issue']}/comments/{rec['comment_id']}")
+            cm = mb.pc("GET", f"/api/issues/{rec_issue(cfg, rec)}/comments/{rec['comment_id']}")
         except Exception:
             cm = None
         probs, breach = ex.verify(rec, cm)
         if breach:
-            latch(cfg, st, "O3", probs[0], f"ticket {rec['id']}, log comment `{rec['comment_id']}` on {st['log_issue']}", now, notes)
+            latch(cfg, st, "O3", probs[0], f"ticket {rec['id']}, log comment `{rec['comment_id']}` on {rec_issue(cfg, rec)}", now, notes)
             ctx["halted"] = ctx["halted"] + [probs[0]]
         if probs:
             rec.update(status="refused", result="; ".join(probs)); out.append((tag, "REFUSED: " + rec["result"])); continue
@@ -654,8 +699,11 @@ def cmd_execute(cfg, st, a):
     save_state(st)
     if a.no_post or (not pend and not orders and not notes_worth(notes)):
         return 1 if failed else 0
+    if not W:  # no wake posted yet, so no wake issue: never THE-334
+        print("!! fills comment NOT posted: no wake has been posted, so there is no wake issue", file=sys.stderr)
+        return 2
     try:
-        post_comment(st, body)
+        post_comment(rec_issue(cfg, W), body)  # on the wake's own issue, next to its log
     except Exception as e:
         print(f"!! fills comment NOT posted: {e}", file=sys.stderr)
         if W:
@@ -936,6 +984,7 @@ def main():
     sub.add_parser("inputs")
     for c in ("post", "wake"):
         p = sub.add_parser(c); p.add_argument("wake"); p.add_argument("--dry-run", action="store_true")
+        p.add_argument("--issue", help="the wake's routine issue (a child of THE-334); default $PAPERCLIP_TASK_ID")
     sub.add_parser("execute")
     for c in ("execute", "wake"):
         sub.choices[c].add_argument("--no-post", action="store_true")

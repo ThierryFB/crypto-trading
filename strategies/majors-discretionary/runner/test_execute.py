@@ -115,7 +115,8 @@ def live(coin=None):
     return [o for o in V.cond.values() if o["status"] in ("Untriggered", "New") and (coin is None or o["sym"][:-4] == coin)]
 
 
-COMMENTS, POSTS, CB, ISSUES = {}, [], [], {}
+COMMENTS, POSTS, CB, ISSUES, LOGGED, READS = {}, [], [], {}, [], []
+ROUTINE = "d815eb73-cae0-47a4-aa10-0a33aaac3572"
 LEO, NADIA, INGRID = "leo-id", "61d8dff6-02c6-4a36-b985-22a5ffb4d96d", "20e2608c-49d2-407a-97f1-47280f505ea6"
 PC_DOWN = [False]
 
@@ -131,30 +132,48 @@ def fake_pc(m, path, body=None):
         return ISSUES[iid]
     if m == "POST":
         return comment(path.split("/")[3], body["body"], LEO)
+    if "/issues/" in path and "/comments" not in path:  # by id or identifier, as the real API
+        return ISSUES[issue_key(path.rsplit("/", 1)[1])]
     if "/issues?q=" in path:  # paged like Paperclip: limit / offset
         q = dict(x.split("=") for x in path.split("?")[1].split("&"))
         o, n = int(q.get("offset", 0)), int(q.get("limit", 10 ** 6))
         return [dict(i) for i in ISSUES.values()][o:o + n]
     if "/comments?" in path:  # oldest first; after includes the cursor comment, as the real API does
         q = dict(x.split("=") for x in path.split("?")[1].split("&"))
-        cs = [c for c in COMMENTS.values() if c["issueId"] == path.split("/")[3]]
+        cs = [c for c in COMMENTS.values() if c["issueId"] == issue_key(path.split("/")[3])]
         o = next((k for k, c in enumerate(cs) if c["id"] == q.get("after")), 0)
         return cs[o:o + int(q.get("limit", 10 ** 6))]
     if "/comments/" in path:
         cid = path.rsplit("/", 1)[1]
         if cid not in COMMENTS:
             raise OSError("404")
+        READS.append((path.split("/")[3], cid))
         return COMMENTS[cid]
-    return ISSUES[path.rsplit("/", 1)[1]]
+    raise OSError(f"404 {path}")
+
+
+def issue_key(ref):
+    return next((k for k, i in ISSUES.items() if ref in (k, i["identifier"])), None)
 
 
 def comment(issue, text, author):
     cid = f"c{len(COMMENTS)}"
     t = mdisc.ex.iso(CLOCK[0]).replace("+00:00", ".000Z")
-    COMMENTS[cid] = dict(id=cid, issueId=issue if issue in ISSUES else None, body=text, createdAt=t, updatedAt=t, authorAgentId=author)
-    if issue == "THE-334":
+    k = issue_key(issue)
+    COMMENTS[cid] = dict(id=cid, issueId=k, body=text, createdAt=t, updatedAt=t, authorAgentId=author)
+    if k and (ISSUES[k]["identifier"] == "THE-334" or ISSUES[k].get("parentId") == "p334"):  # the decision log
         POSTS.append(text)
+        LOGGED.append((ISSUES[k]["identifier"], cid))
     return COMMENTS[cid]
+
+
+def wake_issue(origin=ROUTINE, parent="p334"):
+    """A run issue as the wake routine opens it: a child of THE-334, created now."""
+    iid = f"w{len(ISSUES)}"
+    ISSUES[iid] = dict(id=iid, identifier=f"THE-{500 + len(ISSUES)}", title="Majors Discretionary wake", status="in_progress",
+                       parentId=parent, originKind="routine_execution", originId=origin,
+                       createdAt=mdisc.ex.iso(CLOCK[0]).replace("+00:00", ".000Z"))
+    return ISSUES[iid]["identifier"]
 
 
 def halt_issue(title="HALT — desk"):
@@ -189,7 +208,8 @@ def setup():
     inputs.render = lambda D: "(inputs)"
     for f in os.listdir(os.environ["MD_STATE_DIR"]):
         os.remove(os.path.join(os.environ["MD_STATE_DIR"], f))
-    COMMENTS.clear(); POSTS.clear(); CB.clear(); ISSUES.clear(); PC_DOWN[0] = False
+    COMMENTS.clear(); POSTS.clear(); CB.clear(); ISSUES.clear(); LOGGED.clear(); READS.clear(); PC_DOWN[0] = False
+    ISSUES["p334"] = dict(id="p334", identifier="THE-334", title="Majors Discretionary: decision log", status="in_progress")
     json.dump({"stop_test": {"ok": True}}, open(os.path.join(os.environ["MD_STATE_DIR"], "state.json"), "w"))
 
 
@@ -207,8 +227,8 @@ def wake(tickets_=None, review=None, no_trade="nothing to do", forecasts_=None):
     return p
 
 
-def run(cmd, path=None, expect_exit=False):
-    a = types.SimpleNamespace(wake=path, dry_run=False, no_post=False)
+def run(cmd, path=None, expect_exit=False, issue=None):
+    a = types.SimpleNamespace(wake=path, dry_run=False, no_post=False, issue=(wake_issue() if issue is None and cmd == "post" else issue) or None)
     cfg = mdisc.load_cfg(); st = mdisc.load_state(cfg)
     try:
         rc = {"post": mdisc.cmd_post, "execute": mdisc.cmd_execute}[cmd](cfg, st, a)
@@ -471,7 +491,7 @@ def main():
     at("2026-11-17T00:06Z"); run("post", wake([entry(coin="BTC", stop=62000.0, target=70000.0, forecast_24h=0.55)], review={"L-0001": "hold"},
                                                forecasts_=dict(F6, BTC=0.55)))
     rc, st = run("execute")
-    check(st["halted"]["code"] == "D3" and "D3" in st["tickets"]["T-20261117-0005-1"]["result"] and len(ISSUES) == 1,
+    check(st["halted"]["code"] == "D3" and "D3" in st["tickets"]["T-20261117-0005-1"]["result"] and sum(k.startswith("i") for k in ISSUES) == 1,
           "D3: still halted after NAV recovers and the day rolls; one issue, not a new one per run")
 
     # 17. D2 latches: a ≥ 10% day loss holds into the next day
@@ -623,6 +643,47 @@ def main():
     miss = MERGED()
     ex.subprocess = sub
     check(len(miss) == 1 and "fetch" in miss[0], "O7: stale master refused")
+
+    # 25. each wake logs on its own routine issue (THE-423); records from before that read from THE-334
+    setup(); at("2026-11-16T08:06Z"); wi = wake_issue()
+    rc, st = run("post", wake([entry()]), issue=wi)
+    W, rec = st["wakes"][-1], st["tickets"][t_id]
+    check(LOGGED[-1][0] == wi and W["issue"] == wi and rec["issue"] == wi and rec["comment_id"] == LOGGED[-1][1],
+          "post: the log lands on the given wake issue; the wake and ticket records keep it")
+    check(f"Decision log: [{wi}](/THE/issues/{wi}), this wake's issue (parent [THE-334](/THE/issues/THE-334))" in POSTS[-1],
+          "post: the header links the wake issue and its parent")
+    at("2026-11-16T08:07Z"); rc, st = run("execute")
+    check((wi, rec["comment_id"]) in READS and st["tickets"][t_id]["status"] == "placed" and LOGGED[-1][0] == wi,
+          "O3 re-reads the ticket from its own issue; the fills go on the wake issue")
+    setup(); at("2026-11-16T08:06Z"); run("post", wake([entry()]))
+    S = mdisc.load_state(mdisc.load_cfg())
+    for r in [S["wakes"][-1], S["tickets"][t_id]]:
+        r.pop("issue")  # as recorded before THE-423
+    COMMENTS[S["tickets"][t_id]["comment_id"]]["issueId"] = "p334"
+    mdisc.save_state(S)
+    at("2026-11-16T08:07Z"); rc, st = run("execute")
+    check(("THE-334", S["tickets"][t_id]["comment_id"]) in READS and st["tickets"][t_id]["status"] == "placed"
+          and LOGGED[-1][0] == "THE-334", "a legacy record (no issue) reads its log from THE-334, and its fills go there")
+    setup(); at("2026-11-16T08:06Z")
+    os.environ.pop("PAPERCLIP_TASK_ID", None)
+    msg, st = run("post", wake(), expect_exit=True, issue="")
+    check("no wake issue" in msg and not st["wakes"] and not POSTS, "post refuses with no issue, and never falls back to THE-334")
+    msg, _ = run("post", wake(), expect_exit=True, issue=wake_issue(origin="other-routine"))
+    check("not opened by the wake routine" in msg, "post refuses an issue the wake routine didn't open")
+    msg, _ = run("post", wake(), expect_exit=True, issue=wake_issue(parent="elsewhere"))
+    check("not a child of THE-334" in msg, "post refuses an issue that isn't a child of THE-334")
+    msg, _ = run("post", wake(), expect_exit=True, issue="THE-334")
+    check("not a child of THE-334" in msg and not POSTS, "post refuses THE-334 itself")
+    old = wake_issue(); at("2026-11-16T14:36Z")
+    msg, _ = run("post", wake(), expect_exit=True, issue=old)
+    check("before the 2026-11-16 14:35" in msg, "post refuses a wake issue opened for an earlier slot")
+    os.environ["PAPERCLIP_TASK_ID"] = ISSUES[issue_key(wake_issue())]["id"]
+    rc, st = run("post", wake(), issue="")
+    os.environ.pop("PAPERCLIP_TASK_ID")
+    check(st["wakes"][-1]["issue"] == LOGGED[-1][0] != "THE-334", "post: the issue defaults to PAPERCLIP_TASK_ID")
+    at("2026-11-17T00:06Z")
+    msg, _ = run("post", wake(), expect_exit=True, issue=st["wakes"][-1]["issue"])
+    check("already has the" in msg, "post refuses a wake issue that already has a wake's log")
 
     # 15. backfill parses a hand-posted wake log
     body = ("## Wake Sun 15 Nov 00:05Z: Majors Discretionary, definition phase (forecast-only)\n\n"
