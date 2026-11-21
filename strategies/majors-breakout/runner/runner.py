@@ -100,13 +100,13 @@ def pc_base():
     return b[:-4] if b.endswith("/api") else b
 
 
-def pc(method, path, body=None):
+def pc(method, path, body=None, timeout=20):
     h = {"Authorization": f"Bearer {os.environ['PAPERCLIP_API_KEY']}", "Content-Type": "application/json"}
     if os.environ.get("PAPERCLIP_RUN_ID"):
         h["X-Paperclip-Run-Id"] = os.environ["PAPERCLIP_RUN_ID"]
     r = urllib.request.Request(pc_base() + path, data=json.dumps(body).encode() if body is not None else None,
                                headers=h, method=method)
-    with urllib.request.urlopen(r, timeout=20) as f:
+    with urllib.request.urlopen(r, timeout=timeout) as f:
         return json.load(f)
 
 
