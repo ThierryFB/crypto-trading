@@ -149,12 +149,13 @@ def perps_coin(c):
     t = jget(f"https://api.bybit.com/v5/market/tickers?category=linear&symbol={s}")["result"]["list"][0]
     oi = jget(f"https://api.bybit.com/v5/market/open-interest?category=linear&symbol={s}&intervalTime=4h&limit=7")
     px, ois = float(t["markPrice"]), [float(x["openInterest"]) for x in oi["result"]["list"]]
+    # OI level in USD; OI 24h change in coins on every venue, so a price move doesn't read as (de)leveraging
     row["bybit"] = dict(oi=ois[0] * px, oi_24h=ois[0] / ois[-1] - 1, funding=float(t["fundingRate"]))
     try:
         h = jget(f"https://fapi.binance.com/futures/data/openInterestHist?symbol={s}&period=4h&limit=7")
         f = jget(f"https://fapi.binance.com/fapi/v1/premiumIndex?symbol={s}")
         row["binance"] = dict(oi=float(h[-1]["sumOpenInterestValue"]),
-                              oi_24h=float(h[-1]["sumOpenInterestValue"]) / float(h[0]["sumOpenInterestValue"]) - 1,
+                              oi_24h=float(h[-1]["sumOpenInterest"]) / float(h[0]["sumOpenInterest"]) - 1,
                               funding=float(f["lastFundingRate"]))
     except Exception as e:  # noqa: BLE001
         row["binance"] = dict(error=str(e))
@@ -162,7 +163,7 @@ def perps_coin(c):
         i = f"{c}-USDT-SWAP"
         h = jget(f"https://www.okx.com/api/v5/rubik/stat/contracts/open-interest-history?instId={i}&period=4H&limit=7")["data"]
         f = jget(f"https://www.okx.com/api/v5/public/funding-rate?instId={i}")["data"][0]
-        row["okx"] = dict(oi=float(h[0][3]), oi_24h=float(h[0][3]) / float(h[-1][3]) - 1, funding=float(f["fundingRate"]))
+        row["okx"] = dict(oi=float(h[0][3]), oi_24h=float(h[0][2]) / float(h[-1][2]) - 1, funding=float(f["fundingRate"]))
     except Exception as e:  # noqa: BLE001
         row["okx"] = dict(error=str(e))
     return row
@@ -179,8 +180,32 @@ def okx_liqs(c):
     return dict(long=lng, short=sht, n=len(det), hours=(NOW - min(ts)) / 3600 if ts else 0)
 
 
+def positioning(c):
+    """Per-venue, keyless: Binance account long/short ratio, Bybit buy/sell account ratio (4h)."""
+    b = jget(f"https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol={c}USDT&period=4h&limit=1")[-1]
+    y = jget(f"https://api.bybit.com/v5/market/account-ratio?category=linear&symbol={c}USDT&period=4h&limit=1")["result"]["list"][0]
+    return dict(binance_long=float(b["longAccount"]), bybit_long=float(y["buyRatio"]), t=int(b["timestamp"]) / 1000)
+
+
+def coinbase_premium():
+    cb = float(jget("https://api.exchange.coinbase.com/products/BTC-USD/ticker")["price"])
+    bn = float(jget("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT")["price"])
+    return dict(coinbase=cb, binance=bn, premium=cb / bn - 1)
+
+
+def deribit_basis(c):
+    """Annualized basis of the dated future nearest 90 days, mark vs index."""
+    fut = [o for o in jget(f"https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency={c}&kind=future")["result"]
+           if "PERPETUAL" not in o["instrument_name"]]
+    T = lambda o: (dt.datetime.strptime(o["instrument_name"].split("-")[1], "%d%b%y").replace(hour=8, tzinfo=dt.timezone.utc)  # noqa: E731
+                   .timestamp() - NOW) / 31557600
+    o = min((o for o in fut if T(o) > 14 / 365), key=lambda o: abs(T(o) - 90 / 365))
+    return dict(instrument=o["instrument_name"], days=T(o) * 365,
+                basis_ann=(o["mark_price"] / o["estimated_delivery_price"] - 1) / T(o))
+
+
 def perps():
-    D = dict(coins={}, liq={}, errors=[])
+    D = dict(coins={}, liq={}, pos={}, basis={}, errors=[])
     for c in COINS:
         try:
             D["coins"][c] = perps_coin(c)
@@ -191,16 +216,28 @@ def perps():
             D["liq"][c] = okx_liqs(c)
         except Exception as e:  # noqa: BLE001
             D["errors"].append(f"{c} OKX liquidations: {e}")
+        try:
+            D["pos"][c] = positioning(c)
+        except Exception as e:  # noqa: BLE001
+            D["errors"].append(f"{c} long/short: {e}")
+        try:
+            D["basis"][c] = deribit_basis(c)
+        except Exception as e:  # noqa: BLE001
+            D["errors"].append(f"{c} Deribit basis: {e}")
+    try:
+        D["premium"] = coinbase_premium()
+    except Exception as e:  # noqa: BLE001
+        D["premium"] = None; D["errors"].append(f"Coinbase premium: {e}")
     return D
 
 
 def render_perps(D):
-    L = ["| Coin | OI, 3 venues | OI 24h | Bybit / Binance / OKX OI 24h | Funding Bybit / Binance / OKX (per 8h) |",
+    L = ["| Coin | OI, 3 venues | OI 24h (coins) | Bybit / Binance / OKX OI 24h (coins) | Funding Bybit / Binance / OKX (per 8h) |",
          "|---|---|---|---|---|"]
     for c, r in D["coins"].items():
         ok = {v: x for v, x in r.items() if "oi" in x}
         tot = sum(x["oi"] for x in ok.values())
-        prev = sum(x["oi"] / (1 + x["oi_24h"]) for x in ok.values())
+        prev = sum(x["oi"] / (1 + x["oi_24h"]) for x in ok.values())  # same coin on every venue, so a USD weight is fine
         g = lambda v, k, f: f(r[v][k]) if v in ok else "MISSING"  # noqa: E731
         L.append(f"| {c} | ${tot / 1e9:,.2f}bn ({len(ok)}/3) | {pct(tot / prev - 1)} | "
                  + " / ".join(g(v, "oi_24h", pct) for v in ("bybit", "binance", "okx")) + " | "
@@ -212,6 +249,14 @@ def render_perps(D):
         L.append(f"- {c} liquidations, **OKX only**, last {x['hours']:.1f}h ({x['n']} orders): longs ${x['long'] / 1e6:,.2f}m, "
                  f"shorts ${x['short'] / 1e6:,.2f}m.")
     L.append("- Aggregate cross-exchange liquidations: **MISSING** (needs a Coinalyze or CoinGlass key, THE-425).")
+    for c, x in D["pos"].items():
+        L.append(f"- {c} accounts long, 4h to {utc(x['t'])}: Binance {x['binance_long'] * 100:.0f}%, Bybit {x['bybit_long'] * 100:.0f}% "
+                 "(per venue, share of accounts, not size).")
+    for c, x in D["basis"].items():
+        L.append(f"- {c} Deribit basis, {x['instrument']} ({x['days']:.0f}d): {pct(x['basis_ann'])} annualized.")
+    p = D.get("premium")
+    if p:
+        L.append(f"- Coinbase premium (BTC-USD vs Binance BTCUSDT): {pct(p['premium'], 3)}.")
     return L
 
 
@@ -241,8 +286,7 @@ def yahoo(sym):
     return dict(price=m["regularMarketPrice"], t=m["regularMarketTime"], prev=m.get("chartPreviousClose"))
 
 
-FRED = [("SP500", "S&P 500"), ("NASDAQCOM", "Nasdaq Composite"), ("VIXCLS", "VIX"), ("DTWEXBGS", "Broad dollar (Fed, weekly lag)"),
-        ("DGS10", "UST 10y (FRED)")]
+FRED = [("SP500", "S&P 500"), ("NASDAQCOM", "Nasdaq Composite"), ("VIXCLS", "VIX"), ("DTWEXBGS", "Broad dollar (Fed, weekly lag)")]  # 10y comes from Treasury.gov only: FRED DGS10 is the same series a day later
 YAHOO = [("ES=F", "ES (S&P fut)"), ("NQ=F", "NQ (Nasdaq fut)"), ("DX-Y.NYB", "DXY (ICE)"), ("GC=F", "Gold fut")]
 
 
@@ -274,7 +318,7 @@ def render_cross(D):
     for s, name in FRED:
         x = D["fred"].get(s)
         if x:
-            ch = f"{(x['value'] - x['prev']) * 100:+.0f}bp" if s.startswith("DGS") else pct(x["value"] / x["prev"] - 1, 2)
+            ch = pct(x["value"] / x["prev"] - 1, 2)
             L.append(f"- {name}, close {x['date']}: {x['value']:,.2f} ({ch} vs {x['prev_date']}).")
     for s, name in YAHOO:
         x = D["yahoo"].get(s)
@@ -311,16 +355,32 @@ def fed_calendar(days=7):
     return sorted(out, key=lambda x: x["t"])
 
 
+def ff_events():
+    """Forex Factory weekly feed. The JSON often 429s; the XML copy of the same feed is served from cache (times in GMT)."""
+    try:
+        return [dict(e, t=dt.datetime.fromisoformat(e["date"]).timestamp())
+                for e in jget("https://nfs.faireconomy.media/ff_calendar_thisweek.json", tries=1)], "json"
+    except Exception as e:  # noqa: BLE001
+        json_err = e
+    out = []
+    for ev in ElementTree.fromstring(fetch("https://nfs.faireconomy.media/ff_calendar_thisweek.xml").encode("utf-8")).iter("event"):
+        g = lambda k: (ev.findtext(k) or "").strip()  # noqa: E731
+        tm = g("time")
+        if not re.match(r"\d{1,2}:\d{2}[ap]m$", tm):  # "All Day" / "Tentative": keep at 00:00
+            tm = "12:00am"
+        t = dt.datetime.strptime(f"{g('date')} {tm}", "%m-%d-%Y %I:%M%p").replace(tzinfo=dt.timezone.utc).timestamp()
+        out.append(dict(t=t, title=g("title"), country=g("country"), impact=g("impact"), forecast=g("forecast"),
+                        previous=g("previous")))
+    return out, f"xml (json failed: {json_err})"
+
+
 def calendar():
     D = dict(ff=[], fed=[], errors=[])
     try:
-        for e in jget("https://nfs.faireconomy.media/ff_calendar_thisweek.json"):
-            if e["country"] != "USD" or e["impact"] not in ("High", "Medium"):
-                continue
-            t = dt.datetime.fromisoformat(e["date"]).timestamp()
-            if t >= NOW - 12 * 3600:
-                D["ff"].append(dict(t=t, title=e["title"], impact=e["impact"], forecast=e.get("forecast"), previous=e.get("previous")))
-        D["ff"].sort(key=lambda x: x["t"])
+        evs, D["ff_src"] = ff_events()
+        D["ff"] = sorted((dict(t=e["t"], title=e["title"], impact=e["impact"], forecast=e.get("forecast"), previous=e.get("previous"))
+                          for e in evs if e["country"] == "USD" and e["impact"] in ("High", "Medium") and e["t"] >= NOW - 12 * 3600),
+                         key=lambda x: x["t"])
     except Exception as e:  # noqa: BLE001
         D["ff"] = None; D["errors"].append(f"Forex Factory feed: {e}")
     try:
@@ -336,9 +396,13 @@ def render_calendar(D):
         L += [f"- {utc(e['t'])} **{e['title']}** ({e['impact']})" + (f", cons. {e['forecast']}" if e["forecast"] else "")
               + (f", prev. {e['previous']}" if e["previous"] else "") for e in D["ff"]] or [
             "- None left this week. The feed covers Sun–Sat only, so on a Saturday next week's releases are **MISSING**."]
+    else:
+        L.append("- **MISSING**: Forex Factory JSON and XML both failed (see Missing below). This is not \"no releases\".")
     L.append("\n**Fed** (federalreserve.gov, next 7 days):")
     if D["fed"] is not None:
         L += [f"- {utc(e['t'])} {e['title']}" for e in D["fed"]] or ["- None listed."]
+    else:
+        L.append("- **MISSING**: federalreserve.gov failed (see Missing below).")
     return L
 
 
@@ -369,7 +433,8 @@ def render_unlocks(D):
          for u in sorted(big, key=lambda x: x["t"])]
     return (L or ["- None ≥ $5m or ≥ 5% of mcap in the next 7 days."]) + [
         "", f"CoinGecko unlocks page (secondary source, cliff unlocks only, {len(D)} rows in the next 7 days). "
-            "Primary-source check (Tokenomist) is MISSING: it needs a paid key (THE-425)."]
+            "Primary-source check (Tokenomist) is MISSING: it needs a paid key (THE-425)."] + (
+        ["**The page shows 50 rows at most and hit that cap, so later unlocks this week may be cut off.**"] if len(D) >= 50 else [])
 
 
 # ---------------------------------------------------------------- On-chain (Coin Metrics community, mempool.space)
@@ -411,7 +476,7 @@ RSS = [("CoinDesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"), ("The Bl
        ("Cointelegraph", "https://cointelegraph.com/rss")]
 
 
-def news(hours=12, n=8):
+def news(hours=18, n=8):  # 18h: the 06:00Z brief reads back to 14:00Z the day before
     out, errs = {}, []
     for name, url in RSS:
         try:
@@ -435,7 +500,7 @@ def render_news(D):
     for name, items in D.items():
         if name == "_errors":
             continue
-        L.append(f"- **{name}** ({len(items)} in 12h): " + (" · ".join(f"{utc(i['t'])[11:]} {i['title']}" for i in items) or "none"))
+        L.append(f"- **{name}** ({len(items)} in 18h): " + (" · ".join(f"{utc(i['t'])[11:]} {i['title']}" for i in items) or "none"))
     return L
 
 
